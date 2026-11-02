@@ -1,26 +1,32 @@
 import type { RefObject } from "react";
-import { buttonContent } from "@/lib/lab/button";
+import { templates } from "@/lib/lab/templates";
 import type { ViewMode } from "@/lib/lab/types";
 import { ButtonTemplate } from "./ButtonTemplate";
+import { ToastTemplate } from "./ToastTemplate";
+import { BentoTemplate } from "./BentoTemplate";
 import type { PartMotion } from "./SharedPart";
 
-export function RenderPane({ mode, contentRef, ...motion }: PartMotion & {
+export function RenderPane({ mode, contentRef, templateId = "button", ...motion }: PartMotion & {
   mode: ViewMode; contentRef: RefObject<HTMLDivElement | null>;
 }) {
-  return <section className="render-pane pane" aria-labelledby="preview-heading">
+  const template = templates[templateId];
+  return <section className="render-pane pane" aria-labelledby="preview-heading" data-view-mode={mode}>
     <div className="pane-ground render-ground" aria-hidden="true" />
     <h2 id="preview-heading" className="preview-heading">Component preview</h2>
     <figure className="preview-figure">
-      <div className="preview-content" ref={contentRef}>
+      <div className={`preview-content${templateId === "bento" ? " @container" : ""}`} ref={contentRef}>
+        <div className="stage-registration" aria-hidden="true" />
         <div className="preview-illustration" role={mode === "rendered" ? "img" : undefined}
-          aria-label={mode === "rendered" ? buttonContent.description : undefined}>
-          <ButtonTemplate active={mode === "rendered"} {...motion} />
+          aria-label={mode === "rendered" ? template.description : undefined}>
+          {templateId === "button" ? <ButtonTemplate active={mode === "rendered"} {...motion} />
+            : templateId === "toast" ? <ToastTemplate active={mode === "rendered"} {...motion} />
+              : <BentoTemplate active={mode === "rendered"} {...motion} />}
         </div>
         <p className="preview-instruction" data-visible={mode === "code"} aria-hidden={mode !== "code"}>
           Choose Morph to see these pieces become a component.
         </p>
       </div>
-      <figcaption>Example component · not interactive</figcaption>
+      <figcaption>{template.caption}</figcaption>
     </figure>
   </section>;
 }
