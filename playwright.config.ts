@@ -5,15 +5,15 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://127.0.0.1:4173",
     viewport: { width: 1440, height: 900 },
     reducedMotion: "no-preference",
     video: "on",
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run start -- --hostname 127.0.0.1",
-    url: "http://localhost:3000",
-    reuseExistingServer: true,
+    command: "npm run start -- --hostname 127.0.0.1 --port 4173",
+    url: "http://127.0.0.1:4173",
+    reuseExistingServer: false,
   },
 });

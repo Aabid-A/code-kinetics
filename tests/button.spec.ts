@@ -31,7 +31,7 @@ async function box(page: Page, selector: string) {
 }
 
 test("state, exact authored source and mapping contract", () => {
-  expect(initialState).toEqual({ activeTemplate: "button", viewMode: "code" });
+  expect(initialState).toEqual({ activeTemplate: "button", viewMode: "code", soundEnabled: false });
   expect(transition(transition(initialState, { type: "MORPH" }), { type: "MORPH" })).toEqual(initialState);
   expect(transition(initialState, { type: "SET_VIEW", mode: "code" })).toBe(initialState);
   expect(buttonSource).toBe("<Button\n  icon={<ArrowUpRight />}\n>\n  Explore\n</Button>");
