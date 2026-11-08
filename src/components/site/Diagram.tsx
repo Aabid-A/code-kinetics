@@ -17,11 +17,11 @@ function Tag({ x, y, width, text, accent = false }: { x: number; y: number; widt
 
 export function Diagram() {
   return <figure className="diagram" aria-labelledby="diagram-caption">
-    <svg className="diagram-wide" viewBox="0 0 1000 380" aria-hidden="true" focusable="false">
+    <svg className="diagram-wide" viewBox="0 0 1000 314" aria-hidden="true" focusable="false">
       <text className="dg-eyebrow" x="24" y="26">Source token</text>
       <text className="dg-eyebrow" x="596" y="26">Destination slot</text>
-      <rect className="dg-line" x="24" y="44" width="380" height="312" rx="18" />
-      <rect className="dg-line" x="596" y="44" width="380" height="312" rx="18" />
+      <rect className="dg-line" x="24" y="44" width="380" height="250" rx="18" />
+      <rect className="dg-line" x="596" y="44" width="380" height="250" rx="18" />
       <g className="dg-mono dg-code">
         <text x="52" y="110">{"<Button"}</text>
         <text x="52" y="146" xmlSpace="preserve">{"  icon={<ArrowUpRight />}"}</text>
@@ -39,7 +39,7 @@ export function Diagram() {
       <path className="dg-line" d="M838 202 L854 186 M842 186 H854 V198" />
       <path className="dg-line dg-accent-line" d="M114.8 105 C 330 105, 420 190, 700 190" />
       <path className="dg-line" d="M179 129 C 179 84, 214 72, 270 72 H 830 Q 846 72 846 88 V 178" />
-      <path className="dg-line" d="M132.2 213 C 330 300, 640 300, 758 204" />
+      <path className="dg-line" d="M132.2 213 C 330 272, 640 272, 758 204" />
       <circle className="dg-dot dg-accent-fill" cx="114.8" cy="105" r="3.5" />
       <circle className="dg-dot dg-accent-fill" cx="700" cy="190" r="3.5" />
       <circle className="dg-dot" cx="179" cy="129" r="3.5" />
@@ -48,7 +48,7 @@ export function Diagram() {
       <circle className="dg-dot" cx="758" cy="204" r="3.5" />
       <Tag x={435} y={160} width={118} text={pairs[0].name} accent />
       <Tag x={560} y={72} width={104} text={pairs[1].name} />
-      <Tag x={475} y={277} width={110} text={pairs[2].name} />
+      <Tag x={475} y={256} width={110} text={pairs[2].name} />
     </svg>
 
     <svg className="diagram-narrow" viewBox="0 0 360 520" aria-hidden="true" focusable="false">

@@ -23,7 +23,8 @@ test("the page has five chapters with eyebrows, serif titles and one caption eac
     await expect(chapter.getByRole("heading", { level: 2 })).toHaveCount(1);
     await expect(chapter.locator(".chapter-caption")).toHaveCount(1);
   }
-  await expect(page.locator(".eyebrow")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — How it knows", "05 — Your turn"]);
+  await expect(page.locator(".chapter .eyebrow")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — How it knows", "05 — Your turn"]);
+  await expect(page.locator(".opening .eyebrow")).toHaveText("An interactive explainer in five short chapters");
   // Exactly one accent full stop in the headline.
   await expect(page.locator(".opening-title .stop")).toHaveText(".");
   // Chapter 03 flips: its sheet is left of its text; the others have the text on the left.
@@ -77,45 +78,18 @@ test("the code sheet is top-aligned and the lab keeps its size when it morphs", 
   }
 });
 
-test("chapter index: five links, aria-current follows the chapter in view, and it never covers a lab control", async ({ page }) => {
-  for (const height of [900, 700]) {
-    await page.setViewportSize({ width: 1440, height });
-    await page.goto("/");
-    await expect(index(page).locator("a")).toHaveCount(5);
-    expect(await index(page).evaluate(nav => getComputedStyle(nav).position)).toBe("fixed");
-    // On a viewport shorter than 900 px it also hides while it would sit over any lab sheet (the Button sheet at the top).
-    await expect.poll(() => index(page).evaluate(nav => nav.hasAttribute("data-hidden"))).toBe(height < 900);
-    for (const id of ids) {
-      await page.evaluate(target => document.getElementById(target)!.scrollIntoView({ block: "start" }), id);
-      await page.evaluate(() => new Promise(requestAnimationFrame));
-      await expect(index(page).locator("a[aria-current]")).toHaveCount(1);
-      await expect(index(page).locator("a[aria-current]")).toHaveAttribute("href", `#${id}`);
-    }
-    // Scroll through the page in small steps: whenever the index is visible it overlaps no lab control.
-    const covered = await page.evaluate(async () => {
-      const nav = document.querySelector<HTMLElement>(".chapter-index")!;
-      const hits: string[] = [];
-      for (let y = 0; y < document.documentElement.scrollHeight; y += 120) {
-        window.scrollTo(0, y);
-        await new Promise(requestAnimationFrame);
-        await new Promise(requestAnimationFrame);
-        if (getComputedStyle(nav).visibility === "hidden") continue;
-        const mine = nav.getBoundingClientRect();
-        for (const control of document.querySelectorAll(".lab button, .lab summary, .prompt-bar input, .prompt-bar button")) {
-          const box = control.getBoundingClientRect();
-          if (box.width && box.bottom > mine.top && box.top < mine.bottom && box.right > mine.left && box.left < mine.right) hits.push(`${y}:${control.textContent}`);
-        }
-      }
-      return hits;
-    });
-    expect(covered).toEqual([]);
-  }
-  // Links jump to their chapter.
+test("contents: five labelled links in the page flow under the opening, each jumping to its chapter", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "Chapters" })).toBeVisible(); // named landmark, visible on the first screen
-  await index(page).getByRole("link", { name: /^03/ }).click();
+  const nav = page.getByRole("navigation", { name: "Chapters" });
+  await expect(nav).toBeVisible(); // a named landmark on the first screen
+  await expect(index(page).locator("a")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — How it knows", "05 — Your turn"]);
+  // It never floats, so it can never cover an example or a control.
+  expect(await index(page).evaluate(element => getComputedStyle(element).position)).toBe("static");
+  for (const link of await index(page).locator("a").all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await index(page).getByRole("link", { name: /Bento/ }).click();
   await expect(page).toHaveURL(/#bento$/);
+  await expect.poll(() => page.evaluate(() => Math.round(document.getElementById("bento")!.getBoundingClientRect().top))).toBeLessThan(80);
 });
 
 test("below 1024 px the index is a plain inline list and the drafting rules are gone", async ({ page }) => {
