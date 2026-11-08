@@ -10,11 +10,11 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }) => { expect(browserErrors.get(page)).toEqual([]); });
 
-const ids = ["button", "toast", "bento", "how-it-knows", "your-turn"];
+const ids = ["button", "toast", "bento", "card-to-page", "how-it-knows", "your-turn"];
 // A CSS locator: while the index hides itself over a control it is `visibility: hidden`, which role queries skip.
 const index = (page: Page) => page.locator('nav[aria-label="Chapters"]');
 
-test("the page has five chapters with eyebrows, serif titles and one caption each", async ({ page }) => {
+test("the page has six chapters with eyebrows, serif titles and one caption each", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Code has a shape.");
   for (const [position, id] of ids.entries()) {
@@ -23,8 +23,8 @@ test("the page has five chapters with eyebrows, serif titles and one caption eac
     await expect(chapter.getByRole("heading", { level: 2 })).toHaveCount(1);
     await expect(chapter.locator(".chapter-caption")).toHaveCount(1);
   }
-  await expect(page.locator(".chapter .eyebrow")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — How it knows", "05 — Your turn"]);
-  await expect(page.locator(".opening .eyebrow")).toHaveText("An interactive explainer in five short chapters");
+  await expect(page.locator(".chapter .eyebrow")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — Card to page", "05 — How it knows", "06 — Your turn"]);
+  await expect(page.locator(".opening .eyebrow")).toHaveText("An interactive explainer in six short chapters");
   // Exactly one accent full stop in the headline.
   await expect(page.locator(".opening-title .stop")).toHaveText(".");
   // Chapter 03 flips: its sheet is left of its text; the others have the text on the left.
@@ -78,12 +78,12 @@ test("the code sheet is top-aligned and the lab keeps its size when it morphs", 
   }
 });
 
-test("contents: five labelled links in the page flow under the opening, each jumping to its chapter", async ({ page }) => {
+test("contents: six labelled links in the page flow under the opening, each jumping to its chapter", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Chapters" });
   await expect(nav).toBeVisible(); // a named landmark on the first screen
-  await expect(index(page).locator("a")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — How it knows", "05 — Your turn"]);
+  await expect(index(page).locator("a")).toHaveText(["01 — Button", "02 — Toast", "03 — Bento", "04 — Card to page", "05 — How it knows", "06 — Your turn"]);
   // It never floats, so it can never cover an example or a control.
   expect(await index(page).evaluate(element => getComputedStyle(element).position)).toBe("static");
   for (const link of await index(page).locator("a").all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -163,7 +163,7 @@ test("chapter 04 draws one diagram per width, decorative, with a text equivalent
   }
 });
 
-test("Try your own: the prompt sits in chapter 05 and the generated lab appears beneath it", async ({ page }) => {
+test("Try your own: the prompt sits in chapter 06 and the generated lab appears beneath it", async ({ page }) => {
   await page.route("**/api/generate", route => route.fulfill({ json: { spec: { name: "Card", teaching: "The name becomes the card.", layout: "single",
     cards: [{ tag: "Card", texts: [{ element: "Title", style: "title", text: "Hello" }] }] } } }));
   await page.goto("/");

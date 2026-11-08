@@ -107,8 +107,8 @@ test("960 px is split and 959 px is stacked, with one layout tree, the same focu
     }
   }
   // Page order: the page-level Sound control, the chapter index, then each chapter's View group, Morph action and disclosure.
-  expect(orders[0]).toEqual(["button:Sound off", "a:01 — Button", "a:02 — Toast", "a:03 — Bento", "a:04 — How it knows", "a:05 — Your turn",
-    "radio:Code", "button:Morph to component", "summary:How the pieces match", "radio:Code", "button:Morph to component", "summary:How the pieces match"]);
+  expect(orders[0]).toEqual(["button:Sound off", "a:01 — Button", "a:02 — Toast", "a:03 — Bento", "a:04 — Card to page", "a:05 — How it knows",
+    "a:06 — Your turn", "radio:Code", "button:Morph to component", "summary:How the pieces match", "radio:Code", "button:Morph to component"]);
   expect(orders[1]).toEqual(orders[0]);
 });
 

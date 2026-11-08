@@ -1,6 +1,7 @@
 import { Lab } from "@/components/lab/Lab";
 import { LabErrorBoundary } from "@/components/lab/LabErrorBoundary";
 import { TryOwn } from "@/components/lab/TryOwn";
+import { CardToPage } from "@/components/site/CardToPage";
 import { Chapter } from "@/components/site/Chapter";
 import { ChapterIndex } from "@/components/site/ChapterIndex";
 import { Diagram } from "@/components/site/Diagram";
@@ -33,12 +34,17 @@ export default function Home() {
             caption="Notice ten pieces arriving at once; narrow the window and the cards stack in the same order.">
             <Lab id="bento" />
           </Chapter>
-          <Chapter id="how-it-knows" number="04" label="How it knows" layout="stacked"
+          <Chapter id="card-to-page" number="04" label="Card to page"
+            title={<>A card <em>opens</em> into a page</>}
+            caption="This is the motion you meet in real apps. Choose a project: its cover, title and tag keep their names, so they travel from the card into the page instead of being drawn again.">
+            <CardToPage />
+          </Chapter>
+          <Chapter id="how-it-knows" number="05" label="How it knows" layout="stacked"
             title={<>How it <em>knows</em></>}
             caption="Each piece has the same name in the code and in the component, and the engine moves it along the line between them.">
             <div className="diagram-sheet"><Diagram /></div>
           </Chapter>
-          <Chapter id="your-turn" number="05" label="Your turn"
+          <Chapter id="your-turn" number="06" label="Your turn"
             title={<>Try your <em>own</em></>}
             caption="Describe a small component and the lab builds a matching example from validated data. No code is compiled or run.">
             <TryOwn />
