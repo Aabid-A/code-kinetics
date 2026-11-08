@@ -39,8 +39,8 @@ src/components/lab/
   Lab.tsx                     # Client entry: state, commands, motion runs, sound wiring, status
                               #   announcements, mapping explanation and disclosure (inline)
   LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
-  Header.tsx                  # Example select, Sound select, Morph button (native controls)
-  ModeControl.tsx             # View radios (native)
+  Header.tsx                  # Example listbox trigger and popup, Sound pill button, Morph button
+  ModeControl.tsx             # View radiogroup (custom ARIA radios, roving tabIndex)
   CodePane.tsx                # Authored lines, source slots, accessible source
   RenderPane.tsx              # Destination frame and described illustration
   SharedPart.tsx              # Shared layout identity and movement policy
@@ -57,6 +57,7 @@ src/lib/lab/
 tests/
   button.spec.ts              # Button state, motion, responsive, reduced-motion and no-JS checks
   templates.spec.ts           # Mappings, selection, Toast/Bento motion, layouts
+  controls.spec.ts            # Keyboard and ARIA contracts of Example, View and Sound
   failure.spec.ts             # Sound unavailable and error-boundary behavior
 playwright.config.ts          # Serves the production build on 127.0.0.1:4173; never reuses a server
 ```
@@ -194,7 +195,7 @@ No custom server is needed. Standard Next.js hosting is sufficient; a static exp
 ## Implementation sequence and gates
 
 1. **Resolve dependencies and prototype Button.** Verify same-commit cross-pane handoff, reverse during flight, no clipping, and position-only label behavior with the chosen versions. Failure blocks expanding the system.
-2. **Establish state and semantic UI.** Pure command function, deterministic initial render, native controls, code accessibility, and described preview.
+2. **Establish state and semantic UI.** Pure command function, deterministic initial render, semantic controls, code accessibility, and described preview.
 3. **Add exact authored registries and all previews.** Validate the 3/4/10 maps and shared copy.
 4. **Apply responsive layout and visual tokens.** Verify stacked panes, target containers, source wrapping, and 320 px reflow.
 5. **Add lifecycle safeguards and optional audio.** Reduced motion, offscreen fallback, cancellation, sound readiness and failure.

@@ -11,7 +11,7 @@ An interaction-design and frontend engineering case study in spatial continuity.
 - **Interruptible springs:** reverse a moving morph; the latest requested mode wins.
 - **Independent surfaces and content:** Toast's four parts move together without stretching its text or icon.
 - **Responsive composition:** split panes become a vertical stack on narrow screens; Bento reflows through CSS Grid container queries.
-- **Accessible interaction:** native controls, visible focus, readable mapping explanations, and a reduced-motion alternative.
+- **Accessible interaction:** custom listbox, radiogroup and pill controls with full keyboard support, visible focus, readable mapping explanations, and a reduced-motion alternative.
 
 ## How the morphing works
 
@@ -73,7 +73,7 @@ Playwright starts its own production server (`npm run start`) on `127.0.0.1:4173
 
 ## Accessibility and motion behavior
 
-Template and sound preferences use native selects; Code / Component uses a labelled native radio group. Controls support keyboard navigation and visible focus. Focus stays on the initiating control during a morph.
+Example is a button that opens a custom listbox (Arrow keys, Home/End, typeahead, Enter/Space to choose, Escape to cancel); Code / Component is an ARIA radiogroup with roving tab index and arrow-key selection; Sound is a pill button with `aria-pressed`. Controls support keyboard navigation and visible focus. Focus stays on the initiating control during a morph.
 
 Assistive technology receives a complete source sample, a preview description, and polite view-change announcements. “How the pieces match” explains correspondence without requiring motion or syntax color.
 
@@ -81,7 +81,7 @@ Reduced motion commits directly to the requested endpoint without spatial travel
 
 ## Project status and scope
 
-All three visual templates and the controls described above are implemented. The 16-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux), covering continuity, ownership, keyboard controls, cancellation, and layouts at 1440px, 1024px, 390px, and 320px. Firefox, Safari, physical devices, and manual screen-reader review remain unverified; this is not an accessibility certification.
+All three visual templates and the controls described above are implemented. The 22-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux), covering continuity, ownership, keyboard controls, cancellation, and layouts at 1440px, 1024px, 390px, and 320px. Firefox, Safari, physical devices, and manual screen-reader review remain unverified; this is not an accessibility certification.
 
 Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; if the cue cannot load, is unsupported or `play()` is rejected, the morph keeps working silently, the preference stays on, and "Sound unavailable" is shown and announced once; turning Sound off and on again retries. **The expected `public/audio/morph.mp3` asset is not included; audible delivery and the final Foley cue's listening review are incomplete.**
 

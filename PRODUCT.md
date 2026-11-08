@@ -2,7 +2,7 @@
 
 Secondary name: **Code-to-Component Morph Engine**.
 
-Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromium results, and everything not yet run, are recorded in [QA.md](QA.md) "Current results". Open items: the header controls do not match SPEC R03 or DESIGN.md (see SPEC.md "Open items"), and `public/audio/morph.mp3` is not shipped.
+Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromium results, and everything not yet run, are recorded in [QA.md](QA.md) "Current results". Open items are listed at the end of [SPEC.md](SPEC.md); the main one is that `public/audio/morph.mp3` is not shipped.
 
 <!-- impeccable:product-schema 1 -->
 
@@ -91,7 +91,7 @@ The audience and core stack come from the brief and follow-up answer. The follow
 | Template changes reset to code | Establish a fresh starting point and avoid misleading cross-template continuity |
 | No persistence, including sound | Reproducible initial load and no browser-storage complexity |
 | Static rendered previews | Keep learning focused on the morph, without unrelated application state |
-| Native select, radio controls, disclosure | Familiar semantics and a small dependency footprint |
+| Custom listbox, ARIA radiogroup, pill Sound button; native disclosure | DESIGN.md "Custom controls" supersedes the earlier native select and radio decision; the disclosure stays native |
 | Simultaneous, fixed-duration movement | Easier comparison and cancellation than a staged timeline |
 | English content in v1 | Bound the authored examples; retain wrapping and zoom support |
 

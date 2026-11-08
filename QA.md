@@ -11,7 +11,7 @@ Environment: Linux 6.18.44, Node v22.23.4, Playwright 1.64.1, Chrome for Testing
 | `npm run lint` | Pass |
 | `npm run typecheck` | Pass |
 | `npm run build` | Pass |
-| `npx playwright test` | 16 of 16 passed (`button.spec.ts` 7, `templates.spec.ts` 7, `failure.spec.ts` 2) |
+| `npx playwright test` | 22 of 22 passed (`button.spec.ts` 7, `controls.spec.ts` 6, `failure.spec.ts` 2, `templates.spec.ts` 7) |
 
 Repeat-run note: before the change, the Bento "continuous forward/reverse" test failed in 4 of 11 repeat runs, each time on the assertion that a sampled frame shows the surface straddling the pane divider. The surface does straddle it (the window covers 13–26% of spring progress); a headless browser renders roughly 35–48 frames per second with gaps up to 87 ms, so samples could miss the window. The assertion now also tests the path between consecutive sampled frames, and still requires the straddle. After that change the group (Toast and Bento) was run 75 more times and 3 runs failed: one on a different sampling-dependent assertion (a frame with spring progress between 0.35 and 0.7, "midway" in `templates.spec.ts`), and two whose failing assertion was not captured, so it is unknown whether they involved the divider check. Treat this test as intermittently flaky in a headless container; the cause of the two uncaptured failures is unresolved.
 
@@ -21,11 +21,11 @@ Automated checks cover only what is listed in each row. Everything else in the c
 | --- | --- | --- | --- |
 | Q01 Initial load | Partial | Server-rendered Button source, disabled Morph and the no-JS notice; initial state value; every test fails on console errors or hydration messages | Reload after changing state, blocked storage, development Strict Mode |
 | Q02 State contract | Partial | Initial state; Morph twice restores; same-view no-op; Select template and Toggle sound over all 12 states | Invalid-input diagnostic; stale callback and audio-result assertions |
-| Q03 Controls | Partial | Radio arrow keys; focus stays on Morph; native select changes | Full Tab-order walk, touch-target sizes, status-text consistency. Controls differ from DESIGN.md (open item) |
+| Q03 Controls | Partial | Example listbox ARIA attributes, open/navigate/typeahead/commit/cancel/Tab/outside-click, options not in Tab order; View radiogroup roving tabindex, arrows with wrap, Home/End, Space/Enter, click; Sound pill name, `aria-pressed`, Enter/Space; 44 px targets at 1440 and 390 px; popup inside the viewport; no native select or radio inputs | Full page Tab-order walk with the disclosure, status-text consistency, screen-reader announcements, forced colors |
 | Q04 Content and identity | Partial | 3/4/10 parts; exact sources; one owner per identity in each settled state | Two-instance isolation fixture |
 | Q05 Continuous movement | Partial | Sampled geometry for Button, Toast and Bento: travel, hit-testing, unscaled text and icons, reverse, interruption | Filmstrips and recordings review, 1 px endpoint comparison at all states, contrast over both grounds |
 | Q06 Responsive layout | Partial | 1440, 1024, 390 and 320 px: no horizontal overflow; 390 px offscreen fallback; stacked vertical travel; Bento 360 px threshold | 960/959, 768, 844 × 390, 200%/400% zoom, forced colors |
-| Q07 Rapid input | Partial | Morph × 6 at 100 ms and 30 ms spacing; radio sequence; template selection cancels flights | The other sequences in the table; the two-second stale-state check |
+| Q07 Rapid input | Partial | Morph × 6 at 100 ms and 30 ms spacing; radiogroup sequence; template selection (keyboard and pointer) cancels flights; selection and Morph in the same tick | The other sequences in the table; the two-second stale-state check |
 | Q08 Environment changes | Partial | Resize, scroll and reduced-motion toggle during flight | Orientation, zoom, tab hiding, unmount and Strict Mode cleanup |
 | Q09 Accessibility | Partial | Reduced motion removes transforms for all templates | Automated accessibility scan, screen readers, contrast measurement, forced colors, keyboard walk-through |
 | Q10 Sound | Partial | Missing asset: one visible and announced "Sound unavailable", preference kept, silent morph, retry only after off then on | Any audible cue (no asset exists), autoplay policy, real mobile browsers, rapid reversal and playback-stop rows, listening review |
@@ -107,7 +107,7 @@ Inspect that AppState has exactly the three specified fields. Tests should verif
 
 ## Q03 — Controls and navigation
 
-Use keyboard only from page entry. Tab through Example, Sound, Morph, the View radio group, and the disclosure in logical DOM order. Confirm native select keys, radio arrow keys, Space, and Enter behave normally. There must be no trap and no keyboard stop on decorative dots, code tokens, line numbers, or preview artwork.
+Use keyboard only from page entry. Tab through Example, Sound, Morph, the View radio group, and the disclosure in logical DOM order. Confirm the Example listbox keys, View radiogroup arrow keys, Space, and Enter behave as SPEC R03 specifies. There must be no trap and no keyboard stop on decorative dots, code tokens, line numbers, or preview artwork.
 
 For each action, verify selector value, checked radio, Morph label, visible endpoint, and status message all describe the same latest state. Focus remains on the initiating control through normal movement, reversal, template reset, reduced motion, and geometry cancellation. Morph must stay operable while pieces are moving. The action text must not change header geometry enough to move the lab.
 

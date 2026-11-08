@@ -40,12 +40,12 @@ Only these commands change AppState. Use the latest state when applying commands
 | Element | Visible content | Behavior and semantics |
 | --- | --- | --- |
 | Identity | Spatial DOM Transition Lab | Main heading; secondary name on a subordinate line |
-| Template selector | Label “Example”; Button, Toast, Bento | Native select; selection commits immediately |
-| Sound toggle | “Sound off” / “Sound on” plus Lucide volume icon | Native button with stable accessible name “Sound”, `aria-pressed` follows preference |
+| Template selector | Trigger “Example: Button” / “Example: Toast” / “Example: Bento” with a chevron; options Button, Toast, Bento | Custom single-select listbox per DESIGN.md "Template selector": `aria-haspopup`, `aria-expanded`, `aria-controls`, focusable listbox with `aria-activedescendant`; selection commits on Enter, Space or pointer click |
+| Sound toggle | “Sound off” / “Sound on” plus Lucide volume icon | Pill `<button>` with stable accessible name “Sound”, `aria-pressed` follows preference |
 | Morph action | “Morph to component” in code; “Morph to code” in rendered | Native button; text reflects the next destination immediately after each command |
-| Mode selector | “Code” / “Component” | Native radios in a labelled “View” fieldset, visually segmented; values `code` / `rendered` |
+| Mode selector | “Code” / “Component” | Custom `role="radiogroup"` labelled “View” containing two `<button role="radio">` with `aria-checked` and roving `tabIndex`; values `code` / `rendered` |
 
-Both mode controls dispatch the same state commands. No global letter-key shortcuts in v1. Native Enter, Space, select keys, radio arrow keys, and Tab work normally. Morph remains enabled during animation. Pointer press styling is cosmetic and must not change the moving lab's geometry.
+Both mode controls dispatch the same state commands. No global letter-key shortcuts in v1. The Example listbox: Enter, Space or Arrow Down opens on the selected option; Up/Down/Home/End move the active option and typeahead finds one; Enter or Space commits and returns focus to the trigger; Escape cancels and returns focus; Tab closes without committing; pointer dismissal keeps the clicked target's focus. The View radiogroup: only the selected option is in the Tab order; Arrow keys move and select with wrapping, Home/End select first/last, Space or Enter selects the focused option. Tab, Enter and Space on buttons work normally. Morph remains enabled during animation. Pointer press styling is cosmetic and must not change the moving lab's geometry.
 
 Focus stays on the control that initiated the change. Template selection does not send focus to the code. The preview has no focusable mock controls; unmounting it cannot strand focus.
 
@@ -208,6 +208,6 @@ All content and mappings above are fixed. Six template/mode endpoint combination
 
 ## Open items (8 November 2026)
 
-1. **Header controls do not match this document or DESIGN.md.** R03 specifies a native select for Example, a native `<button>` with `aria-pressed` for Sound, and native radios for View. DESIGN.md "Custom controls — mandatory" forbids `<select>` and native radios and requires a custom listbox, an ARIA radiogroup and a pill Sound button. The code uses a native `<select>` for Example **and** for Sound, and native radios for View. It matches neither document, and Sound deviates from R03. Unresolved; the planned resolution follows DESIGN.md and will update R03.
+1. **Header controls: resolved 8 November 2026.** Example, View and Sound now follow DESIGN.md "Custom controls" and R03 above; no native `<select>` or radio input remains.
 2. **No audio asset.** `public/audio/morph.mp3` does not exist, so no cue can play. Sound on shows and announces "Sound unavailable" once (R09), and the morph stays silent. Audible delivery and the listening review are not done.
 3. **Registry invariant failures (R11).** `validateTemplate` runs when `templates.ts` is imported. A React error boundary catches render and effect exceptions, not module-evaluation errors, so whether a failed invariant reaches the fallback in production is unverified.

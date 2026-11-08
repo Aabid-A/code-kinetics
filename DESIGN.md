@@ -279,5 +279,5 @@ This revision changes the visual acceptance criteria for fonts, materials, and c
 
 ## Implementation notes and open items (8 November 2026)
 
-- **Custom controls: not implemented (open).** The header uses a native `<select>` for Example and Sound and native radios for View, which this document forbids. See SPEC.md "Open items".
+- **Custom controls: implemented 8 November 2026.** Example is a button trigger with a custom listbox, View is a custom ARIA radiogroup with roving `tabIndex`, and Sound is a pill button with `aria-pressed`; no native `<select>` or radio input remains. Keyboard behavior is covered by `tests/controls.spec.ts`. Contrast, forced-colors and screen-reader behavior of the new controls are not verified. Morph styling was not changed in this pass.
 - **Fonts.** The code loads Geist and Geist Mono from the `geist` package (`geist/font/sans`, `geist/font/mono`), which supplies the font files locally, instead of `next/font/google`. This is treated as the local-font fallback that Typography allows when build-time downloading is not used; the family is unchanged and the variables are `--font-geist-sans` and `--font-geist-mono`. Visual verification of the applied fonts is not done.
