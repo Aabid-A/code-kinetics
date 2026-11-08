@@ -2,7 +2,7 @@
 
 Spatial DOM Transition Lab, branch `claude/jolly-hopper-ffu1aq`, 8 November 2026.
 
-Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Everything below needs a person: an owner's decision, an asset, or testing that automation in this environment cannot do. Only "A1 Sound file" is done. Tick an item only with its evidence recorded in QA.md, and fill in its owner.
+Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Everything below needs a person: an owner's decision, an asset, or testing that automation in this environment cannot do. "A1 Sound file" and "A2 Generate decision" are done. Tick an item only with its evidence recorded in QA.md, and fill in its owner.
 
 ## A — Owner items
 
@@ -10,7 +10,13 @@ Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Ever
   - Owner: the project
 - [ ] **A1 Listening review.** With the file in place, run the QA.md Q10 table on headphones and speakers at moderate volume: no clipping or startling transient, and perceived loudness reviewed (0.15 volume is only a starting value).
   - Owner:
-- [ ] **A3 Merge decision and pull request.** Decide whether `claude/jolly-hopper-ffu1aq` goes to `main`, then open and review the pull request. The generate-feature decisions (SHIP_GENERATE, USE_GEMINI) are still undecided, and that work is not on this branch.
+- [x] **A2 Generate decision.** Ship the optional generator in chapter 05, backed by Google Gemini (decided 8 November 2026; SPEC R13).
+  - Owner: the project owner
+- [ ] **A2 Key on the host.** Set `GEMINI_API_KEY` (and optionally `GENERATE_DAILY_CAP`) in the hosting provider's environment settings, never in the repository. Then run QA.md Q13's "not run" checks against the deployed site.
+  - Owner:
+- [ ] **A2 Billing alert.** Set a budget or billing alert for the Gemini API project in Google AI Studio / Cloud Billing; the in-app limits are per server instance.
+  - Owner:
+- [ ] **A3 Merge decision and pull request.** Decide whether `claude/jolly-hopper-ffu1aq` goes to `main`, then open and review the pull request. The generate feature (Gemini) is on this branch.
   - Owner:
 - [ ] **A4 Hosting.** Choose the hosting target and deploy. Standard Next.js hosting is sufficient ([ARCHITECTURE.md](ARCHITECTURE.md) "Performance and delivery").
   - Owner:

@@ -205,9 +205,27 @@ Honor `prefers-reduced-motion`: no spatial travel, scaling, stagger, or overshoo
 
 No network request, fake build delay, loading percentage, or compilation status belongs to a normal morph.
 
+## R13 — Optional generation (chapter 05)
+
+Added 8 November 2026. A learner types a short description (1–200 characters) and receives one generated lab, built from data, never from code.
+
+| Concern | Required behaviour |
+| --- | --- |
+| Endpoint | `POST /api/generate` with JSON `{ "prompt": string }`; responds `{ "spec": GeneratedSpec }` or `{ "error": string }`. Other methods are not routed. |
+| Provider | Google Gemini through `@google/genai` `interactions.create` with structured output (`response_format` JSON schema = `specSchema`). Model from `GEMINI_MODEL`, default `gemini-3.8-flash`; thinking level low; 2048 output tokens; no SDK retries. |
+| Key | Server-only `GEMINI_API_KEY`. Never sent to the client, logged or committed. Without it the route answers 503 “Generation is not configured…” and the chapter shows that message inline; the fixed chapters are unaffected. |
+| Same origin | A request with `Sec-Fetch-Site: cross-site`, or an `Origin` whose host differs from the request host, is refused with 403 before any model call. |
+| Size | Body ≤ 2 KB (413); empty prompt or > 200 characters (400). |
+| Rate limits | Per client address (first `X-Forwarded-For` entry): 5 per minute and 30 per day; global: `GENERATE_DAILY_CAP` per day (default 200). Exceeded limits answer 429 with `Retry-After`. Counts are in memory per server instance; requests refused for configuration, origin, size or prompt do not count. |
+| Timeout | 15 s, after which the provider call is aborted and the route answers 504. |
+| Errors | Provider 429 → 429; 401/403 → 503 “credentials were rejected”; 400 → 422; empty, non-JSON or invalid output → 502; anything else → 502. Messages never expose provider details. |
+| Validation | The server runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering. Text renders as React text nodes; icons come from a fixed allowlist. |
+| Privacy | The prompt shows: “Your description is sent to Google Gemini to create the example. Don’t include personal information.”, linked to the input through `aria-describedby`. Nothing is stored by the app. |
+| Result | A successful generation mounts one lab in code mode, replacing any earlier generated lab (R07). |
+
 ## R12 — Completion criteria
 
-All content and mappings above are fixed. Six template/mode endpoint combinations must be stable. All commands must obey R02. Cross-pane motion, reverse motion, reduced motion, and degradation must satisfy R06–R11. The complete verification and evidence plan is [QA.md](QA.md); implementation cannot be called complete based only on static screenshots.
+All content and mappings above are fixed. Six template/mode endpoint combinations must be stable. All commands must obey R02. Cross-pane motion, reverse motion, reduced motion, and degradation must satisfy R06–R11; the optional generator must satisfy R13. The complete verification and evidence plan is [QA.md](QA.md); implementation cannot be called complete based only on static screenshots.
 
 ## Open items (8 November 2026)
 

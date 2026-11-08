@@ -18,12 +18,12 @@ The command lines below omit that temporary config (`-c <temporary config>`); in
 | --- | --- |
 | `npm run lint` | Pass |
 | `npm run typecheck` | Pass |
-| `npm run build` | Pass; routes `/`, `/_not-found`, `/icon.svg` only (the test fixture route is not built, see Q04) |
-| `npx playwright test --trace off` | 79 of 79 passed (8 November 2026, after the editorial redesign: per-chapter labs, chapter index, diagram) |
+| `npm run build` | Pass; routes `/`, `/_not-found`, `/icon.svg` and the dynamic `/api/generate` (the test fixture route is not built, see Q04) |
+| `npx playwright test --trace off` | 89 of 89 passed (8 November 2026, after the switch to Gemini and the generate hardening; 79 of 79 before it, after the editorial redesign) |
 | `npx playwright test --trace off --repeat-each=10` | 610 of 610 passed (61 tests × 10, before the cue and `tests/sound.spec.ts` were added) |
 | `npx playwright test --trace off --repeat-each=3 tests/accessibility.spec.ts tests/environment.spec.ts tests/devmode.spec.ts tests/robustness.spec.ts tests/performance.spec.ts` (new tests) | 114 of 114 passed |
 
-Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 6, `accessibility.spec.ts` 15, `environment.spec.ts` 5, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 9, `chapters.spec.ts` 10: 79 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, chapter index, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
+Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 6, `accessibility.spec.ts` 15, `environment.spec.ts` 5, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 10, `generate-server.spec.ts` 9, `chapters.spec.ts` 10: 89 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, chapter index, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
 
 ### Visual evidence (8 November 2026)
 
@@ -302,13 +302,21 @@ Use a production build and identify a reference machine: a documented ordinary l
 
 If budgets fail, inspect bundled imports, large painted areas, layering, duplicate nodes, and cleanup before adding architectural complexity. Do not remove accessibility or correctness to meet a size number.
 
+## Q13 — Optional generation (SPEC R13)
+
+Automated, no network and no key: `tests/generate-server.spec.ts` drives the route policy with a stand-in model (valid spec returned; cross-site and foreign-origin refused before any model call; 413 / 400 for size and prompt; 503 without a key and no quota used; per-client minute and day limits with `Retry-After`; global daily cap and its reset; 504 on timeout with the call aborted; provider 429 / 401 / 403 / 400 / 500 mapped without leaking details; empty, non-JSON and invalid output rejected). `tests/generate.spec.ts` covers the UI with the route mocked, the real route's 503 without a key, and the privacy notice.
+
+SDK wiring was checked on 8 November 2026 against a local stand-in server: `@google/genai` 2.31.0 sends `POST /v1beta/interactions` with the key in a header and the documented `model`, `input`, `system_instruction`, `response_format` and `generation_config` fields, reads `output_text`, and raises errors carrying `statusCode` 429 / 401 / 400 / 500.
+
+**Not run:** a real call to Gemini (no key in the test environment); output quality across varied prompts; rate limits on the deployed host (proxy headers, multiple instances). Run these once the key is set on the host (RELEASE.md).
+
 ## Q12 — Failure, offline, and scope checks
 
 Disable JavaScript: initial source and explanatory text remain, controls are disabled, and the notice is readable. Block audio only: all visual functionality remains. After loading the app, disable the network: morphing still works with available local assets; this does not promise offline navigation or a service worker.
 
 Inject an invalid registry in a test build: development assertions identify the missing mapping. Trigger a rendering exception: the contained reload fallback appears and is keyboard accessible. Reload returns to the default state. No perpetual loading overlay or compilation status appears.
 
-Review source and dependency graph for excluded capabilities: no editor package, parser/compiler, dynamic code execution, user-content HTML injection, arbitrary module loading, backend route, analytics, persistence, or duplicate animation runtime. The source pane is structured React elements and shared IDs, not a raw highlighted string used as the entire visual.
+Review source and dependency graph for excluded capabilities: no editor package, parser/compiler, dynamic code execution, user-content HTML injection, arbitrary module loading, backend routes other than `/api/generate`, analytics, persistence, or duplicate animation runtime. The source pane is structured React elements and shared IDs, not a raw highlighted string used as the entire visual.
 
 ## Educational usability check
 

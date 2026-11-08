@@ -43,6 +43,7 @@ The previews are illustrative and noninteractive. Toast does not report an actua
 - TypeScript `6.0.3` and Tailwind CSS `4.3.3`, using its v4 PostCSS integration and container queries.
 - Motion for React: `motion` `14.9.0`, imported from `motion/react`.
 - Geist Sans and Geist Mono via `geist` `1.9.0`; Lucide React `1.66.0`.
+- Optional generation through Google Gemini: `@google/genai` `2.31.0` (server only).
 - Playwright `1.64.1` for state contracts, browser behavior, sampled motion geometry, and endpoint captures; `@axe-core/playwright` `4.14.0` for accessibility scans; ESLint for static checks.
 
 ## Getting started
@@ -53,6 +54,8 @@ npm run dev
 ```
 
 Open the URL that `npm run dev` prints (Next.js uses port 3000 unless it is taken). The page is a short narrative with five chapters (Button, Toast, Bento, How it knows, Try your own). In any chapter, activate **Morph to component**; activate **Morph to code** to reverse it. Sound is one preference in the top bar.
+
+The optional "Try your own" chapter needs a Google Gemini API key. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY` there (never in code or commits; `.env.local` is git-ignored). In production, set it in the host's environment settings instead. Without a key, that chapter says generation is not configured and everything else works.
 
 For the Chromium test suite, install its browser and create a production build first:
 
@@ -85,8 +88,8 @@ Reduced motion commits directly to the requested endpoint without spatial travel
 
 ## Project status and scope
 
-All three visual templates and the controls described above are implemented. The 79-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
+All three visual templates and the controls described above are implemented. The 89-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
 
 Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; if the cue cannot load, is unsupported or `play()` is rejected, the morph keeps working silently, the preference stays on, and "Sound unavailable" is shown and announced once; turning Sound off and on again retries. The cue, `public/audio/morph.mp3`, is synthesised by `scripts/make-morph-cue.sh` with the system ffmpeg (no third-party audio; rerun the script to regenerate identical bytes). **Its listening review on headphones and speakers is not done.**
 
-Examples are fixed and authored in advance. There is no code editor, parser, runtime compilation, arbitrary code execution, component generation, persistence, backend, authentication, or analytics. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).
+The three chapter examples are fixed and authored in advance. The optional chapter 05 asks Google Gemini for a small declarative spec, validated on the server and in the browser and drawn by the same renderer; it never produces or runs code, and it is rate-limited and off without a key (SPEC R13). There is no code editor, parser, runtime compilation, arbitrary code execution, persistence, authentication, or analytics, and `/api/generate` is the only server route. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).

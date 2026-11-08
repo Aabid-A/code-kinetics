@@ -214,11 +214,21 @@ Provenance of `public/audio/morph.mp3`: Synthesised by scripts/make-morph-cue.sh
 
 ## Generated examples
 
-`src/lib/lab/generated.ts` defines `GeneratedSpec`, its JSON Schema (`specSchema`), `parseSpec` (validates and sanitizes untrusted input) and `buildTemplate` (spec to `TemplateDefinition`: code lines, tokens and parts with keys `c{card}.surface|icon|t{n}`). The result is the template id `custom`, rendered by `CustomTemplate` and the same `SharedPart` identities as the built-ins; components receive the active `TemplateDefinition` through `PartMotion.template` rather than looking it up globally. `LOAD_GENERATED` always resets to code mode and settles like a template change. `/api/generate` calls Claude with `output_config.format` set to the schema and runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering.
+`src/lib/lab/generated.ts` defines `GeneratedSpec`, its JSON Schema (`specSchema`), `parseSpec` (validates and sanitizes untrusted input) and `buildTemplate` (spec to `TemplateDefinition`: code lines, tokens and parts with keys `c{card}.surface|icon|t{n}`). The result is the template id `custom`, rendered by `CustomTemplate` and the same `SharedPart` identities as the built-ins; components receive the active `TemplateDefinition` through `PartMotion.template` rather than looking it up globally. `LOAD_GENERATED` always resets to code mode and settles like a template change. The client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering.
+
+`src/app/api/generate/route.ts` is a thin adapter: it builds a Gemini call with `@google/genai` (`interactions.create`, `response_format` = `specSchema` as JSON, model `GEMINI_MODEL` or `gemini-3.8-flash`, thinking level low, 2048 output tokens, `retries: none`, 15 s timeout) and hands it to `createGenerateHandler` in `src/lib/lab/generate-server.ts`. That module holds every rule from SPEC R13 (origin, body size, prompt, rate limits, timeout, error mapping, `parseSpec`) with no SDK import, so `tests/generate-server.spec.ts` drives it directly with a stand-in model. The rate limiter is in memory per server instance: on serverless hosting each instance counts separately, so Google's project quota and a billing alert remain the hard ceiling.
+
+| Environment variable | Purpose |
+| --- | --- |
+| `GEMINI_API_KEY` | Server-only key. Unset disables generation (503). |
+| `GEMINI_MODEL` | Optional model override. |
+| `GENERATE_DAILY_CAP` | Optional global generations per instance per day (default 200). |
+
+`.env.example` lists them with empty values; `.env` and `.env*.local` are git-ignored.
 
 ## Security, privacy, and content handling
 
-Generated specs are data only: text goes through React text nodes, icons come from a fixed allowlist, and element names are reduced to PascalCase identifiers. The API key stays on the server. All other content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
+Generated specs are data only: text goes through React text nodes, icons come from a fixed allowlist, and element names are reduced to PascalCase identifiers. The API key stays on the server. A learner's description is sent to Google Gemini (the prompt says so); the app stores nothing, and the system instruction tells the model to treat the description as content, not instructions. All other content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
 
 ## Performance and delivery
 

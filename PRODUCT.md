@@ -75,10 +75,11 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 - Deterministic shared-layout movement, interruptible reversal, reduced-motion alternative.
 - Optional quiet sound, keyboard support, screen-reader equivalents, touch usability.
 - Local operation after application assets load; no service dependency for morphing.
+- Optional "Try your own" chapter (added 8 November 2026): a learner describes a small component and Google Gemini returns a declarative spec that the lab validates and renders as a new lab. It is off unless the server has `GEMINI_API_KEY`; the three fixed chapters never depend on it. The prompt states that descriptions are sent to Google. Limits: 200 characters, rate-limited per client and per day (SPEC R13).
 
 ### Excluded
 
-Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation, custom templates, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs, payments, collaboration, WebGL, and a generalized morph SDK.
+Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation beyond the optional chapter 05 generator, custom template files, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs other than the single `/api/generate` route, payments, collaboration, WebGL, and a generalized morph SDK.
 
 Do not add these as inactive controls. A native explanatory disclosure is sufficient; this is not a full documentation portal.
 
