@@ -1,7 +1,7 @@
-import { buttonContent, buttonLines, type ButtonPart } from "./button";
 import type { GeneratedSpec } from "./generated";
 import type { TemplateId } from "./types";
 
+export type ButtonPart = "surface" | "icon" | "label";
 export type ToastPart = "surface" | "icon" | "title" | "description";
 export type BentoPart = "feature.surface" | "feature.icon" | "feature.title" | "feature.description"
   | "metric.surface" | "metric.value" | "metric.label" | "status.surface" | "status.title" | "status.description";
@@ -15,8 +15,14 @@ export type TemplateDefinition = {
   id: TemplateId; label: string; filename: string; lines: readonly CodeLine[];
   parts: readonly PartDefinition[]; description: string; caption: string; teaching: string;
   generated?: GeneratedSpec;
+  // How icon pieces sit in the component: "inline" beside a label (Button), or "card", centred on a tinted tile.
+  iconStyle?: "inline" | "card";
 };
 
+export const buttonContent = {
+  tag: "Button", label: "Explore", icon: "ArrowUpRight",
+  description: "Example button labelled Explore, with an up-right arrow.",
+} as const;
 export const toastContent = {
   tag: "Toast", icon: "CircleCheck", title: "Changes saved", description: "Your workspace is up to date.",
 } as const;
@@ -28,6 +34,15 @@ export const bentoContent = {
 
 const token = (id: string, text: string, syntax: CodeToken["syntax"] = "punctuation", part?: PartKey): CodeToken => ({ id, text, syntax, part });
 const line = (id: string, ...tokens: CodeToken[]): CodeLine => ({ id, tokens });
+
+const buttonLines = [
+  line("opening", token("open-angle", "<"), token("surface-name", buttonContent.tag, "tag", "surface")),
+  line("icon-prop", token("icon-indent", "  ", "text"), token("icon-attribute", "icon", "attribute"), token("icon-open", "={<"),
+    token("icon-name", buttonContent.icon, "tag", "icon"), token("icon-close", " />}")),
+  line("opening-end", token("end-angle", ">")),
+  line("label", token("label-indent", "  ", "text"), token("label-content", buttonContent.label, "text", "label")),
+  line("closing", token("closing-tag", "</"), token("closing-name", buttonContent.tag, "tag"), token("closing-angle", ">")),
+] as const;
 
 const toastLines = [
   line("toast-open", token("toast-open-angle", "<"), token("toast-surface", toastContent.tag, "tag", "surface"), token("toast-open-end", ">")),
@@ -65,7 +80,7 @@ export const templates: Record<Exclude<TemplateId, "custom">, TemplateDefinition
       { key: "label", kind: "text", sourceLabel: buttonContent.label, destinationLabel: "button label" },
     ],
     description: buttonContent.description, caption: "Example component · not interactive",
-    teaching: "The name becomes the surface; the label and icon find their places.",
+    teaching: "The name becomes the surface; the label and icon find their places.", iconStyle: "inline",
   },
   toast: {
     id: "toast", label: "Toast", filename: "Toast.tsx", lines: toastLines,

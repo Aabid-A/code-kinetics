@@ -1,8 +1,7 @@
 import { ArrowRightLeft, Volume2, VolumeX } from "lucide-react";
 import type { ViewMode } from "@/lib/lab/types";
 
-// Shared controls. The Example selector was removed when every chapter got its own lab locked to one template;
-// the file keeps its name so history stays readable.
+// The two buttons the lab shares: the page-level Sound toggle (in the top bar) and each lab's Morph action.
 export function SoundButton({ enabled, ready, onToggle }: { enabled: boolean; ready: boolean; onToggle: () => void }) {
   const Icon = enabled ? Volume2 : VolumeX;
   // The accessible name is the visible word "Sound" (stable, per SPEC R03); the state word is hidden from

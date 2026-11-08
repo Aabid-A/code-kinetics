@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import { morphSpring } from "@/lib/lab/button";
+import { morphSpring, sharedIdentity } from "@/lib/lab/motion";
 import { partFor, type PartKey, type TemplateDefinition } from "@/lib/lab/templates";
 
 export type MotionRun = {
@@ -18,7 +18,7 @@ export function SharedPart({ part, endpoint, children, run, onComplete, template
   const templateId = template.id;
   const { kind } = partFor(template, part);
   const surface = kind === "surface";
-  const identity = `${templateId}:${part}`;
+  const identity = sharedIdentity(templateId, part);
   return <motion.span
     key={`${part}:${run.epoch}`}
     layout={surface ? true : "position"}

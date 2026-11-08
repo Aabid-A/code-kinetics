@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { bringIntoView, lab } from "./lab";
-import { buttonLines, buttonParts, buttonSource, morphSpring, sharedId } from "../src/lib/lab/button";
+import { morphSpring, sharedIdentity } from "../src/lib/lab/motion";
+import { sourceFor, templates } from "../src/lib/lab/templates";
 import { initialState, transition } from "../src/lib/lab/types";
 import { straddlesDivider } from "./motion";
 
@@ -25,6 +26,11 @@ async function settled(page: Page, mode: "code" | "rendered") {
     await expect(lab(page).locator(`[data-part="${part}"]`)).toHaveAttribute("data-endpoint", mode);
   }
 }
+
+const buttonLines = templates.button.lines;
+const buttonParts = templates.button.parts.map(part => part.key);
+const buttonSource = sourceFor(templates.button);
+const sharedId = (part: string) => sharedIdentity("button", part);
 
 async function box(page: Page, selector: string) {
   const value = await lab(page).locator(selector).boundingBox();

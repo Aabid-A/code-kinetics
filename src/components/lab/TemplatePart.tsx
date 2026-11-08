@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { morphSpring } from "@/lib/lab/button";
+import { morphSpring } from "@/lib/lab/motion";
 import { partFor, type PartKey, type TemplateDefinition } from "@/lib/lab/templates";
 import type { ViewMode } from "@/lib/lab/types";
 import { NamedIcon } from "./icons";
@@ -10,6 +10,7 @@ export function TemplatePartContent({ template, part, mode, travelling }: {
 }) {
   const definition = partFor(template, part);
   const code = mode === "code";
+  const card = (template.iconStyle ?? "card") === "card";
   if (definition.kind === "text") return definition.sourceLabel;
   if (definition.kind === "surface") return <motion.span
     layout="position" className="surface-lettering"
@@ -22,10 +23,10 @@ export function TemplatePartContent({ template, part, mode, travelling }: {
       initial={{ opacity: travelling ? code ? 0 : 1 : code ? 1 : 0 }}
       animate={{ opacity: code ? 1 : 0 }} transition={{ duration: .1 }}
     >{definition.sourceLabel}</motion.span>
-    <motion.span className={`icon-art ${code ? "" : "card-icon-art"}`}
+    <motion.span className={`icon-art${!code && card ? " card-icon-art" : ""}`}
       initial={{ opacity: travelling ? code ? 1 : 0 : code ? 0 : 1 }}
       animate={{ opacity: code ? 0 : 1 }} transition={{ duration: code ? .1 : .16 }}
-    ><NamedIcon name={definition.sourceLabel} size={20} strokeWidth={1.75} /></motion.span>
+    ><NamedIcon name={definition.sourceLabel} size={card ? 20 : 18} strokeWidth={1.75} /></motion.span>
   </>;
 }
 

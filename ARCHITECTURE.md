@@ -38,12 +38,12 @@ src/app/
 src/components/site/
   Sound.tsx                   # Page-level sound preference: context, provider, one status region
   TopBar.tsx                  # Wordmark and the one Sound control
-  Opening.tsx                 # The h1 and the opening sentence
+  Opening.tsx                 # Eyebrow, h1, why it matters, and the instruction to press Morph
   Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
-  ChapterIndex.tsx            # Floating / inline index; IntersectionObserver; hides over lab controls
+  ChapterIndex.tsx            # Contents: five labelled anchor links in the page flow under the opening
   Reveal.tsx                  # One-time reveal for text below the first screen
   Diagram.tsx                 # Chapter 04: two inline SVG drawings and the text equivalent
-  Footer.tsx                  # Disclaimer and credits
+  Footer.tsx                  # About this lab, disclaimer, generation note and credits
   icon.svg                    # App icon (App Router convention)
 src/components/lab/
   Lab.tsx                     # One lab instance locked to a template (prop): state, commands, motion runs,
@@ -52,13 +52,13 @@ src/components/lab/
   PromptBar.tsx               # The generate form (unchanged behaviour)
   CustomTemplate.tsx          # Destination for generated examples
   LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
-  Header.tsx                  # Sound button and Morph button (the Example selector was removed)
+  Controls.tsx                # SoundButton (top bar) and MorphButton (each lab)
   ModeControl.tsx             # View radiogroup (custom ARIA radios, roving tabIndex)
   CodePane.tsx                # Authored lines, source slots, accessible source
   RenderPane.tsx              # Destination frame and described illustration
   SharedPart.tsx              # Shared layout identity and movement policy
-  TemplatePart.tsx            # Part content for Toast/Bento; destination part wrapper
-  ButtonTemplate.tsx          # Button preview and part content
+  TemplatePart.tsx            # Part content for every template (lettering, icon crossfade, text); DestinationPart
+  ButtonTemplate.tsx          # Button preview slots
   ToastTemplate.tsx           # Toast preview
   BentoTemplate.tsx           # Bento preview
 public/audio/
@@ -67,10 +67,11 @@ scripts/
   make-morph-cue.sh           # Synthesises the cue with the system ffmpeg (deterministic)
 src/hooks/
   use-morph-sound.ts          # Native audio lifecycle; reports "unavailable" once per preparation
+  use-hydrated.ts             # False on the server and during hydration, true after; gates every control
 src/lib/lab/
   types.ts                    # AppState, Command, pure transition function
-  button.ts                   # Button content, tokens and lines, morphSpring, sharedId
-  templates.ts                # Toast and Bento content, template registry, validateTemplate
+  motion.ts                   # morphSpring and sharedIdentity, shared by both endpoints and the tests
+  templates.ts                # Button, Toast and Bento content and lines, template registry, validateTemplate
 src/app/fixtures/two-labs/
   page.fixture.tsx            # Test fixture: two labs on one page (QA Q04); routed only when LAB_FIXTURES=1
 tests/

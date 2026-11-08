@@ -16,7 +16,7 @@ One idea per section, top to bottom. Plain, short, specific, warm. Every string 
 
 | # | Section | Eyebrow | Title (one italic word at most) | Sentence / caption |
 | --- | --- | --- | --- | --- |
-| 0 | Opening | none | **Code has a shape.** (the final full stop is accent) | “Press Morph and watch each named piece of this code travel to its place in the finished component.” The Button lab sits directly below, above the fold, in code mode. Nothing plays on load. |
+| 0 | Opening | “An interactive explainer in five short chapters” | **Code has a shape.** (the final full stop is accent) | Why it matters, in ink: “The calmest interfaces don’t blink from one screen to the next. A thumbnail grows into a photo; a card opens into a page. Each piece knows where it is going. This lab shows the idea behind that motion, one piece of code at a time.” Then, muted: “Press **Morph** on any example to watch each named piece of code travel to its place in the finished component.” Then the contents line (01 Button … 05 Your turn), then the Button lab in code mode, above the fold at 1440 × 900. Nothing plays on load. |
 | 1 | Button | 01 — Button | One name, one *surface* | “Watch the three named pieces, the button, its arrow and its label, each leave the code and land in one place.” |
 | 2 | Toast | 02 — Toast | Pieces that *travel* together | “Notice how the card carries its icon and two lines of text along, while the text keeps its shape.” |
 | 3 | Bento | 03 — Bento | A whole *layout* | “Notice ten pieces arriving at once; narrow the window and the cards stack in the same order.” |
@@ -90,7 +90,7 @@ Illustrations only; none is interactive. Content, mappings and copy are unchange
 
 ## Opening entrance and chapter reveal
 
-On first load only: headline, then sentence (80 ms later), then (when the chapter index exists) the index, each fading in with at most 10 px of upward travel, 160 ms each, 320 ms in total. Chapters further down reveal their text once as they enter the viewport (opacity and at most 12 px). None of this runs under reduced motion, and **no lab piece ever animates on load** (SPEC R01). The lab itself is never inside a revealed or transformed ancestor.
+On first load only: eyebrow and headline, then the two opening sentences (80 ms later), then the contents line, each fading in with at most 10 px of upward travel, 160 ms each, 320 ms in total. Chapters further down reveal their text once as they enter the viewport (opacity and at most 12 px). None of this runs under reduced motion, and **no lab piece ever animates on load** (SPEC R01). The lab itself is never inside a revealed or transformed ancestor.
 
 ## Shared-layout visual construction
 
@@ -163,7 +163,7 @@ Review every settled template and mode at 1440, 1024, 390 and 320 px. Check the 
 
 ## Implementation notes and open items (8 November 2026)
 
-- **Implemented (8 November 2026):** top bar, opening, five chapters, per-chapter labs, page-level Sound, the paper token set, the diagram, the footer, the drafting rules, the opening entrance and the chapter reveal. **Chapter index:** a `<nav aria-label="Chapters">` of five links (“01” … “05”, each with a visually hidden chapter name), `aria-current="location"` on the chapter in view (IntersectionObserver). From 1024 px it floats at the bottom centre (paper-raised, 1 px rule border, no blur) and hides itself while it would overlap a lab control, and, on viewports shorter than 900 px, any lab sheet; below 1024 px it is a plain inline list after the opening. **Reveal:** chapter text that starts below the first screen is held back after mount and released once; labs are never inside a revealed element.
+- **Implemented (8 November 2026):** top bar, opening, five chapters, per-chapter labs, page-level Sound, the paper token set, the diagram, the footer, the drafting rules, the opening entrance and the chapter reveal. **Contents (revised 8 November 2026):** a `<nav aria-label="Chapters">` of five links, each a teal mono number and the chapter name (“01 Button” … “05 Your turn”), in one quiet line under the opening with a 1 px rule above it. It stays in the page flow at every width: the earlier floating index sat over the Bento preview and the chapter 05 card, so it was removed along with its `aria-current` tracking. **View control (revised):** the checked option is a paper-raised pill with a 1 px ink-muted ring and a solid ink dot, so the teal Morph button is the one obvious action in each lab. **Footer (revised):** “About this lab” explains shared-element transitions in two sentences beside the disclaimer, the generation note and the type credits. **Morph button:** its label never wraps (min-width 216 px, grows if needed); a wrapped label made labs jump 12 px on GitHub’s browser. **Reveal:** chapter text that starts below the first screen is held back after mount and released once; labs are never inside a revealed element.
 - **Generated lab** (chapter 05): the prompt card sits in the chapter and, after a successful generation, the generated lab mounts beneath it in code mode (a second generation replaces it). Under the character count, one ink-muted line states that descriptions are sent to Google Gemini (SPEC R13).
 - **Fonts.** Geist and Geist Mono come from the `geist` package (local files); Instrument Serif comes from `next/font/google`, which downloads and self-hosts it at build time. No font request is made at runtime.
-- **Header.tsx** keeps its name but now holds only the Sound and Morph buttons.
+- **Controls.tsx** (formerly Header.tsx) holds the Sound and Morph buttons.
