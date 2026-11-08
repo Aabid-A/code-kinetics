@@ -68,17 +68,25 @@ button:disabled { cursor: default; }
 }
 
 /* Opening ----------------------------------------------------------------- */
-.opening { padding-top: clamp(24px, 5vh, 64px); }
+/* The hero owns the first screen, so the progressive layer starts below the fold. Once a generated lab sits under
+   it, the hero stops holding the full height and the lab follows directly. */
+.opening { min-height: calc(100vh - 72px); min-height: calc(100svh - 72px); padding-top: clamp(24px, 7vh, 80px); padding-bottom: 48px; }
+.opening[data-compact] { min-height: 0; padding-bottom: 0; }
 .opening-title, .chapter-title {
   margin: 0; font-family: var(--font-display); font-weight: 400; letter-spacing: -.015em;
   line-height: 1.04; padding-bottom: .06em; text-wrap: balance;
 }
 .opening-title { font-size: 52px; }
 .opening-title .stop { color: var(--accent); }
-.opening-eyebrow { margin-bottom: 16px; }
-.opening-sentence { max-width: min(var(--measure), 36em); margin: 20px 0 0; color: var(--ink); font-size: 19px; line-height: 1.55; }
-.opening-instruction { max-width: min(var(--measure), 36em); margin: 12px 0 0; color: var(--ink-muted); font-size: 16px; line-height: 1.55; }
-.opening-instruction strong { color: var(--ink); font-weight: 600; }
+.opening-sentence { max-width: 36em; margin: 20px 0 0; color: var(--ink); font-size: 21px; line-height: 1.5; }
+.hero-action { display: grid; justify-items: start; gap: 20px; min-height: 56px; margin-top: 40px; }
+.hero-primary { width: auto; min-height: 56px; padding-inline: 28px; text-decoration: none; font-size: 17px; }
+.hero-secondary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 500; text-decoration: underline; text-decoration-color: var(--ink-muted); text-underline-offset: 4px; }
+.hero-secondary:hover { text-decoration-color: var(--ink); }
+.hero-result { margin-top: 56px; }
+.intro { margin-top: 48px; }
+.intro-title { margin: 0; font-family: var(--font-display); font-size: 44px; font-weight: 400; letter-spacing: -.015em; line-height: 1.1; }
+.intro-text { max-width: 36em; margin: 20px 0 0; color: var(--ink); font-size: 19px; line-height: 1.55; }
 
 @media (prefers-reduced-motion: no-preference) {
   .enter { animation: enter 160ms ease-out both; }
@@ -89,7 +97,7 @@ button:disabled { cursor: default; }
 
 /* Chapters ---------------------------------------------------------------- */
 .chapter { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; margin-top: 136px; }
-.chapter-index + .chapter { margin-top: 56px; }
+.intro + .chapter { margin-top: 112px; }
 .chapter-text, .chapter-body { grid-column: 1 / -1; min-width: 0; }
 .chapter-text { max-width: var(--measure); }
 .eyebrow { margin: 0; color: var(--ink-muted); font: 500 12px/18px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
@@ -263,24 +271,24 @@ summary::marker { color: var(--ink-muted); }
 .lab-error button { padding: 0 16px; border: 1px solid var(--ink-muted); border-radius: 10px; background: var(--paper-raised); color: var(--ink); }
 
 /* "Try your own": the generate feature (custom controls; flat input). */
-.try-own { display: grid; gap: 8px; padding: 24px; border: 1px solid var(--rule); border-radius: 28px; background: var(--paper-raised); box-shadow: var(--sheet-shadow); }
-.prompt-bar { display: grid; gap: 8px; }
-.prompt-label { color: var(--ink-muted); font-size: 13px; line-height: 18px; }
+.hero-prompt { width: min(760px, 100%); }
+.prompt-bar { display: grid; gap: 10px; }
+.prompt-label { color: var(--ink); font-size: 15px; line-height: 22px; font-weight: 500; }
 .prompt-row { display: flex; gap: 12px; align-items: center; }
-.prompt-input { flex: 1; min-width: 0; min-height: 44px; padding: 0 16px; border: 1px solid var(--ink-muted); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; }
+.prompt-submit { min-height: 56px; padding-inline: 22px; }
+.prompt-input { flex: 1; min-width: 0; min-height: 56px; padding: 0 18px; font-size: 17px; border: 1px solid var(--ink-muted); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; }
 .prompt-input::placeholder { color: var(--ink-muted); }
 .prompt-input:disabled { border-color: var(--rule); }
 .prompt-input[aria-invalid="true"] { border-color: #9B1C1C; }
 .prompt-count { margin: 0; color: var(--ink-muted); font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
 .prompt-privacy { margin: 0; color: var(--ink-muted); font-size: 13px; line-height: 18px; max-width: 68ch; }
-.prompt-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+.prompt-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .prompt-suggestion { font-size: 14px; }
 .prompt-status { min-height: 22px; margin: 0; color: var(--ink-muted); font-size: 15px; line-height: 22px; }
 .prompt-status[data-failed] { color: #9B1C1C; }
-.chapter-body .try-own + .lab { margin-top: 32px; }
 
 /* Contents: the five chapters as one quiet line under the opening; it stays in the page flow. */
-.chapter-index { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.chapter-index { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--rule); }
 .chapter-index ol { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 0; padding: 0; list-style: none; }
 .chapter-index a {
   display: inline-flex; align-items: baseline; gap: 10px; min-height: 44px; padding: 10px 0;
@@ -354,11 +362,13 @@ summary::marker { color: var(--ink-muted); }
 .diagram code { color: var(--ink); font: 500 .92em var(--font-mono); }
 
 /* Footer */
-.site-footer { display: grid; gap: 24px 48px; margin-top: 136px; padding-top: 32px; border-top: 1px solid var(--rule); color: var(--ink-muted); font-size: 14px; line-height: 22px; }
-.site-footer p { margin: 0; max-width: var(--measure); }
-.site-footer p + p { margin-top: 6px; }
-.footer-about p:not(.eyebrow) { margin-top: 10px; color: var(--ink); font-size: 16px; line-height: 1.6; }
-@media (min-width: 1024px) { .site-footer { grid-template-columns: 7fr 5fr; align-items: start; } .footer-notes { padding-top: 28px; } }
+.site-footer { display: grid; gap: 16px; margin-top: 136px; padding-top: 28px; border-top: 1px solid var(--rule); color: var(--ink-muted); font-size: 14px; line-height: 22px; }
+.site-footer p { margin: 0; }
+.footer-row { display: grid; gap: 16px 48px; }
+.footer-name { color: var(--ink); font-weight: 500; }
+.footer-disclaimer { max-width: 40ch; }
+.footer-credits { font-size: 13px; line-height: 20px; }
+@media (min-width: 768px) { .footer-row { grid-template-columns: 1fr auto; align-items: start; } .footer-disclaimer { text-align: right; } }
 
 /* Responsive */
 @media (max-width: 1279px) {
@@ -384,9 +394,10 @@ summary::marker { color: var(--ink-muted); }
   .preview-content { padding: 16px; }
   .mapping-separator { display: none; }
   .mapping-explanation strong { display: block; margin-bottom: 4px; }
-  .try-own { padding: 16px; border-radius: 28px; }
   .prompt-row { flex-direction: column; align-items: stretch; }
-  .wordmark { font-size: 14px; }
+  .logotype-name { font-size: 20px; }
+  .opening-sentence { font-size: 19px; }
+  .hero-action { margin-top: 32px; }
 }
 
 @media (prefers-reduced-motion: reduce) { .preview-instruction, .preview-card-glass { transition: none; } }
@@ -403,7 +414,7 @@ summary::marker { color: var(--ink-muted); }
   .feature-card .card-icon-art, .card-icon-art { background: Canvas; }
   .drafting-rules { display: none; }
   .chapter-index, .chapter-index a, .diagram-sheet, .ctp-sheet, .ctp-card, .ctp-page { border-color: CanvasText; background: Canvas; box-shadow: none; }
-  .lab-sheet, .try-own { border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .lab-sheet { border-color: CanvasText; background: Canvas; box-shadow: none; }
   .pane-ground, .preview-card-glass { background: Canvas; border: 1px solid CanvasText; box-shadow: none; }
   .code-chrome::before { background: CanvasText; }
   .pill, .sound-pill, .mode-options { border-color: ButtonText; background: ButtonFace; color: ButtonText; }

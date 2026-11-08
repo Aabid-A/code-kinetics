@@ -45,3 +45,9 @@ export const POST = createGenerateHandler({
   generate: apiKey ? geminiGenerate(apiKey) : null,
   limiter: createRateLimiter({ ...defaultRateLimits, dailyCap: dailyCap() }),
 });
+
+// Whether generation is available, so the page can show the prompt only when it can work. It answers one boolean:
+// no key, no key length, no model name.
+export function GET() {
+  return Response.json({ configured: Boolean(apiKey) }, { headers: { "cache-control": "no-store" } });
+}
