@@ -10,7 +10,7 @@ Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Ever
   - Owner: the project
 - [ ] **A1 Listening review.** With the file in place, run the QA.md Q10 table on headphones and speakers at moderate volume: no clipping or startling transient, and perceived loudness reviewed (0.15 volume is only a starting value).
   - Owner:
-- [x] **A2 Generate decision.** Ship the optional generator in chapter 05, backed by Google Gemini (decided 8 November 2026; SPEC R13).
+- [x] **A2 Generate decision.** Ship the optional generator in chapter 06, backed by Google Gemini (decided 8 November 2026; SPEC R13).
   - Owner: the project owner
 - [ ] **A2 Key on the host.** Set `GEMINI_API_KEY` (and optionally `GENERATE_DAILY_CAP`) in the hosting provider's environment settings, never in the repository. Then run QA.md Q13's "not run" checks against the deployed site.
   - Owner:

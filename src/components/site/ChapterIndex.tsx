@@ -2,8 +2,9 @@ export const chapters = [
   { id: "button", number: "01", label: "Button" },
   { id: "toast", number: "02", label: "Toast" },
   { id: "bento", number: "03", label: "Bento" },
-  { id: "how-it-knows", number: "04", label: "How it knows" },
-  { id: "your-turn", number: "05", label: "Your turn" },
+  { id: "card-to-page", number: "04", label: "Card to page" },
+  { id: "how-it-knows", number: "05", label: "How it knows" },
+  { id: "your-turn", number: "06", label: "Your turn" },
 ] as const;
 
 // The contents: a plain list under the opening, so a visitor sees the whole journey before starting. It stays in the

@@ -12,7 +12,7 @@ export function Footer() {
     </div>
     <div className="footer-notes">
       <p>A visual demonstration with fixed examples. No code is compiled or run.</p>
-      <p>Chapter 05 asks Google Gemini to describe a new example as data, which the lab checks before drawing it.</p>
+      <p>Chapter 06 asks Google Gemini to describe a new example as data, which the lab checks before drawing it.</p>
       <p>Typefaces: Instrument Serif, Geist and Geist Mono. Icons: Lucide.</p>
     </div>
   </footer>;

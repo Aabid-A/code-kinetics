@@ -19,12 +19,12 @@ The command lines below omit that temporary config (`-c <temporary config>`); in
 | `npm run lint` | Pass |
 | `npm run typecheck` | Pass |
 | `npm run build` | Pass; routes `/`, `/_not-found`, `/icon.svg` and the dynamic `/api/generate` (the test fixture route is not built, see Q04) |
-| `npx playwright test --trace off` | 92 of 92 passed (8 November 2026, after the UX pass and the codebase clean-up: Button as ordinary template data, one part renderer, shared motion contract, one hydration hook; 91 of 91 after the switch to Gemini, the generate hardening and the prompt rewrite; 79 of 79 before it, after the editorial redesign) |
+| `npx playwright test --trace off` | 98 of 98 passed (8 November 2026, after adding chapter 04 “Card to page”; 92 of 92 after the UX pass and the codebase clean-up: Button as ordinary template data, one part renderer, shared motion contract, one hydration hook; 91 of 91 after the switch to Gemini, the generate hardening and the prompt rewrite; 79 of 79 before it, after the editorial redesign) |
 | GitHub Actions CI (`.github/workflows/ci.yml`: lint, typecheck, build, Playwright with the Chromium build Playwright 1.64.1 expects) | Pass on run [42521263927](https://github.com/Aabid-A/code-kinetics/actions/runs/42521263927), 8 November 2026, after fixing the wrapped Morph label that moved labs 12 px on that browser |
 | `npx playwright test --trace off --repeat-each=10` | 610 of 610 passed (61 tests × 10, before the cue and `tests/sound.spec.ts` were added) |
 | `npx playwright test --trace off --repeat-each=3 tests/accessibility.spec.ts tests/environment.spec.ts tests/devmode.spec.ts tests/robustness.spec.ts tests/performance.spec.ts` (new tests) | 114 of 114 passed |
 
-Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 7, `accessibility.spec.ts` 15, `environment.spec.ts` 6, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 10, `generate-server.spec.ts` 11, `chapters.spec.ts` 11: 92 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, contents line, Morph label never wrapping, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
+Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 7, `accessibility.spec.ts` 15, `environment.spec.ts` 6, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 10, `generate-server.spec.ts` 11, `chapters.spec.ts` 11, `card-to-page.spec.ts` 6: 98 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, contents line, Morph label never wrapping, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
 
 ### Visual evidence (8 November 2026)
 
@@ -55,7 +55,7 @@ Contrast, measured by `tests/contrast.ts` against the composited background as r
 | Forced colors, Toast / code | 8.73:1, chapter number (158) | 8.73:1, full stop | 8.73:1, checked View marker (19) |
 | Forced colors, Toast / rendered | 8.73:1, chapter number (159) | 8.73:1, full stop | 8.73:1, checked View marker (20) |
 
-The whole page is measured in each state (all five chapters, the diagram, the top bar and the contents line), not only one lab. Numbers in brackets are how many items of that kind were measured. The fixed chapter index is pinned to its page position for the measurement (a full-page screenshot lays fixed elements out differently), and its hidden/visible state is kept as it was.
+The whole page is measured in each state (all six chapters, the card-to-page sheet, the diagram, the top bar and the contents line), not only one lab. Numbers in brackets are how many items of that kind were measured. The fixed chapter index is pinned to its page position for the measurement (a full-page screenshot lays fixed elements out differently), and its hidden/visible state is kept as it was.
 
 Token pairs computed from the design tokens (see DESIGN.md "Colour"): ink on paper 15.28, ink-muted on paper 6.05, accent on paper 4.81, white on accent 5.47, paper-raised on ink 16.66, code text on code sheet 14.00, accent over a drafting-rule pixel 4.23 (no measured state has accent text on a rule pixel).
 

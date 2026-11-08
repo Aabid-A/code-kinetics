@@ -6,7 +6,7 @@ Status: normative v1 behavior; implemented as of 8 November 2026 except the open
 
 ## R01 — Application structure and first load
 
-Serve one page at `/`. The document title is “Spatial DOM Transition Lab — Code-to-Component Morph Engine”. The page is a short narrative (DESIGN.md "Narrative and copy"): a top bar, an opening statement (the one page heading), then chapters 01–05, then a quiet footer. Chapters 01–03 (Button, Toast, Bento) each contain their own **lab instance**, locked to that template; chapter 05 hosts the generate feature, whose lab appears only after a successful generation. A lab is a View control and Morph action, a sheet holding two labelled panes (code, preview) and a compact explanatory area below it. Each lab has its own namespace, state and live region; labs share only the page-level Sound preference.
+Serve one page at `/`. The document title is “Spatial DOM Transition Lab — Code-to-Component Morph Engine”. The page is a short narrative (DESIGN.md "Narrative and copy"): a top bar, an opening statement (the one page heading), then chapters 01–06, then a quiet footer. Chapters 01–03 (Button, Toast, Bento) each contain their own **lab instance**, locked to that template; chapter 04 shows the same technique on a card that opens into a page (R14); chapter 05 explains it with a diagram; chapter 06 hosts the generate feature, whose lab appears only after a successful generation. A lab is a View control and Morph action, a sheet holding two labelled panes (code, preview) and a compact explanatory area below it. Each lab has its own namespace, state and live region; labs share only the page-level Sound preference.
 
 Each lab's initial state is `{ activeTemplate: <its chapter's template>, viewMode: "code", soundEnabled: false }`; the Button lab's is exactly `{ activeTemplate: "button", viewMode: "code", soundEnabled: false }`. Render the same initial state on the server and first client render. No entrance flight, auto-morph, focus theft, or startup sound. The opening headline and sentence may fade in once on first load (DESIGN.md "Opening entrance"); lab pieces never animate on load. Before hydration, show the code and explanatory text; interactive controls are disabled until their event handlers are available. With JavaScript unavailable, show one page-level notice that interaction requires JavaScript, while every lab's initial example and explanation remain readable.
 
@@ -205,7 +205,7 @@ Honor `prefers-reduced-motion`: no spatial travel, scaling, stagger, or overshoo
 
 No network request, fake build delay, loading percentage, or compilation status belongs to a normal morph.
 
-## R13 — Optional generation (chapter 05)
+## R13 — Optional generation (chapter 06)
 
 Added 8 November 2026. A learner types a short description (1–200 characters) and receives one generated lab, built from data, never from code.
 
@@ -222,6 +222,20 @@ Added 8 November 2026. A learner types a short description (1–200 characters) 
 | Validation | The server runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering. Text renders as React text nodes; icons come from a fixed allowlist. |
 | Privacy | The prompt shows: “Your description is sent to Google Gemini to create the example. Don’t include personal information.”, linked to the input through `aria-describedby`. Nothing is stored by the app. |
 | Result | A successful generation mounts one lab in code mode, replacing any earlier generated lab (R07). |
+
+## R14 — Card to page (chapter 04)
+
+Added 8 November 2026: the technique as people meet it in real interfaces.
+
+| Concern | Required behaviour |
+| --- | --- |
+| Content | Three fictional projects, each a card with an illustrated cover (inline SVG, no image files or remote media), a title and a tag: Tide Tables (Mobile app), Field Notes (Journal), Night Market (Map). Caption: “4 shared pieces per project · surface, cover, title and tag. Fictional projects, drawn for this page.” |
+| Open | Activating a card (pointer, Enter or Space) replaces the list with that project’s page: its cover, title and tag travel from the card to their page positions through shared identities `card-<project>:surface|cover|title|tag` (the same `sharedIdentity` rule and `morphSpring` as the lab); the other cards leave. The page adds a summary, Role and Year, and “Back to all projects”. |
+| Close | “Back to all projects” or Escape returns to the list, with the same pieces travelling back. A new choice during travel retargets; nothing queues. |
+| Focus | Opening moves focus to the page’s heading (`tabIndex=-1`); closing returns it to the card that was opened. Each card’s accessible name is its visible title and tag. |
+| Layout | From 640 px the sheet keeps one height in both views (min-height 460 px) so content below never moves; cards are portrait (4:5), the page cover 4:3. Below 640 px cards and page stack, with no horizontal overflow. |
+| Reduced motion | The page appears at its final position with no in-between frames. |
+| Verification | `tests/card-to-page.spec.ts`. |
 
 ## R12 — Completion criteria
 

@@ -2,7 +2,7 @@
 // only use of the accent colour in type.
 export function Opening() {
   return <section className="opening" aria-labelledby="opening-title">
-    <p className="eyebrow opening-eyebrow enter enter-1">An interactive explainer in five short chapters</p>
+    <p className="eyebrow opening-eyebrow enter enter-1">An interactive explainer in six short chapters</p>
     <h1 id="opening-title" className="opening-title enter enter-1">Code has a shape<span className="stop">.</span></h1>
     <p className="opening-sentence enter enter-2">
       The calmest interfaces don&rsquo;t blink from one screen to the next. A thumbnail grows into a photo; a card
