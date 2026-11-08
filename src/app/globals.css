@@ -308,7 +308,8 @@ summary::marker { color: #aca3bb; }
   .example-option { color: CanvasText; }
   .example-option[data-active] { background: Highlight; color: HighlightText; }
   .morph-button, .morph-button:disabled { background: ButtonFace; color: ButtonText; border-color: ButtonText; box-shadow: none; }
-  .shared-part { border: 1px solid CanvasText; box-shadow: none !important; }
+  /* An outline, not a border: mapped pieces are sized to their text, so a border would overlap the glyphs. */
+  .shared-part { outline: 1px solid CanvasText; outline-offset: 1px; box-shadow: none !important; }
   .mode-option { color: ButtonText; }
   .mode-option[aria-checked="true"] { outline: 1px solid Highlight; background: Highlight; color: HighlightText; }
   :focus-visible { outline-color: Highlight; }
