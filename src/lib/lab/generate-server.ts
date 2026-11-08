@@ -8,7 +8,7 @@ import { limits, parseSpec, type GeneratedSpec } from "./generated";
 export type Generate = (prompt: string, signal: AbortSignal) => Promise<string>;
 
 export const MAX_BODY_BYTES = 2048;
-export const TIMEOUT_MS = 30_000;
+export const TIMEOUT_MS = 20_000;
 
 export type RateLimits = { perMinute: number; perDay: number; dailyCap: number };
 export const defaultRateLimits: RateLimits = { perMinute: 5, perDay: 30, dailyCap: 200 };

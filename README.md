@@ -55,7 +55,7 @@ npm run dev
 
 Open the URL that `npm run dev` prints (Next.js uses port 3000 unless it is taken). The page is a short narrative with five chapters (Button, Toast, Bento, How it knows, Try your own). In any chapter, activate **Morph to component**; activate **Morph to code** to reverse it. Sound is one preference in the top bar.
 
-The optional "Try your own" chapter needs a Google Gemini API key. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY` there (never in code or commits; `.env.local` is git-ignored). In production, set it in the host's environment settings instead. Without a key, that chapter says generation is not configured and everything else works.
+The optional "Try your own" chapter needs a Google Gemini API key. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY` there (never in code or commits; `.env.local` is git-ignored). In production, set it in the host's environment settings instead. Without a key, that chapter says generation is not configured and everything else works. It uses `gemini-3.5-flash-lite` by default for speed; if generation is slow or fails, run `node scripts/gemini-check.mjs` to time the network and the model with your key.
 
 For the Chromium test suite, install its browser and create a production build first:
 
