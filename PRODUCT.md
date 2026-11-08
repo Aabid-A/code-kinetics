@@ -2,7 +2,7 @@
 
 Secondary name: **Code-to-Component Morph Engine**.
 
-Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromium results, and everything not yet run, are recorded in [QA.md](QA.md) "Current results". Open items are listed at the end of [SPEC.md](SPEC.md); the main one is that `public/audio/morph.mp3` is not shipped.
+Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromium results, and everything not yet run, are recorded in [QA.md](QA.md) "Current results". Open items are listed at the end of [SPEC.md](SPEC.md); the remaining people and owner items are in [RELEASE.md](RELEASE.md).
 
 <!-- impeccable:product-schema 1 -->
 

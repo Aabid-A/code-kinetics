@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 // These tests provoke failures on purpose, so they do not use the console-error guard of the other specs.
 
 test("Sound unavailable: preference kept, shown and announced once, retried only on a later off-to-on toggle", async ({ page }) => {
-  // public/audio/morph.mp3 is intentionally not shipped, so loading the cue fails.
+  // Make the cue fail to load in this test only: the audio route answers 404.
+  await page.route("**/audio/morph.mp3", route => route.fulfill({ status: 404, body: "" }));
   await page.goto("/");
   const sound = page.getByRole("button", { name: "Sound" });
   const note = page.getByText("Sound unavailable", { exact: true }).first();

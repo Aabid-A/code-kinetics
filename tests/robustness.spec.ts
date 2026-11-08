@@ -2,14 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { templates } from "../src/lib/lab/templates";
 import type { TemplateId, ViewMode } from "../src/lib/lab/types";
 
-// public/audio/morph.mp3 is intentionally absent, so turning Sound on logs that one 404; every other error fails.
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
   const errors: string[] = [];
   browserErrors.set(page, errors);
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => {
-    if (message.location().url.endsWith("/audio/morph.mp3")) return;
     if (message.type() === "error" || /hydration/i.test(message.text())) errors.push(message.text());
   });
 });

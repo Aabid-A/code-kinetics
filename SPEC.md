@@ -209,5 +209,5 @@ All content and mappings above are fixed. Six template/mode endpoint combination
 ## Open items (8 November 2026)
 
 1. **Header controls: resolved 8 November 2026.** Example, View and Sound now follow DESIGN.md "Custom controls" and R03 above; no native `<select>` or radio input remains.
-2. **No audio asset.** `public/audio/morph.mp3` does not exist, so no cue can play. Sound on shows and announces "Sound unavailable" once (R09), and the morph stays silent. Audible delivery and the listening review are not done.
+2. **Audio asset: supplied 8 November 2026.** `public/audio/morph.mp3` is synthesised by `scripts/make-morph-cue.sh` (130 ms of audio, mono, peak −6.2 dBFS; see QA.md Q10). The listening review on headphones and speakers is not done ([RELEASE.md](RELEASE.md) A1).
 3. **Registry invariant failures (R11): resolved 8 November 2026.** `validateTemplate` runs when `templates.ts` is evaluated. That evaluation happens while React renders the lab inside `LabErrorBoundary`, so a failed invariant shows the reload fallback. `tests/failure.spec.ts` covers it with a corrupted registry in the production build.

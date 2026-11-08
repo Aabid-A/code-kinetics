@@ -2,12 +2,12 @@
 
 Spatial DOM Transition Lab, branch `claude/jolly-hopper-ffu1aq`, 8 November 2026.
 
-Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Everything below needs a person: an owner's decision, an asset, or testing that automation in this environment cannot do. Nothing here is done. Tick an item only with its evidence recorded in QA.md, and fill in its owner.
+Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Everything below needs a person: an owner's decision, an asset, or testing that automation in this environment cannot do. Only "A1 Sound file" is done. Tick an item only with its evidence recorded in QA.md, and fill in its owner.
 
 ## A — Owner items
 
-- [ ] **A1 Sound file.** Supply `public/audio/morph.mp3`: one quiet, non-verbal click or whoosh, no longer than 180 ms, identical for both directions ([SPEC.md](SPEC.md) R09). It must be authored or licensed for this use, with its source, licence, format, duration and size recorded in QA.md Q10. ARCHITECTURE.md's target for optional audio is at most 30 KiB.
-  - Owner:
+- [x] **A1 Sound file.** `public/audio/morph.mp3`: one quiet, non-verbal click or whoosh, no longer than 180 ms, identical for both directions ([SPEC.md](SPEC.md) R09). Provenance: Synthesised by scripts/make-morph-cue.sh; no third-party audio; owned by the project. Format, duration, levels and size are recorded in QA.md Q10.
+  - Owner: the project
 - [ ] **A1 Listening review.** With the file in place, run the QA.md Q10 table on headphones and speakers at moderate volume: no clipping or startling transient, and perceived loudness reviewed (0.15 volume is only a starting value).
   - Owner:
 - [ ] **A3 Merge decision and pull request.** Decide whether `claude/jolly-hopper-ffu1aq` goes to `main`, then open and review the pull request. The generate-feature decisions (SHIP_GENERATE, USE_GEMINI) are still undecided, and that work is not on this branch.
