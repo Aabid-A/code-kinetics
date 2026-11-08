@@ -208,7 +208,7 @@ test("reduced motion, resize and scroll settle the latest destination", async ({
 test("server-rendered source and unavailable controls without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
-  await page.goto("http://localhost:3000");
+  await page.goto("/");
   await expect(page.locator(".morph-button")).toBeDisabled();
   await expect(page.locator("pre code")).toHaveText(buttonSource);
   await expect(page.locator("noscript p")).toBeVisible();
