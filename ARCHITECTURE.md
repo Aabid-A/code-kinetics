@@ -21,11 +21,11 @@ The motion engine is intentionally bounded to the three templates. It maps seman
 | `use-sound` | Omit initially; use a local native audio hook | One short cue needs no sprite support or Howler dependency; equivalent abstraction is allowed by the brief |
 | `prism-react-renderer` | Omit | Highlighting a raw string cannot establish the semantic mapping; fixed authored tokens already supply color and identity |
 | State/ UI/ gesture libraries | Omit | React state and native controls cover v1 |
-| Test tooling | Vitest, Testing Library, Playwright, axe integration or equivalents | Development-only; validate state, DOM, motion, and accessibility |
+| Test tooling | Playwright and `@axe-core/playwright` (both development-only); no separate unit-test runner | Validate state, DOM, motion, layout, and accessibility in a real browser |
 
-Do not install packages as part of this specification task. At implementation start, choose stable releases whose peer dependencies agree, record exact versions in a lockfile, and run the animation prototype gate before expanding the templates. No version number here claims a tested compatibility set. Tailwind v4 uses its matching PostCSS integration and CSS import workflow; do not copy a v3 configuration by habit. [Official Tailwind Next.js setup](https://tailwindcss.com/docs/installation/framework-guides/nextjs).
+Exact versions are pinned in `package.json` and `package-lock.json`, and listed in [README.md](README.md). The combination actually tested is the one recorded in [QA.md](QA.md) "Current results". Tailwind v4 uses its matching PostCSS integration and CSS import workflow; do not copy a v3 configuration by habit. [Official Tailwind Next.js setup](https://tailwindcss.com/docs/installation/framework-guides/nextjs).
 
-`use-sound` remains a possible replacement behind the same hook contract if future scope needs multiple assets or playback features; it wraps Howler, which is unnecessary for this single-cue proposal. [Project documentation](https://github.com/joshwcomeau/use-sound).
+`use-sound` remains a possible replacement behind the same hook contract if future scope needs multiple assets or playback features; it wraps Howler, which is unnecessary for a single cue. [Project documentation](https://github.com/joshwcomeau/use-sound).
 
 ## Source layout (as implemented)
 
@@ -54,11 +54,20 @@ src/lib/lab/
   types.ts                    # AppState, Command, pure transition function
   button.ts                   # Button content, tokens and lines, morphSpring, sharedId
   templates.ts                # Toast and Bento content, template registry, validateTemplate
+src/app/fixtures/two-labs/
+  page.fixture.tsx            # Test fixture: two labs on one page (QA Q04); routed only when LAB_FIXTURES=1
 tests/
   button.spec.ts              # Button state, motion, responsive, reduced-motion and no-JS checks
   templates.spec.ts           # Mappings, selection, Toast/Bento motion, layouts
   controls.spec.ts            # Keyboard and ARIA contracts of Example, View and Sound
-  failure.spec.ts             # Sound unavailable and error-boundary behavior
+  failure.spec.ts             # Sound unavailable, error boundary, invalid registry
+  accessibility.spec.ts       # axe scan in six states, measured contrast, forced colors
+  environment.spec.ts         # 960/959, 768 × 1024, 844 × 390, 200% zoom, orientation, tab hiding
+  robustness.spec.ts          # QA Q07 rapid-input sequences, blocked storage
+  devmode.spec.ts             # Strict Mode under `next dev` (own server on 4175), two-lab isolation
+  performance.spec.ts         # Records initial JS size and a frame-timing sample (no budget)
+  motion.ts, contrast.ts      # Shared helpers: divider-straddle path test, composited contrast
+next.config.ts                # Strict Mode; fixture routes only when LAB_FIXTURES=1
 playwright.config.ts          # Serves the production build on 127.0.0.1:4173; never reuses a server
 ```
 
@@ -188,9 +197,9 @@ All content is local, typed, fixed, and rendered through React text nodes. No `d
 
 Render all three definitions locally; mount only the active template's animated pieces. At most 10 live shared pieces at rest, or 20 briefly if outgoing retention is required. Avoid animation-driven React state updates each frame. Use transform/opacity for movement, no filters or animated layout from application-level timers.
 
-Initial target budgets: first-load route JavaScript at most 200 KiB gzip including framework and app; total optional audio at most 30 KiB; no morph-related network requests. Measure with the eventual production build rather than assuming tree shaking. If the baseline exceeds the JS target, inspect imports before introducing lazy-loading that could interrupt the first morph.
+Initial target budgets: first-load route JavaScript at most 200 KiB gzip including framework and app; total optional audio at most 30 KiB; no morph-related network requests. Measure the production build rather than assuming tree shaking; [QA.md](QA.md) Q11 records the measured first-load size, which has not been evaluated against this target on reference hardware. If the baseline exceeds the JS target, inspect imports before introducing lazy-loading that could interrupt the first morph.
 
-No custom server is needed. Standard Next.js hosting is sufficient; a static export is eligible because the planned route has no server features, but configure and verify it only if the deployment target requires it. Do not promise hosting or publish a site as part of this specification.
+No custom server is needed. Standard Next.js hosting is sufficient; a static export is eligible because the route has no server features, but configure and verify it only if the deployment target requires it. Do not promise hosting or publish a site as part of this specification.
 
 ## Implementation sequence and gates
 
@@ -214,4 +223,4 @@ No custom server is needed. Standard Next.js hosting is sufficient; a static exp
 | Small screen hides the journey | Responsive stack plus deliberate endpoint-only fallback and legend |
 | Hydration or sound causes nondeterminism | Fixed initial state, browser work after mount, audio tied to explicit commands |
 
-Documentation consulted on 1 November 2026. Linked library documentation establishes available mechanisms; the design values, source-to-target mappings, budgets, and lifecycle policies above are proposed application decisions requiring implementation validation.
+Documentation consulted on 1 November 2026. Linked library documentation establishes available mechanisms; the design values, source-to-target mappings, budgets, and lifecycle policies above are this application's decisions; [QA.md](QA.md) "Current results" records which have been verified and which have not.

@@ -15,6 +15,7 @@ Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromi
 | [DESIGN.md](DESIGN.md) | Layout, visual tokens, interaction, motion choreography, accessible presentation |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Component boundaries, mapping contracts, dependencies, runtime lifecycle |
 | [QA.md](QA.md) | Verification matrix, release gates, evidence requirements |
+| [RELEASE.md](RELEASE.md) | Remaining owner and people items before release |
 
 The user's brief is authoritative. Each document owns its topic; a future change that affects multiple topics must update all affected documents together. Requirements identified in SPEC.md are traced to QA.md. ARCHITECTURE.md lists the source files as they exist.
 

@@ -322,4 +322,4 @@ The evidence packet must include exact build/browser identifiers, command result
 
 ## Documentation delivery check
 
-This check applied to the original five specification files: names, cross-links, required stack, exact AppState, complete 3/4/10 mapping tables, consistent motion values and state behavior, and explicit implementation/test status. Confirm that no application code, package files, generated assets, or unrelated files were added or overwritten. This documentation check is distinct from all future application verification above.
+Historical: this check applied to the original specification-only delivery of five documents, before the application existed (names, cross-links, required stack, exact AppState, complete 3/4/10 mapping tables, consistent motion values and state behavior). It does not apply to the current repository, which contains the application; the verification above does.

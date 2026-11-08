@@ -39,7 +39,7 @@ The previews are illustrative and noninteractive. Toast does not report an actua
 - TypeScript `6.0.3` and Tailwind CSS `4.3.3`, using its v4 PostCSS integration and container queries.
 - Motion for React: `motion` `14.9.0`, imported from `motion/react`.
 - Geist Sans and Geist Mono via `geist` `1.9.0`; Lucide React `1.66.0`.
-- Playwright `1.64.1` for state contracts, browser behavior, sampled motion geometry, and endpoint captures; ESLint for static checks.
+- Playwright `1.64.1` for state contracts, browser behavior, sampled motion geometry, and endpoint captures; `@axe-core/playwright` `4.14.0` for accessibility scans; ESLint for static checks.
 
 ## Getting started
 
@@ -48,7 +48,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Select an example and activate **Morph to component**; activate **Morph to code** to reverse it.
+Open the URL that `npm run dev` prints (Next.js uses port 3000 unless it is taken). Select an example and activate **Morph to component**; activate **Morph to code** to reverse it.
 
 For the Chromium test suite, install its browser and create a production build first:
 
@@ -58,7 +58,7 @@ npm run build
 npm test
 ```
 
-Playwright starts its own production server (`npm run start`) on `127.0.0.1:4173` and never reuses an existing one, so that port must be free and `npm run build` must have been run first. Tests navigate relative to the configured `baseURL`. If Playwright cannot find its browser, install it with the command above.
+Playwright starts its own production server (`npm run start`) on `127.0.0.1:4173` and never reuses an existing one, so that port must be free and `npm run build` must have been run first. `tests/devmode.spec.ts` also starts `next dev` on `127.0.0.1:4175` with `LAB_FIXTURES=1` (for Strict Mode and the two-lab fixture), so that port must be free too; it restores `next-env.d.ts`, which `next dev` rewrites, when it stops. If Playwright cannot find its browser, install it with the command above.
 
 ## Available scripts
 
@@ -81,7 +81,7 @@ Reduced motion commits directly to the requested endpoint without spatial travel
 
 ## Project status and scope
 
-All three visual templates and the controls described above are implemented. The 22-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux), covering continuity, ownership, keyboard controls, cancellation, and layouts at 1440px, 1024px, 390px, and 320px. Firefox, Safari, physical devices, and manual screen-reader review remain unverified; this is not an accessibility certification.
+All three visual templates and the controls described above are implemented. The 61-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux), once and ten times over: continuity, ownership, keyboard controls, rapid input, cancellation, an axe scan and measured contrast in all six states, forced colors, layouts from 1440 to 320 px, 200% zoom, Strict Mode, and two-instance isolation. [QA.md](QA.md) "Current results" has the details and everything not run. Firefox, Safari, physical devices, and manual screen-reader review remain unverified; this is not an accessibility certification. Remaining release items are in [RELEASE.md](RELEASE.md).
 
 Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; if the cue cannot load, is unsupported or `play()` is rejected, the morph keeps working silently, the preference stays on, and "Sound unavailable" is shown and announced once; turning Sound off and on again retries. **The expected `public/audio/morph.mp3` asset is not included; audible delivery and the final Foley cue's listening review are incomplete.**
 

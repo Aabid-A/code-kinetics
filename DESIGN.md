@@ -6,7 +6,7 @@ Revision: premium dark visual direction, 2 November 2026. This document specifie
 
 ## Scope and authority
 
-This revision replaces the former flat, light, dashboard-like visual system with a premium landing-page aesthetic. It governs typography, color, materials, hierarchy, and custom control presentation. Where other documents still prescribe system fonts, light panels, native selects, or native radio inputs, this revision supersedes those presentation and control-construction requirements. [SPEC.md](SPEC.md) remains authoritative for template content, commands, selection effects, and application state.
+This revision replaces the former flat, light, dashboard-like visual system with a premium landing-page aesthetic. It governs typography, color, materials, hierarchy, and custom control presentation. It superseded the earlier system fonts, light panels, native selects, and native radio inputs; the other documents now describe the custom controls and Geist type. [SPEC.md](SPEC.md) remains authoritative for template content, commands, selection effects, and application state.
 
 Keep the current spring physics, shared identities, source-to-destination mappings, reversal, reduced-motion behavior, and template copy intact. Button, Toast, and Bento retain their content and composition. Only DESIGN.md is changed by this revision; no application implementation is requested.
 
@@ -279,5 +279,5 @@ This revision changes the visual acceptance criteria for fonts, materials, and c
 
 ## Implementation notes and open items (8 November 2026)
 
-- **Custom controls: implemented 8 November 2026.** Example is a button trigger with a custom listbox, View is a custom ARIA radiogroup with roving `tabIndex`, and Sound is a pill button with `aria-pressed`; no native `<select>` or radio input remains. Keyboard behavior is covered by `tests/controls.spec.ts`. Contrast, forced-colors and screen-reader behavior of the new controls are not verified. Morph styling was not changed in this pass.
+- **Custom controls: implemented 8 November 2026.** Example is a button trigger with a custom listbox, View is a custom ARIA radiogroup with roving `tabIndex`, and Sound is a pill button with `aria-pressed`; no native `<select>` or radio input remains. Keyboard behavior is covered by `tests/controls.spec.ts`. Contrast (measured against the composited background) and emulated forced colors are covered by `tests/accessibility.spec.ts`, with results in [QA.md](QA.md); screen-reader behavior is not verified. Morph styling was not changed in this pass.
 - **Fonts.** The code loads Geist and Geist Mono from the `geist` package (`geist/font/sans`, `geist/font/mono`), which supplies the font files locally, instead of `next/font/google`. This is treated as the local-font fallback that Typography allows when build-time downloading is not used; the family is unchanged and the variables are `--font-geist-sans` and `--font-geist-mono`. Visual verification of the applied fonts is not done.

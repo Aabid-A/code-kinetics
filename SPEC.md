@@ -197,7 +197,7 @@ Honor `prefers-reduced-motion`: no spatial travel, scaling, stagger, or overshoo
 | Reduced motion or unavailable geometry | Correct endpoint without spatial animation |
 | Template registry invariant fails | Development assertion; production lab error boundary shows “This example could not be displayed. Reload the lab.” and a reload button |
 | Render exception | Contained error message; no endless animation spinner |
-| Fonts load late | Prefer system fonts; any geometry change settles the endpoint |
+| Fonts load late | Geist is served with the app (`geist` package); any geometry change during a flight settles the endpoint |
 | Hidden tab during movement | Stop sound; settle visual run on visibility restoration; no catch-up sound |
 
 No network request, fake build delay, loading percentage, or compilation status belongs to a normal morph.
@@ -210,4 +210,4 @@ All content and mappings above are fixed. Six template/mode endpoint combination
 
 1. **Header controls: resolved 8 November 2026.** Example, View and Sound now follow DESIGN.md "Custom controls" and R03 above; no native `<select>` or radio input remains.
 2. **No audio asset.** `public/audio/morph.mp3` does not exist, so no cue can play. Sound on shows and announces "Sound unavailable" once (R09), and the morph stays silent. Audible delivery and the listening review are not done.
-3. **Registry invariant failures (R11).** `validateTemplate` runs when `templates.ts` is imported. A React error boundary catches render and effect exceptions, not module-evaluation errors, so whether a failed invariant reaches the fallback in production is unverified.
+3. **Registry invariant failures (R11): resolved 8 November 2026.** `validateTemplate` runs when `templates.ts` is evaluated. That evaluation happens while React renders the lab inside `LabErrorBoundary`, so a failed invariant shows the reload fallback. `tests/failure.spec.ts` covers it with a corrupted registry in the production build.
