@@ -1,4 +1,5 @@
 import { gzipSync } from "node:zlib";
+import { lab } from "./lab";
 import { expect, test } from "@playwright/test";
 
 // QA.md Q11 measurements. These record numbers only: no budget is set, so nothing here passes or fails on a size
@@ -12,7 +13,7 @@ test("records initial route JavaScript size (raw and gzip)", async ({ page }) =>
     pending.push(response.body().then(body => { scripts.push({ url: new URL(response.url()).pathname, raw: body.length, gzip: gzipSync(body).length }); }));
   });
   await page.goto("/", { waitUntil: "networkidle" });
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
   await Promise.all(pending);
   const total = scripts.reduce((sum, script) => ({ raw: sum.raw + script.raw, gzip: sum.gzip + script.gzip }), { raw: 0, gzip: 0 });
   const kib = (bytes: number) => `${(bytes / 1024).toFixed(1)} KiB`;
@@ -23,7 +24,7 @@ test("records initial route JavaScript size (raw and gzip)", async ({ page }) =>
 
 test("records a frame-timing sample over 10 morphs", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
   const sample = await page.evaluate(async () => {
     const longTasks: number[] = [];
     const observer = new PerformanceObserver(list => list.getEntries().forEach(entry => longTasks.push(entry.duration)));
@@ -54,7 +55,7 @@ test("records a frame-timing sample over 10 morphs", async ({ page }) => {
       within20ms: intervals.filter(value => value <= 20).length / intervals.length,
       longTasks: longTasks.length, longestTaskMs: Math.max(0, ...longTasks),
       firstVisibleChangeMs: { median: [...firstChange].sort((a, b) => a - b)[Math.floor(firstChange.length / 2)], max: Math.max(...firstChange), runs: firstChange.length },
-      mode: document.querySelector("main")!.getAttribute("data-view-mode"),
+      mode: document.querySelector('[data-lab="button"]')!.getAttribute("data-view-mode"),
     };
   });
   const round = (value: number) => Math.round(value * 10) / 10;

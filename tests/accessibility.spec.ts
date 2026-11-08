@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { lab } from "./lab";
 import { expect, test, type Page } from "@playwright/test";
 import { templates } from "../src/lib/lab/templates";
 import type { TemplateId as AnyTemplateId, ViewMode } from "../src/lib/lab/types";
@@ -19,17 +20,15 @@ const states = (["button", "toast", "bento"] as const).flatMap(id => (["code", "
 
 async function reach(page: Page, id: TemplateId, mode: ViewMode) {
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
-  if (id !== "button") {
-    await page.getByRole("button", { name: /^Example:/ }).click();
-    await page.getByRole("option", { name: templates[id].label, exact: true }).click();
-  }
-  if (mode === "rendered") await page.locator(".morph-button").click();
-  await expect(page.locator("main")).toHaveAttribute("data-template", id);
-  await expect(page.locator("main")).toHaveAttribute("data-view-mode", mode);
-  await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
-  await expect(page.locator(".preview-instruction")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
-  for (const part of templates[id].parts) await expect(page.locator(`[data-shared-id="${id}:${part.key}"]`)).toHaveAttribute("data-endpoint", mode);
+  const chapter = lab(page, id);
+  await expect(chapter.locator(".morph-button")).toBeEnabled();
+  await chapter.scrollIntoViewIfNeeded();
+  if (mode === "rendered") await chapter.locator(".morph-button").click();
+  await expect(chapter).toHaveAttribute("data-template", id);
+  await expect(chapter).toHaveAttribute("data-view-mode", mode);
+  await expect(chapter.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+  await expect(chapter.locator(".preview-instruction")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
+  for (const part of templates[id].parts) await expect(chapter.locator(`[data-shared-id="${id}:${part.key}"]`)).toHaveAttribute("data-endpoint", mode);
   // Let the short opacity fades on lettering and glass finish before reading colours.
   await page.waitForTimeout(400);
 }
@@ -80,7 +79,7 @@ test.describe("forced colors", () => {
       await expect(page.locator("body")).toHaveCSS("background-image", "none");
 
       // The checked View option is distinguishable from the unchecked one by more than colour of text alone.
-      const radios = await page.locator(".mode-option").evaluateAll(options => options.map(option => {
+      const radios = await lab(page, "toast").locator(".mode-option").evaluateAll(options => options.map(option => {
         const style = getComputedStyle(option);
         return { checked: option.getAttribute("aria-checked") === "true", background: style.backgroundColor, outline: style.outlineStyle };
       }));
@@ -89,7 +88,7 @@ test.describe("forced colors", () => {
       expect(checked.outline).toBe("solid");
 
       // Every mapped piece keeps a visible marker outline that takes no layout space and does not cover its text.
-      const markers = await page.locator(".shared-part").evaluateAll(parts => parts.map(part => {
+      const markers = await lab(page, "toast").locator(".shared-part").evaluateAll(parts => parts.map(part => {
         const style = getComputedStyle(part);
         // Surfaces hold no text of their own (text and icons are separate pieces), so their inset edge cannot cover glyphs.
         const clearOfText = part.getAttribute("data-kind") === "surface" || parseFloat(style.outlineOffset) >= 1;
@@ -99,8 +98,8 @@ test.describe("forced colors", () => {
       expect(markers.every(Boolean)).toBe(true);
 
       // Pills, the View group and panes keep an explicit border.
-      for (const selector of [".pill", ".mode-options", ".pane-ground"]) {
-        const borders = await page.locator(selector).evaluateAll(elements => elements.map(element => {
+      for (const selector of [".sound-pill", ".mode-options", ".pane-ground"]) {
+        const borders = await (selector === ".sound-pill" ? page : lab(page, "toast")).locator(selector).evaluateAll(elements => elements.map(element => {
           const style = getComputedStyle(element);
           return style.borderTopStyle !== "none" && parseFloat(style.borderTopWidth) >= 1;
         }));
@@ -109,17 +108,17 @@ test.describe("forced colors", () => {
       }
 
       // A keyboard-focused control shows a visible outline in a system colour.
-      await page.locator(".morph-button").focus();
+      await lab(page, "toast").locator(".morph-button").focus();
       await page.keyboard.press("Shift+Tab");
       await page.keyboard.press("Tab");
-      await expect(page.locator(".morph-button")).toBeFocused();
-      const outline = await page.locator(".morph-button").evaluate(element => {
+      await expect(lab(page, "toast").locator(".morph-button")).toBeFocused();
+      const outline = await lab(page, "toast").locator(".morph-button").evaluate(element => {
         const style = getComputedStyle(element);
         return { style: style.outlineStyle, width: parseFloat(style.outlineWidth), color: style.outlineColor, matches: element.matches(":focus-visible") };
       });
       expect(outline).toMatchObject({ style: "solid", matches: true });
       expect(outline.width).toBeGreaterThanOrEqual(2);
-      await page.locator(".morph-button").blur();
+      await lab(page, "toast").locator(".morph-button").blur();
 
       const samples = await measureContrast(page);
       await info.attach("forced-colors-contrast.json", { body: JSON.stringify(samples, null, 1), contentType: "application/json" });

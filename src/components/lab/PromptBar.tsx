@@ -39,7 +39,7 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
       const template = buildTemplate(parseSpec(typeof body === "object" && body !== null && "spec" in body ? body.spec : null));
       validateTemplate(template);
       onGenerated(template);
-      setMessage(`Generated ${template.label}. It is selected under Example; choose Morph to component.`);
+      setMessage(`Generated ${template.label}. It appears below. Choose Morph to component.`);
     } catch (error) {
       if (abort.signal.aborted) return;
       setFailed(true);

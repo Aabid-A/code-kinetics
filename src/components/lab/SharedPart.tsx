@@ -35,10 +35,9 @@ export function SharedPart({ part, endpoint, children, run, onComplete, template
     className={`shared-part part-${surface ? "surface" : kind === "icon" ? "icon" : part} endpoint-${endpoint}`}
     style={{
       borderRadius: surface ? endpoint === "code" ? 6 : templateId === "button" ? 10 : 16 : 4,
-      backgroundColor: surface ? endpoint === "code" ? "#1a283f" : templateId === "button" ? "#1d4ed8"
-        : part === "feature.surface" ? "rgb(39 27 57 / .92)" : "rgb(23 23 30 / .94)" : undefined,
-      boxShadow: surface && endpoint === "rendered" ? templateId === "button"
-        ? "0 6px 20px rgb(23 32 51 / 0.08)" : "0 6px 20px rgb(0 0 0 / .18)" : "none",
+      backgroundColor: surface ? endpoint === "code" ? "#2B2E36" : templateId === "button" || part === "feature.surface" ? "#1B1A17" : "#FBFAF6" : undefined,
+      boxShadow: surface && endpoint === "rendered" ? templateId === "button" || part === "feature.surface"
+        ? "0 8px 20px -10px rgb(27 26 23 / 0.35)" : "0 8px 20px -12px rgb(27 26 23 / 0.22)" : "none",
     }}
   >{children}</motion.span>;
 }

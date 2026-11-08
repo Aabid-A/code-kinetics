@@ -1,4 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
+import { bringIntoView, lab as labOf, labScript, pointLabAt, type LabId } from "./lab";
+
+declare const labRoot: () => HTMLElement;
+declare const labQ: (selector: string) => HTMLElement | null;
+declare const labAll: (selector: string) => HTMLElement[];
+
+// The chapter under test; `choose` switches it, scrolls it into view and points the in-page helpers at it.
+let current: LabId = "button";
+const lab = (page: Page) => labOf(page, current);
 import { sourceFor, templates, validateTemplate, type PartKey } from "../src/lib/lab/templates";
 import { transition, type AppState, type TemplateId, type ViewMode } from "../src/lib/lab/types";
 import { straddlesDivider, type Box } from "./motion";
@@ -11,6 +20,8 @@ const expectedSources = {
 };
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
+  current = "button";
+  await page.addInitScript(labScript);
   const messages: string[] = [];
   errors.set(page, messages);
   page.on("pageerror", error => messages.push(error.message));
@@ -19,25 +30,25 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
 
 async function settled(page: Page, id: BuiltIn, mode: ViewMode) {
-  await expect(page.locator("main")).toHaveAttribute("data-template", id);
-  await expect(page.locator("main")).toHaveAttribute("data-view-mode", mode);
-  await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
-  await expect(page.locator(".preview-instruction")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
-  await expect(page.locator(".shared-part")).toHaveCount(templates[id].parts.length);
+  await expect(lab(page)).toHaveAttribute("data-template", id);
+  await expect(lab(page)).toHaveAttribute("data-view-mode", mode);
+  await expect(lab(page).locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+  await expect(lab(page).locator(".preview-instruction")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
+  await expect(lab(page).locator(".shared-part")).toHaveCount(templates[id].parts.length);
   for (const part of templates[id].parts) {
-    const owner = page.locator(`[data-shared-id="${id}:${part.key}"]`);
+    const owner = lab(page).locator(`[data-shared-id="${id}:${part.key}"]`);
     await expect(owner).toHaveCount(1);
     await expect(owner).toHaveAttribute("data-endpoint", mode);
   }
-  if (id !== "button") await expect(page.locator(".preview-card-glass").first()).toHaveCSS("opacity", mode === "code" ? "0" : "1");
+  if (id !== "button") await expect(lab(page).locator(".preview-card-glass").first()).toHaveCSS("opacity", mode === "code" ? "0" : "1");
 }
 
-const labels = { button: "Button", toast: "Toast", bento: "Bento" } as const;
-const exampleTrigger = (page: Page) => page.getByRole("button", { name: /^Example:/ });
 
 async function choose(page: Page, id: BuiltIn) {
-  await exampleTrigger(page).click();
-  await page.getByRole("option", { name: labels[id], exact: true }).click();
+  current = id;
+  await pointLabAt(page, id);
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
+  await bringIntoView(page, id);
   await settled(page, id, "code");
   await page.evaluate(async () => {
     await new Promise(requestAnimationFrame);
@@ -78,9 +89,9 @@ for (const id of ["toast", "bento"] as const) {
   test(`${id}: continuous forward/reverse, independent unscaled children and interruption`, async ({ page }, info) => {
     await page.goto("/");
     await choose(page, id);
-    await expect(page.locator("pre code")).toHaveText(expectedSources[id]);
+    await expect(lab(page).locator("pre code")).toHaveText(expectedSources[id]);
     await page.screenshot({ path: info.outputPath(`${id}-desktop-code.png`), fullPage: true });
-    const read = () => page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".shared-part")].map(element => {
+    const read = () => page.evaluate(() => [...labAll(".shared-part")].map(element => {
       const box = element.getBoundingClientRect();
       return { key: element.dataset.part!, x: box.x, y: box.y, width: box.width, height: box.height };
     }));
@@ -90,7 +101,7 @@ for (const id of ["toast", "bento"] as const) {
       const began = performance.now();
       while (performance.now() - began < 1200) {
         await new Promise(requestAnimationFrame);
-        const parts = [...document.querySelectorAll<HTMLElement>(".shared-part")].map(element => {
+        const parts = [...labAll(".shared-part")].map(element => {
           const box = element.getBoundingClientRect();
           const range = document.createRange();
           range.selectNodeContents(element);
@@ -100,17 +111,17 @@ for (const id of ["toast", "bento"] as const) {
             hit: document.elementsFromPoint(box.x + box.width / 2, box.y + box.height / 2).includes(element),
             glyphWidth: glyphs.width, glyphHeight: glyphs.height, svgWidth: svg?.width, svgHeight: svg?.height };
         });
-        frames.push({ mode: document.querySelector("main")!.getAttribute("data-view-mode")!, parts });
+        frames.push({ mode: labRoot().getAttribute("data-view-mode")!, parts });
       }
       return frames;
     });
     const forwardSampling = sample();
-    await page.locator(".morph-button").click();
+    await lab(page).locator(".morph-button").click();
     const forward = (await forwardSampling).filter(frame => frame.mode === "rendered");
     await settled(page, id, "rendered");
-    await expect(page.locator(".morph-button")).toBeFocused();
+    await expect(lab(page).locator(".morph-button")).toBeFocused();
     const destinations = await read();
-    const stage = await page.locator(".lab-stage").boundingBox();
+    const stage = await lab(page).locator(".lab-stage").boundingBox();
     const divider = stage!.x + stage!.width / 2;
     for (const part of templates[id].parts) {
       const origin = origins.find(entry => entry.key === part.key)!;
@@ -127,7 +138,7 @@ for (const id of ["toast", "bento"] as const) {
           expect(frames.every(frame => Math.abs(frame.glyphWidth - end.glyphWidth) < 1 && Math.abs(frame.glyphHeight - end.glyphHeight) < 1)).toBe(true);
         }
       }
-      const slot = await page.locator(`[data-destination-slot="${part.key}"]`).boundingBox();
+      const slot = await lab(page).locator(`[data-destination-slot="${part.key}"]`).boundingBox();
       expect(Math.abs(slot!.x - target.x)).toBeLessThan(1);
       expect(Math.abs(slot!.y - target.y)).toBeLessThan(1);
     }
@@ -142,24 +153,24 @@ for (const id of ["toast", "bento"] as const) {
     const inFlight = forward.map(progressOf).filter(progress => progress[0] > .05 && progress[0] < .95);
     expect(inFlight.length).toBeGreaterThan(0);
     for (const progress of inFlight) expect(Math.max(...progress) - Math.min(...progress)).toBeLessThan(.1);
-    expect(await page.evaluate(() => [...document.querySelectorAll('.shared-part[data-kind="surface"]')]
+    expect(await page.evaluate(() => [...labAll('.shared-part[data-kind="surface"]')]
       .every(surface => !surface.querySelector('.shared-part[data-kind="text"], .shared-part[data-kind="icon"]')))).toBe(true);
     await page.screenshot({ path: info.outputPath(`${id}-desktop-rendered.png`), fullPage: true });
     const reverseSampling = sample();
-    await page.locator(".morph-button").click();
+    await lab(page).locator(".morph-button").click();
     const reverse = await reverseSampling;
     await settled(page, id, "code");
     expect(reverse.some(frame => frame.parts.some(part => part.x > origins.find(entry => entry.key === part.key)!.x + 5
       && part.x < destinations.find(entry => entry.key === part.key)!.x - 5))).toBe(true);
-    await page.locator(".morph-button").click();
+    await lab(page).locator(".morph-button").click();
     await page.waitForTimeout(100);
     const { before, after } = await page.evaluate(async () => {
-      const boxes = () => [...document.querySelectorAll<HTMLElement>(".shared-part")].map(element => {
+      const boxes = () => [...labAll(".shared-part")].map(element => {
         const b = element.getBoundingClientRect();
         return { key: element.dataset.part!, x: b.x, y: b.y, width: b.width, height: b.height };
       });
       const before = boxes();
-      document.querySelector<HTMLButtonElement>(".morph-button")!.click();
+      (labQ(".morph-button") as HTMLButtonElement).click();
       await new Promise(requestAnimationFrame);
       return { before, after: boxes() };
     });
@@ -169,40 +180,26 @@ for (const id of ["toast", "bento"] as const) {
   });
 }
 
-test("listbox selection cancels old flights, same selection is a no-op, latest request wins", async ({ page }) => {
+test("latest request wins within a chapter: Morph then Code in one tick, and the current view is a no-op", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
-  await page.locator(".morph-button").click();
+  await choose(page, "toast");
+  await lab(page).locator(".morph-button").click();
   await page.waitForTimeout(100);
-  const selector = exampleTrigger(page);
-  const popup = page.getByRole("listbox", { name: "Example" });
-  await selector.focus();
-  await page.keyboard.press("Enter");
-  await expect(popup).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("Enter");
-  await settled(page, "toast", "code");
-  await expect(selector).toBeFocused();
-  expect(await page.locator(".shared-part").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).transform === "none"))).toBe(true);
-  await page.locator(".morph-button").click();
-  await page.waitForTimeout(100);
-  await selector.click();
-  await expect(popup).toBeFocused();
-  // Selection and Morph in the same tick: the latest request wins.
+  // Morph and the Code radio in the same tick: the later request (Code) wins and the old flight is cancelled.
   await page.evaluate(() => {
-    document.querySelector<HTMLElement>('[role="option"]:last-child')!.click();
-    document.querySelector<HTMLButtonElement>(".morph-button")!.click();
+    (labQ(".morph-button") as HTMLButtonElement).click();
+    (labQ('[role="radio"]') as HTMLButtonElement).click();
   });
-  await settled(page, "bento", "rendered");
-  await selector.focus();
-  await page.keyboard.press("Enter");
-  await expect(popup).toBeFocused();
-  await page.keyboard.press("Enter"); // commits the already-selected option: a no-op
-  await settled(page, "bento", "rendered");
+  await settled(page, "toast", "code");
+  expect(await lab(page).locator(".shared-part").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).transform === "none"))).toBe(true);
+  await lab(page).getByRole("radio", { name: "Component", exact: true }).click();
+  await settled(page, "toast", "rendered");
+  await lab(page).getByRole("radio", { name: "Component", exact: true }).click(); // selecting the current view is a no-op
+  await settled(page, "toast", "rendered");
   await page.waitForTimeout(2000);
-  await settled(page, "bento", "rendered");
+  await settled(page, "toast", "rendered");
   await choose(page, "button");
-  await page.locator(".morph-button").click();
+  await lab(page).locator(".morph-button").click();
   await settled(page, "button", "rendered");
 });
 
@@ -210,11 +207,11 @@ test("Bento responds to exactly 360px of preview content, preserving asymmetric 
   await page.goto("/");
   await choose(page, "bento");
   for (const width of [359, 360]) {
-    await page.locator(".preview-content").evaluate((element, width) => {
+    await lab(page).locator(".preview-content").evaluate((element, width) => {
       const style = getComputedStyle(element);
       (element as HTMLElement).style.width = `${width + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)}px`;
     }, width);
-    const cards = await page.locator("[data-card]").evaluateAll(nodes => nodes.map(node => {
+    const cards = await lab(page).locator("[data-card]").evaluateAll(nodes => nodes.map(node => {
       const b = node.getBoundingClientRect();
       return { x: b.x, y: b.y, width: b.width, height: b.height };
     }));
@@ -241,7 +238,7 @@ test("all templates fit desktop and mobile with stable endpoint ownership and re
     for (const id of ids) {
       await choose(page, id);
       for (const mode of ["code", "rendered"] as const) {
-        if (mode === "rendered") await page.locator(".morph-button").click();
+        if (mode === "rendered") await lab(page).locator(".morph-button").click();
         await settled(page, id, mode);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         if (width === 1440 || width === 390) await page.screenshot({ path: info.outputPath(`${id}-${width}-${mode}.png`), fullPage: true });
@@ -249,10 +246,11 @@ test("all templates fit desktop and mobile with stable endpoint ownership and re
     }
   }
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/"); // fresh labs, all in code mode
   for (const id of ids) {
     await choose(page, id);
-    await page.locator(".morph-button").click();
+    await lab(page).locator(".morph-button").click();
     await settled(page, id, "rendered");
-    expect(await page.locator(".shared-part").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).transform === "none"))).toBe(true);
+    expect(await lab(page).locator(".shared-part").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).transform === "none"))).toBe(true);
   }
 });

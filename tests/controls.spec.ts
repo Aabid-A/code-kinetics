@@ -1,132 +1,24 @@
 import { expect, test, type Page } from "@playwright/test";
+import { lab } from "./lab";
 
-const trigger = (page: Page) => page.getByRole("button", { name: /^Example:/ });
-const popup = (page: Page) => page.getByRole("listbox", { name: "Example" });
 const sound = (page: Page) => page.getByRole("button", { name: "Sound" });
-const radio = (page: Page, name: "Code" | "Component") => page.getByRole("radio", { name, exact: true });
-const template = (page: Page) => page.locator("main").getAttribute("data-template");
+const radio = (page: Page, name: "Code" | "Component") => lab(page).getByRole("radio", { name, exact: true });
 async function ready(page: Page) {
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
 }
 async function settledMode(page: Page, mode: "code" | "rendered") {
-  await expect(page.locator("main")).toHaveAttribute("data-view-mode", mode);
-  await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+  await expect(lab(page)).toHaveAttribute("data-view-mode", mode);
+  await expect(lab(page).locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
 }
-async function open(page: Page) {
-  await trigger(page).focus();
-  await page.keyboard.press("Enter");
-  await expect(popup(page)).toBeFocused();
-}
-const active = (page: Page) => popup(page).getAttribute("aria-activedescendant").then(id => page.locator(`[id="${id}"]`).textContent());
-
 test("no native select or radio inputs remain in the page", async ({ page }) => {
   await ready(page);
-  await expect(page.locator("select, input[type=radio]")).toHaveCount(0);
-});
-
-test("Example listbox: ARIA contract, keys, commit and cancel", async ({ page }) => {
-  await ready(page);
-  const button = trigger(page);
-  await expect(button).toHaveAccessibleName("Example: Button");
-  await expect(button).toHaveAttribute("aria-haspopup", "listbox");
-  await expect(button).toHaveAttribute("aria-expanded", "false");
-  const controls = await button.getAttribute("aria-controls");
-  expect(controls).toBeTruthy();
-  await expect(popup(page)).toBeHidden();
-
-  // Enter opens on the selected option; options are not Tab stops; navigating does not commit.
-  await open(page);
-  await expect(button).toHaveAttribute("aria-expanded", "true");
-  await expect(popup(page)).toHaveAttribute("id", controls!);
-  await expect.poll(() => active(page)).toBe("Button");
-  await expect(page.getByRole("option")).toHaveText(["Button", "Toast", "Bento"]);
-  await expect(page.getByRole("option", { name: "Button" })).toHaveAttribute("aria-selected", "true");
-  for (const option of await page.getByRole("option").all()) await expect(option).not.toHaveAttribute("tabindex");
-  await page.keyboard.press("ArrowDown");
-  await expect.poll(() => active(page)).toBe("Toast");
-  await page.keyboard.press("End");
-  await expect.poll(() => active(page)).toBe("Bento");
-  await page.keyboard.press("ArrowDown");
-  await expect.poll(() => active(page)).toBe("Bento");
-  await page.keyboard.press("Home");
-  await expect.poll(() => active(page)).toBe("Button");
-  await page.keyboard.press("t");
-  await expect.poll(() => active(page)).toBe("Toast");
-  expect(await template(page)).toBe("button");
-
-  // Escape cancels and returns focus.
-  await page.keyboard.press("Escape");
-  await expect(popup(page)).toBeHidden();
-  await expect(button).toBeFocused();
-  await expect(button).toHaveAttribute("aria-expanded", "false");
-  expect(await template(page)).toBe("button");
-
-  // Space opens, typeahead finds Bento, Enter commits and returns focus.
-  await button.focus();
-  await page.keyboard.press("Space");
-  await expect(popup(page)).toBeFocused();
-  await page.keyboard.press("b");
-  await page.keyboard.press("e");
-  await expect.poll(() => active(page)).toBe("Bento");
-  await page.keyboard.press("Enter");
-  await expect(page.locator("main")).toHaveAttribute("data-template", "bento");
-  await expect(button).toHaveAccessibleName("Example: Bento");
-  await expect(button).toBeFocused();
-
-  // ArrowDown opens on the selected option; Space commits the active one.
-  await page.keyboard.press("ArrowDown");
-  await expect(popup(page)).toBeFocused();
-  await expect.poll(() => active(page)).toBe("Bento");
-  await page.keyboard.press("ArrowUp");
-  await page.keyboard.press("Space");
-  await expect(page.locator("main")).toHaveAttribute("data-template", "toast");
-  await expect(button).toBeFocused();
-});
-
-test("Example listbox: Tab, outside pointer and option clicks", async ({ page }) => {
-  await ready(page);
-  const button = trigger(page);
-
-  // Tab closes without committing and follows normal focus order.
-  await open(page);
-  await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("Tab");
-  await expect(popup(page)).toBeHidden();
-  await expect(sound(page)).toBeFocused();
-  expect(await template(page)).toBe("button");
-
-  // Clicking a non-focusable area closes without committing.
-  await button.click();
-  await expect(popup(page)).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await page.locator("h1").click();
-  await expect(popup(page)).toBeHidden();
-  expect(await template(page)).toBe("button");
-
-  // Clicking another control keeps that control's focus.
-  await button.click();
-  await expect(popup(page)).toBeFocused();
-  await sound(page).click();
-  await expect(popup(page)).toBeHidden();
-  await expect(sound(page)).toBeFocused();
-  await sound(page).click();
-
-  // The trigger toggles; pointer selection commits immediately.
-  await button.click();
-  await expect(popup(page)).toBeVisible();
-  await button.click();
-  await expect(popup(page)).toBeHidden();
-  await button.click();
-  await page.getByRole("option", { name: "Toast" }).click();
-  await expect(page.locator("main")).toHaveAttribute("data-template", "toast");
-  await expect(button).toHaveAccessibleName("Example: Toast");
-  await expect(button).toBeFocused();
+  await expect(lab(page).locator("select, input[type=radio]")).toHaveCount(0);
 });
 
 test("View radiogroup: roving tabindex, arrows with wrap, Home/End, Space/Enter and click", async ({ page }) => {
   await ready(page);
-  const group = page.getByRole("radiogroup", { name: "View" });
+  const group = lab(page).getByRole("radiogroup", { name: "View" });
   await expect(group).toBeVisible();
   await expect(radio(page, "Code")).toHaveAttribute("aria-checked", "true");
   await expect(radio(page, "Code")).toHaveAttribute("tabindex", "0");
@@ -134,10 +26,10 @@ test("View radiogroup: roving tabindex, arrows with wrap, Home/End, Space/Enter 
   await expect(radio(page, "Component")).toHaveAttribute("tabindex", "-1");
 
   // Only the selected radio is in the Tab order.
-  await page.locator(".morph-button").focus();
-  await page.keyboard.press("Tab");
+  await lab(page).locator(".morph-button").focus();
+  await page.keyboard.press("Shift+Tab");
   await expect(radio(page, "Code")).toBeFocused();
-  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
   await expect(group.locator(":focus")).toHaveCount(0);
 
   await radio(page, "Code").focus();
@@ -172,7 +64,7 @@ test("View radiogroup: roving tabindex, arrows with wrap, Home/End, Space/Enter 
   await settledMode(page, "rendered");
   await radio(page, "Component").click(); // selecting the current value is a no-op
   await settledMode(page, "rendered");
-  await expect(page.locator("main")).toHaveAttribute("data-template", "button");
+  await expect(lab(page)).toHaveAttribute("data-template", "button");
 });
 
 test("Sound pill: name, aria-pressed, labels, keys", async ({ page }) => {
@@ -194,16 +86,11 @@ test("custom controls have 44px targets and stay usable at 390px", async ({ page
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await ready(page);
-    for (const control of [trigger(page), sound(page), radio(page, "Code"), radio(page, "Component"), page.locator(".morph-button")]) {
+    for (const control of [sound(page), radio(page, "Code"), radio(page, "Component"), lab(page).locator(".morph-button")]) {
       const box = await control.boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(44);
       expect(box!.width).toBeGreaterThanOrEqual(44);
     }
-    await trigger(page).click();
-    const list = await popup(page).boundingBox();
-    expect(list!.x).toBeGreaterThanOrEqual(0);
-    expect(list!.x + list!.width).toBeLessThanOrEqual(width);
-    await page.keyboard.press("Escape");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { bringIntoView, lab } from "./lab";
 import { buttonLines, buttonParts, buttonSource, morphSpring, sharedId } from "../src/lib/lab/button";
 import { initialState, transition } from "../src/lib/lab/types";
 import { straddlesDivider } from "./motion";
@@ -15,18 +16,18 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ page }) => { expect(browserErrors.get(page)).toEqual([]); });
 
 async function settled(page: Page, mode: "code" | "rendered") {
-  await expect(page.locator("main")).toHaveAttribute("data-view-mode", mode);
-  await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
-  await expect(page.locator(".preview-instruction")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
-  await expect(page.locator(".surface-lettering")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
+  await expect(lab(page)).toHaveAttribute("data-view-mode", mode);
+  await expect(lab(page).locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+  await expect(lab(page).locator(".preview-instruction")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
+  await expect(lab(page).locator(".surface-lettering")).toHaveCSS("opacity", mode === "code" ? "1" : "0");
   for (const part of buttonParts) {
-    await expect(page.locator(`[data-part="${part}"]`)).toHaveCount(1);
-    await expect(page.locator(`[data-part="${part}"]`)).toHaveAttribute("data-endpoint", mode);
+    await expect(lab(page).locator(`[data-part="${part}"]`)).toHaveCount(1);
+    await expect(lab(page).locator(`[data-part="${part}"]`)).toHaveAttribute("data-endpoint", mode);
   }
 }
 
 async function box(page: Page, selector: string) {
-  const value = await page.locator(selector).boundingBox();
+  const value = await lab(page).locator(selector).boundingBox();
   if (!value) throw new Error(`Missing box for ${selector}`);
   return value;
 }
@@ -48,10 +49,10 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => { if (message.type() === "error" || /hydration/i.test(message.text())) errors.push(message.text()); });
   await page.goto("/");
-  const morph = page.getByRole("button", { name: "Morph to component" });
+  const morph = lab(page).getByRole("button", { name: "Morph to component" });
   await expect(morph).toBeEnabled();
   await settled(page, "code");
-  await expect(page.getByRole("radio", { name: "Code", exact: true })).toBeChecked();
+  await expect(lab(page).getByRole("radio", { name: "Code", exact: true })).toBeChecked();
   await page.screenshot({ path: info.outputPath("desktop-code.png"), fullPage: true });
   const start = await box(page, '[data-part="surface"]');
   const target = await box(page, ".button-template");
@@ -87,7 +88,7 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   });
   const forwardSampling = sample();
   await morph.click();
-  await expect(page.getByRole("button", { name: "Morph to code" })).toBeFocused();
+  await expect(lab(page).getByRole("button", { name: "Morph to code" })).toBeFocused();
   const forward = await forwardSampling;
   expect(forward.some(frame => frame.x > start.x + 5 && frame.x < target.x - 5)).toBe(true);
   // The surface must straddle the divider. Test the path between sampled frames as well as the frames,
@@ -103,11 +104,11 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   expect(forward.filter(frame => frame.x > start.x + 5).every(frame => Math.abs(frame.labelWidth - label.width) < 1 && Math.abs(frame.labelHeight - label.height) < 1)).toBe(true);
   expect(await box(page, ".code-lines")).toEqual(sourceLines);
   expect(await box(page, ".lab-stage")).toEqual(stage);
-  await expect(page.getByRole("img", { name: "Example button labelled Explore, with an up-right arrow." })).toBeVisible();
+  await expect(lab(page).getByRole("img", { name: "Example button labelled Explore, with an up-right arrow." })).toBeVisible();
   await page.screenshot({ path: info.outputPath("desktop-rendered.png"), fullPage: true });
 
   const reverseSampling = sample();
-  await page.getByRole("button", { name: "Morph to code" }).click();
+  await lab(page).getByRole("button", { name: "Morph to code" }).click();
   const reverse = await reverseSampling;
   expect(reverse.some(frame => frame.x > start.x + 5 && frame.x < target.x - 5)).toBe(true);
   expect(reverse.filter(frame => frame.tagOpacity > .05).every(frame => Math.abs(frame.tagWidth - tagText.width) < 1)).toBe(true);
@@ -116,7 +117,7 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   expect(forward.at(-1)?.artOpacity).toBe(1);
   await settled(page, "code");
 
-  await page.getByRole("button", { name: "Morph to component" }).click();
+  await lab(page).getByRole("button", { name: "Morph to component" }).click();
   await page.waitForTimeout(100);
   // Read the box just before retargeting and the first projected frame after it in the same browser task. A
   // separate Playwright call for "before" leaves a round-trip gap in which the surface keeps moving at peak speed.
@@ -142,18 +143,18 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
 
 test("rapid latest requests and radiogroup keyboard control", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
   for (const spacing of [100, 30]) {
     for (let i = 0; i < 6; i++) {
-      await page.locator(".morph-button").click();
+      await lab(page).locator(".morph-button").click();
       await page.waitForTimeout(spacing);
     }
     await settled(page, "code");
   }
-  await page.getByRole("radio", { name: "Code", exact: true }).focus();
+  await lab(page).getByRole("radio", { name: "Code", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await settled(page, "rendered");
-  await expect(page.getByRole("radio", { name: "Component", exact: true })).toBeFocused();
+  await expect(lab(page).getByRole("radio", { name: "Component", exact: true })).toBeFocused();
   await page.keyboard.press("ArrowLeft");
   await settled(page, "code");
 });
@@ -161,15 +162,15 @@ test("rapid latest requests and radiogroup keyboard control", async ({ page }) =
 test("390px phone reflow, offscreen fallback, both stable endpoints", async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
   await settled(page, "code");
   await page.screenshot({ path: info.outputPath("mobile-code.png"), fullPage: true });
-  await page.locator(".morph-button").click();
+  await lab(page).locator(".morph-button").click();
   await settled(page, "rendered");
-  await expect(page.getByText("View changed. Scroll to compare the example.")).toBeVisible();
+  await expect(lab(page).getByText("View changed. Scroll to compare the example.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath("mobile-rendered.png"), fullPage: true });
-  await page.locator(".morph-button").click();
+  await lab(page).locator(".morph-button").click();
   await settled(page, "code");
   await page.setViewportSize({ width: 320, height: 640 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -178,10 +179,11 @@ test("390px phone reflow, offscreen fallback, both stable endpoints", async ({ p
 test("stacked vertical travel when both regions fit", async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1200 });
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
+  await bringIntoView(page);
   const start = await box(page, '[data-part="surface"]');
   const target = await box(page, ".button-template");
-  await page.locator(".morph-button").click();
+  await lab(page).locator(".morph-button").click();
   await page.waitForTimeout(100);
   const mid = await box(page, '[data-part="surface"]');
   expect(mid.y).toBeGreaterThan(start.y + 5);
@@ -192,18 +194,18 @@ test("stacked vertical travel when both regions fit", async ({ page }) => {
 test("reduced motion, resize and scroll settle the latest destination", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
-  await page.locator(".morph-button").click();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
+  await lab(page).locator(".morph-button").click();
   await settled(page, "rendered");
   const target = await box(page, ".button-template");
   expect(Math.abs((await box(page, '[data-part="surface"]')).x - target.x)).toBeLessThan(1);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.locator(".morph-button").click();
+  await lab(page).locator(".morph-button").click();
   await page.waitForTimeout(100);
   await page.setViewportSize({ width: 1024, height: 768 });
   await settled(page, "code");
-  await expect(page.locator(".morph-button")).toBeFocused();
-  await page.locator(".morph-button").click();
+  await expect(lab(page).locator(".morph-button")).toBeFocused();
+  await lab(page).locator(".morph-button").click();
   await page.waitForTimeout(100);
   await page.evaluate(() => window.scrollTo(0, 40));
   await settled(page, "rendered");
@@ -213,8 +215,8 @@ test("server-rendered source and unavailable controls without JavaScript", async
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeDisabled();
-  await expect(page.locator("pre code")).toHaveText(buttonSource);
+  await expect(lab(page).locator(".morph-button")).toBeDisabled();
+  await expect(lab(page).locator("pre code")).toHaveText(buttonSource);
   await expect(page.locator("noscript p")).toBeVisible();
   await expect(page.locator("noscript p")).toContainText("Interaction requires JavaScript.");
   await context.close();

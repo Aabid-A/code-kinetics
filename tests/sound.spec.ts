@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { lab } from "./lab";
 
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -34,7 +35,7 @@ test("Sound on and a mode-changing Morph: the cue loads and play() is called onc
   });
 
   await page.goto("/");
-  await expect(page.locator(".morph-button")).toBeEnabled();
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
   const responses: number[] = [];
   page.on("response", response => { if (response.url().endsWith("/audio/morph.mp3")) responses.push(response.status()); });
 
@@ -46,15 +47,15 @@ test("Sound on and a mode-changing Morph: the cue loads and play() is called onc
   expect(responses.every(status => status === 200 || status === 206 || status === 304)).toBe(true);
   expect((await probe()).plays).toEqual([]); // enabling sound plays no preview cue
 
-  await page.locator(".morph-button").click();
-  await expect(page.locator("main")).toHaveAttribute("data-view-mode", "rendered");
+  await lab(page).locator(".morph-button").click();
+  await expect(lab(page)).toHaveAttribute("data-view-mode", "rendered");
   await expect.poll(async () => (await probe()).plays.length).toBe(1);
   const [played] = (await probe()).plays;
   expect(new URL(played.src).pathname).toBe("/audio/morph.mp3");
   await expect.poll(async () => (await probe()).plays[0].outcome).not.toBe("pending");
   await test.info().attach("play-outcome.txt", { body: (await probe()).plays[0].outcome, contentType: "text/plain" });
   await expect(page.locator(".sound-note")).toHaveCount(0);
-  await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+  await expect(lab(page).locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
   // Exactly one call for one mode-changing activation, and none afterwards.
   await page.waitForTimeout(500);
   expect((await probe()).plays.length).toBe(1);

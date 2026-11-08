@@ -6,16 +6,15 @@ import { SharedPart, type PartMotion } from "./SharedPart";
 import { ButtonPartContent } from "./ButtonTemplate";
 import { TemplatePartContent } from "./TemplatePart";
 
-export function CodePane({ mode, contentRef, ...motion }: PartMotion & {
-  mode: ViewMode; contentRef: RefObject<HTMLDivElement | null>;
+export function CodePane({ mode, contentRef, headingId, ...motion }: PartMotion & {
+  mode: ViewMode; contentRef: RefObject<HTMLDivElement | null>; headingId: string;
 }) {
   const { template } = motion;
   const templateId = template.id;
-  return <section className="code-pane pane" aria-labelledby="code-heading" data-view-mode={mode}>
+  return <div className="code-pane pane" role="group" aria-labelledby={headingId} data-view-mode={mode}>
     <div className="pane-ground code-ground" aria-hidden="true" />
     <div className="code-chrome">
-      <div className="window-dots" aria-hidden="true"><i /><i /><i /></div>
-      <h2 id="code-heading">{template.filename}</h2><span>{template.generated ? "Generated example" : "Fixed example"}</span>
+      <h3 id={headingId}>{template.filename}</h3><span>{template.generated ? "Generated example" : "Fixed example"}</span>
     </div>
     <pre className="sr-only"><code>{sourceFor(template)}</code></pre>
     <div className="code-content" ref={contentRef}>
@@ -36,5 +35,5 @@ export function CodePane({ mode, contentRef, ...motion }: PartMotion & {
       </div>
     </div>
     <p className="code-note">{mode === "code" ? "Mapped pieces start here." : "Mapped pieces are shown in the preview."}</p>
-  </section>;
+  </div>;
 }

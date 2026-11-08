@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { lab } from "./lab";
 
 // These tests provoke failures on purpose, so they do not use the console-error guard of the other specs.
 
@@ -8,7 +9,7 @@ test("Sound unavailable: preference kept, shown and announced once, retried only
   await page.goto("/");
   const sound = page.getByRole("button", { name: "Sound" });
   const note = page.getByText("Sound unavailable", { exact: true }).first();
-  const status = page.getByRole("status");
+  const status = page.locator("[data-sound-status]");
   await expect(note).toBeHidden();
   await sound.click();
   await expect(page.locator(".sound-note")).toHaveText("Sound unavailable");
@@ -16,9 +17,9 @@ test("Sound unavailable: preference kept, shown and announced once, retried only
   await expect(status).toHaveText("Sound unavailable.");
 
   // The morph still works silently and does not repeat the notice.
-  await page.locator(".morph-button").click();
-  await expect(page.locator("main")).toHaveAttribute("data-view-mode", "rendered");
-  await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+  await lab(page).locator(".morph-button").click();
+  await expect(lab(page)).toHaveAttribute("data-view-mode", "rendered");
+  await expect(lab(page).locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
   await expect(page.locator(".sound-note")).toHaveCount(1);
   await expect(sound).toHaveAttribute("aria-pressed", "true");
 

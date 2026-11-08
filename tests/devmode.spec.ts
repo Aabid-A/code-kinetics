@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { bringIntoView, lab } from "./lab";
 
 // Development-mode checks run against `next dev`, where React Strict Mode (reactStrictMode: true) double-invokes
 // effects. This spec starts its own dev server with LAB_FIXTURES=1 so the two-lab fixture route exists. `next dev`
@@ -82,16 +83,18 @@ test.afterEach(async ({ page }) => { expect(browserErrors.get(page)).toEqual([])
 type Probe = { observers: { created: number; live: number }; cancelFlight: { registered: number; live: number } };
 const probe = (page: Page) => page.evaluate(() => (window as unknown as { labProbe: () => Probe }).labProbe());
 
-async function settled(lab: Locator, template: string, mode: "code" | "rendered") {
-  await expect(lab.locator("main")).toHaveAttribute("data-template", template);
-  await expect(lab.locator("main")).toHaveAttribute("data-view-mode", mode);
-  await expect(lab.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
+async function settled(chapter: Locator, template: string, mode: "code" | "rendered") {
+  await expect(chapter).toHaveAttribute("data-template", template);
+  await expect(chapter).toHaveAttribute("data-view-mode", mode);
+  await expect(chapter.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
 }
 
-test("Strict Mode in development: one live set of listeners and observers per lab, and the lab works", async ({ page }) => {
+test("Strict Mode in development: one live set of listeners and observers per lab, and the labs work", async ({ page }) => {
   await page.goto(`${origin}/`);
-  await expect(page.locator(".morph-button")).toBeEnabled();
-  const one = await probe(page);
+  // The page hosts one lab per fixed chapter (Button, Toast, Bento); the generated lab appears only on demand.
+  await expect(page.locator(".morph-button")).toHaveCount(3);
+  for (const button of await page.locator(".morph-button").all()) await expect(button).toBeEnabled();
+  const three = await probe(page);
   await page.goto(`${origin}/fixtures/two-labs`);
   await expect(page.locator(".morph-button")).toHaveCount(2);
   for (const button of await page.locator(".morph-button").all()) await expect(button).toBeEnabled();
@@ -99,24 +102,23 @@ test("Strict Mode in development: one live set of listeners and observers per la
 
   // Strict Mode ran: each lab's effect mounted twice (two observers and two flight-cancel registrations per lab),
   // and the first mount was fully cleaned up, leaving exactly one live observer and one live set of listeners per lab.
-  expect(one).toEqual({ observers: { created: 2, live: 1 }, cancelFlight: { registered: 2, live: 1 } });
+  expect(three).toEqual({ observers: { created: 6, live: 3 }, cancelFlight: { registered: 6, live: 3 } });
   expect(two).toEqual({ observers: { created: 4, live: 2 }, cancelFlight: { registered: 4, live: 2 } });
 
-  // The lab still behaves in development: morph both ways, rapid input, template change, and no late updates.
+  // The labs still behave in development: morph both ways, rapid input, another chapter, and no late updates.
   await page.goto(`${origin}/`);
-  const lab = page.locator("body");
-  await expect(page.locator(".morph-button")).toBeEnabled();
-  await page.locator(".morph-button").click();
-  await settled(lab, "button", "rendered");
-  for (let index = 0; index < 5; index++) { await page.locator(".morph-button").click(); await page.waitForTimeout(30); }
-  await settled(lab, "button", "code");
-  await page.getByRole("button", { name: /^Example:/ }).click();
-  await page.getByRole("option", { name: "Bento", exact: true }).click();
-  await page.locator(".morph-button").click();
-  await settled(lab, "bento", "rendered");
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
+  await lab(page).locator(".morph-button").click();
+  await settled(lab(page), "button", "rendered");
+  for (let index = 0; index < 5; index++) { await lab(page).locator(".morph-button").click(); await page.waitForTimeout(30); }
+  await settled(lab(page), "button", "code");
+  await bringIntoView(page, "bento");
+  await lab(page, "bento").locator(".morph-button").click();
+  await settled(lab(page, "bento"), "bento", "rendered");
   await page.waitForTimeout(2000);
-  await settled(lab, "bento", "rendered");
-  await expect(page.locator(".shared-part")).toHaveCount(10);
+  await settled(lab(page, "bento"), "bento", "rendered");
+  await settled(lab(page), "button", "code");
+  await expect(lab(page, "bento").locator(".shared-part")).toHaveCount(10);
 });
 
 test("two lab instances are isolated: morphing one never moves or changes the other", async ({ page }) => {
@@ -148,23 +150,18 @@ test("two lab instances are isolated: morphing one never moves or changes the ot
   let sampling = watch("b", "a");
   await a.locator(".morph-button").click();
   expect(await sampling).toEqual({ drift: 0, otherTravelled: false, movingTravelled: true });
-  await settled(a, "button", "rendered");
-  await settled(b, "button", "code");
+  await settled(a.locator("[data-lab]"), "button", "rendered");
+  await settled(b.locator("[data-lab]"), "toast", "code");
 
   sampling = watch("a", "b");
   await b.locator(".morph-button").click();
   expect(await sampling).toEqual({ drift: 0, otherTravelled: false, movingTravelled: true });
-  await settled(b, "button", "rendered");
-  await settled(a, "button", "rendered");
+  await settled(b.locator("[data-lab]"), "toast", "rendered");
+  await settled(a.locator("[data-lab]"), "button", "rendered");
 
-  // A template change in one lab leaves the other's template, mode and pieces alone.
-  await a.getByRole("button", { name: /^Example:/ }).click();
-  await a.getByRole("option", { name: "Toast", exact: true }).click();
-  await settled(a, "toast", "code");
-  await settled(b, "button", "rendered");
   // Within each lab, one live owner per shared identity.
-  for (const [lab, template, keys] of [[a, "toast", 4], [b, "button", 3]] as const) {
-    const ids = await lab.locator(".shared-part").evaluateAll(parts => parts.map(part => part.getAttribute("data-shared-id")));
+  for (const [chapter, template, keys] of [[a, "button", 3], [b, "toast", 4]] as const) {
+    const ids = await chapter.locator(".shared-part").evaluateAll(parts => parts.map(part => part.getAttribute("data-shared-id")));
     expect(ids.length).toBe(keys);
     expect(new Set(ids).size).toBe(keys);
     expect(ids.every(id => id?.startsWith(`${template}:`))).toBe(true);

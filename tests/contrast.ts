@@ -16,9 +16,9 @@ type Region = { kind: ContrastSample["kind"]; selector: string; text: string; rg
 
 const hideForegrounds = `*, *::before, *::after { color: transparent !important; -webkit-text-fill-color: transparent !important;
   text-shadow: none !important; caret-color: transparent !important; outline-color: transparent !important; transition: none !important; }
-  svg, .mode-option::before, .sound-pill::after, .example-option::after { visibility: hidden !important; }`;
+  svg, .mode-option::before, .sound-pill::after { visibility: hidden !important; }`;
 
-export async function measureContrast(page: Page, focusables = ".example-trigger, .sound-pill, .morph-button, .mode-option[tabindex='0'], summary") {
+export async function measureContrast(page: Page, focusables = ".sound-pill, .morph-button, .mode-option[tabindex='0'], summary") {
   const regions: Region[] = await page.evaluate(focusSelector => {
     const parse = (value: string): [number, number, number, number] => {
       const match = value.match(/rgba?\(([^)]+)\)/);

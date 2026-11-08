@@ -6,14 +6,14 @@ import { BentoTemplate } from "./BentoTemplate";
 import { CustomTemplate } from "./CustomTemplate";
 import type { PartMotion } from "./SharedPart";
 
-export function RenderPane({ mode, contentRef, ...motion }: PartMotion & {
-  mode: ViewMode; contentRef: RefObject<HTMLDivElement | null>;
+export function RenderPane({ mode, contentRef, headingId, ...motion }: PartMotion & {
+  mode: ViewMode; contentRef: RefObject<HTMLDivElement | null>; headingId: string;
 }) {
   const { template } = motion;
   const templateId = template.id;
-  return <section className="render-pane pane" aria-labelledby="preview-heading" data-view-mode={mode}>
+  return <div className="render-pane pane" role="group" aria-labelledby={headingId} data-view-mode={mode}>
     <div className="pane-ground render-ground" aria-hidden="true" />
-    <h2 id="preview-heading" className="preview-heading">Component preview</h2>
+    <h3 id={headingId} className="preview-heading">Component preview</h3>
     <figure className="preview-figure">
       <div className={`preview-content${templateId === "bento" ? " @container" : ""}`} ref={contentRef}>
         <div className="stage-registration" aria-hidden="true" />
@@ -30,5 +30,5 @@ export function RenderPane({ mode, contentRef, ...motion }: PartMotion & {
       </div>
       <figcaption>{template.caption}</figcaption>
     </figure>
-  </section>;
+  </div>;
 }
