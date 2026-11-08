@@ -288,6 +288,47 @@ summary::marker { color: var(--ink-muted); }
 .chapter-index a:hover .chapter-index-label { text-decoration: underline; text-underline-offset: 4px; }
 .chapter { scroll-margin-top: 32px; }
 
+/* Card to page: the technique as real interfaces use it. Cards and the page share one sheet. */
+.ctp-sheet { padding: 20px; border: 1px solid var(--rule); border-radius: 28px; background: var(--paper-raised); box-shadow: var(--sheet-shadow); }
+.ctp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.ctp-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; height: 100%; padding: 10px 10px 16px;
+  border: 1px solid var(--rule); background: var(--paper); color: var(--ink); text-align: left; transition: border-color 120ms;
+}
+.ctp-card:enabled:hover { border-color: var(--ink-muted); }
+.ctp-card:disabled { cursor: default; }
+.ctp-cover { display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
+.ctp-card .ctp-cover { aspect-ratio: 4 / 5; }
+.ctp-cover svg { display: block; width: 100%; height: 100%; }
+.ctp-card .ctp-cover { margin-bottom: 10px; }
+.ctp-card-title { display: block; padding-inline: 4px; font-family: var(--font-display); font-size: 26px; line-height: 1.1; }
+.ctp-tag { display: block; margin: 0; padding-inline: 4px; color: var(--ink-muted); font: 500 12px/18px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.ctp-page {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: start;
+  padding: 16px; border: 1px solid var(--rule); background: var(--paper);
+}
+.ctp-page-text { padding: 8px 8px 8px 0; }
+.ctp-page-text .ctp-tag { padding-inline: 0; }
+.ctp-page-title { width: fit-content; margin: 8px 0 0; font-family: var(--font-display); font-size: 48px; font-weight: 400; line-height: 1.05; letter-spacing: -.01em; }
+.ctp-page-title:focus { outline: none; }
+.ctp-page-title:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.ctp-summary { margin: 18px 0 0; color: var(--ink); font-size: 17px; line-height: 1.6; }
+.ctp-facts { display: flex; gap: 32px; margin: 20px 0 0; }
+.ctp-facts dt { color: var(--ink-muted); font: 500 12px/18px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.ctp-facts dd { margin: 4px 0 0; font-size: 15px; }
+.ctp-back { margin-top: 28px; }
+.ctp-caption { margin: 16px 0 0; color: var(--ink-muted); font-size: 15px; }
+.ctp-caption strong { color: var(--ink); font-weight: 600; }
+@media (min-width: 640px) { .ctp-sheet { min-height: 460px; } }
+@media (max-width: 639px) {
+  .ctp-sheet { padding: 12px; }
+  .ctp-grid { grid-template-columns: 1fr; }
+  .ctp-card .ctp-cover { aspect-ratio: 16 / 9; }
+  .ctp-page { grid-template-columns: 1fr; gap: 16px; }
+  .ctp-page-text { padding: 0 4px 4px; }
+  .ctp-page-title { font-size: 36px; }
+}
+
 /* Chapter 04: the diagram, drawn in one line style. */
 .diagram-sheet { padding: 24px; border: 1px solid var(--rule); border-radius: 28px; background: var(--paper-raised); box-shadow: var(--sheet-shadow); }
 .diagram { margin: 0; }
@@ -359,7 +400,7 @@ summary::marker { color: var(--ink-muted); }
   .button-template .endpoint-rendered, .feature-card .endpoint-rendered, .feature-card .feature-description .shared-part:not([data-travelling]), .feature-card .card-icon-art { color: CanvasText !important; }
   .feature-card .card-icon-art, .card-icon-art { background: Canvas; }
   .drafting-rules { display: none; }
-  .chapter-index, .chapter-index a, .diagram-sheet { border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .chapter-index, .chapter-index a, .diagram-sheet, .ctp-sheet, .ctp-card, .ctp-page { border-color: CanvasText; background: Canvas; box-shadow: none; }
   .lab-sheet, .try-own { border-color: CanvasText; background: Canvas; box-shadow: none; }
   .pane-ground, .preview-card-glass { background: Canvas; border: 1px solid CanvasText; box-shadow: none; }
   .code-chrome::before { background: CanvasText; }
