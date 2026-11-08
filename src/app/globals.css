@@ -126,8 +126,10 @@ button:disabled { cursor: default; }
 .pill svg, .sound-pill svg { flex-shrink: 0; }
 .sound-pill[aria-pressed="true"]::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
 
+/* The label never wraps: a two-line "Morph to component" made the toolbar 12 px taller in code mode than in
+   component mode, so the whole lab jumped on every morph in browsers that set the text slightly wider. */
 .morph-button {
-  display: flex; justify-content: center; align-items: center; gap: 10px; width: 216px;
+  display: flex; flex-shrink: 0; justify-content: center; align-items: center; gap: 10px; min-width: 216px; white-space: nowrap;
   min-height: 44px; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 10px;
   background: var(--accent); color: #fff; font-size: 15px; line-height: 20px; font-weight: 600;
   transition: filter 100ms;

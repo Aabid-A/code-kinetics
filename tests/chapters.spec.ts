@@ -216,3 +216,18 @@ test("the generated lab does not overflow a 320 px screen in either view", async
   await expect(lab(page, "custom").locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test("the Morph label stays on one line, so the toolbar never changes height between modes", async ({ page }) => {
+  await page.goto("/");
+  const button = lab(page, "button").locator(".morph-button");
+  await expect(button).toBeEnabled();
+  // Widen the text as a slightly different font rasteriser would; the label must still not wrap.
+  await page.addStyleTag({ content: ".morph-button { letter-spacing: 1.5px; }" });
+  const toolbar = lab(page, "button").locator(".lab-toolbar");
+  const before = { button: (await button.boundingBox())!.height, toolbar: (await toolbar.boundingBox())!.height };
+  expect(before.button).toBeLessThanOrEqual(44);
+  await button.click();
+  await expect(lab(page, "button")).toHaveAttribute("data-view-mode", "rendered");
+  expect((await button.boundingBox())!.height).toBe(before.button);
+  expect((await toolbar.boundingBox())!.height).toBe(before.toolbar);
+});
