@@ -2,9 +2,20 @@
 
 import { useCallback, useEffect, useRef } from "react";
 
-export function useMorphSound() {
+// `onUnavailable` is called at most once per preparation (an explicit off-to-on toggle) when the cue
+// cannot load, is unsupported, or playback is rejected. There is no automatic retry.
+export function useMorphSound(onUnavailable: () => void = () => {}) {
   const resource = useRef<HTMLAudioElement | null>(null);
   const playback = useRef<object | null>(null);
+  const reported = useRef(false);
+  const callback = useRef(onUnavailable);
+  useEffect(() => { callback.current = onUnavailable; });
+
+  const notify = useCallback(() => {
+    if (reported.current) return;
+    reported.current = true;
+    callback.current();
+  }, []);
 
   const stop = useCallback(() => {
     playback.current = null;
@@ -24,14 +35,17 @@ export function useMorphSound() {
 
   const prepare = useCallback(() => {
     dispose();
+    reported.current = false;
+    if (typeof Audio === "undefined") { notify(); return; }
     try {
       const audio = new Audio("/audio/morph.mp3");
       resource.current = audio;
+      audio.addEventListener("error", () => { if (resource.current === audio) notify(); });
       audio.preload = "auto";
       audio.volume = 0.15;
       audio.load();
-    } catch { dispose(); }
-  }, [dispose]);
+    } catch { dispose(); notify(); }
+  }, [dispose, notify]);
 
   const playCue = useCallback(() => {
     stop();
@@ -45,10 +59,10 @@ export function useMorphSound() {
       void audio.play().then(() => {
         if (resource.current !== audio || playback.current === null) audio.pause();
       }).catch(() => {
-        if (resource.current === audio && playback.current === activation) stop();
+        if (resource.current === audio && playback.current === activation) { stop(); notify(); }
       });
-    } catch { stop(); }
-  }, [stop]);
+    } catch { stop(); notify(); }
+  }, [stop, notify]);
 
   useEffect(() => {
     const onVisibilityChange = () => { if (document.hidden) stop(); };

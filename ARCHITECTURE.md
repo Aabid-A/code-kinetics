@@ -1,10 +1,10 @@
 # Technical architecture
 
-This document specifies future implementation. No source tree, package installation, lockfile, assets, or running application is supplied by this documentation task.
+Status, 8 November 2026: implemented. This document describes the architecture and the source layout as it exists; deviations are recorded in [SPEC.md](SPEC.md) "Open items".
 
 ## Architecture summary
 
-Build a single Next.js App Router route with a small interactive client island. The server owns the document shell and metadata. The client owns the three-field AppState, authored template registry, controls, and both animation endpoints. Layout and code display are ordinary React DOM. No compiler, parser, interpreter, sandbox iframe, worker, server action, API route, database, or external data fetch is required.
+Build a single Next.js App Router route. The page is a server-rendered narrative with interactive client islands: one lab per chapter, the page-level sound provider, the chapter index and the reveal. Labs share nothing except the sound preference (a React context), and their layout identities are namespaced per instance. The server owns the document shell and metadata. The client owns the three-field AppState, authored template registry, controls, and both animation endpoints. Layout and code display are ordinary React DOM. No compiler, parser, interpreter, sandbox iframe, worker, server action, API route, database, or external data fetch is required.
 
 The motion engine is intentionally bounded to the three templates. It maps semantic part keys to DOM slots and coordinates Motion layout identities. It does not inspect arbitrary component trees or infer correspondences from JSX.
 
@@ -21,50 +21,77 @@ The motion engine is intentionally bounded to the three templates. It maps seman
 | `use-sound` | Omit initially; use a local native audio hook | One short cue needs no sprite support or Howler dependency; equivalent abstraction is allowed by the brief |
 | `prism-react-renderer` | Omit | Highlighting a raw string cannot establish the semantic mapping; fixed authored tokens already supply color and identity |
 | State/ UI/ gesture libraries | Omit | React state and native controls cover v1 |
-| Test tooling | Vitest, Testing Library, Playwright, axe integration or equivalents | Development-only; validate state, DOM, motion, and accessibility |
+| Test tooling | Playwright and `@axe-core/playwright` (both development-only); no separate unit-test runner | Validate state, DOM, motion, layout, and accessibility in a real browser |
 
-Do not install packages as part of this specification task. At implementation start, choose stable releases whose peer dependencies agree, record exact versions in a lockfile, and run the animation prototype gate before expanding the templates. No version number here claims a tested compatibility set. Tailwind v4 uses its matching PostCSS integration and CSS import workflow; do not copy a v3 configuration by habit. [Official Tailwind Next.js setup](https://tailwindcss.com/docs/installation/framework-guides/nextjs).
+Exact versions are pinned in `package.json` and `package-lock.json`, and listed in [README.md](README.md). The combination actually tested is the one recorded in [QA.md](QA.md) "Current results". Tailwind v4 uses its matching PostCSS integration and CSS import workflow; do not copy a v3 configuration by habit. [Official Tailwind Next.js setup](https://tailwindcss.com/docs/installation/framework-guides/nextjs).
 
-`use-sound` remains a possible replacement behind the same hook contract if future scope needs multiple assets or playback features; it wraps Howler, which is unnecessary for this single-cue proposal. [Project documentation](https://github.com/joshwcomeau/use-sound).
+`use-sound` remains a possible replacement behind the same hook contract if future scope needs multiple assets or playback features; it wraps Howler, which is unnecessary for a single cue. [Project documentation](https://github.com/joshwcomeau/use-sound).
 
-## Proposed source boundaries
-
-The following tree is a plan, not a request to create these files now:
+## Source layout (as implemented)
 
 ```text
-app/
-  layout.tsx                  # Server: metadata, language, global styles
-  page.tsx                    # Server: renders Lab client entry and static fallback
-  globals.css                 # Tailwind import, semantic tokens, focused layout rules
-components/lab/
-  Lab.tsx                     # Client entry, state, commands, shared layout root
-  LabHeader.tsx               # Native controls, no independent selection state
+src/app/
+  layout.tsx                  # Metadata, language, Geist fonts (geist package), Instrument Serif (next/font/google), global CSS
+  page.tsx                    # LabErrorBoundary > SoundProvider > top bar, opening, chapter index, chapters 01–05, footer
+  globals.css                 # Tailwind import, tokens, layout and component rules
+  fixtures/two-labs/          # Test-only route (LAB_FIXTURES=1): two lab instances on one page
+src/components/site/
+  Sound.tsx                   # Page-level sound preference: context, provider, one status region
+  TopBar.tsx                  # Wordmark and the one Sound control
+  Opening.tsx                 # The h1 and the opening sentence
+  Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
+  ChapterIndex.tsx            # Floating / inline index; IntersectionObserver; hides over lab controls
+  Reveal.tsx                  # One-time reveal for text below the first screen
+  Diagram.tsx                 # Chapter 04: two inline SVG drawings and the text equivalent
+  Footer.tsx                  # Disclaimer and credits
+  icon.svg                    # App icon (App Router convention)
+src/components/lab/
+  Lab.tsx                     # One lab instance locked to a template (prop): state, commands, motion runs,
+                              #   View control and Morph, status announcements, caption line and disclosure
+  TryOwn.tsx                  # Chapter 05: prompt plus the generated lab (a fresh Lab per generation)
+  PromptBar.tsx               # The generate form (unchanged behaviour)
+  CustomTemplate.tsx          # Destination for generated examples
+  LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
+  Header.tsx                  # Sound button and Morph button (the Example selector was removed)
+  ModeControl.tsx             # View radiogroup (custom ARIA radios, roving tabIndex)
   CodePane.tsx                # Authored lines, source slots, accessible source
   RenderPane.tsx              # Destination frame and described illustration
-  SharedPart.tsx              # ID and movement policy, no template parsing
-  MappingExplanation.tsx     # Human-readable correspondence and native disclosure
-  LabErrorBoundary.tsx        # Local rendering failure fallback
-  previews/
-    ButtonPreview.tsx
-    ToastPreview.tsx
-    BentoPreview.tsx
-lib/lab/
-  types.ts                    # AppState, commands, token and part contracts
-  templates.ts                # Fixed content, IDs, and descriptions
-  state.ts                    # Pure state transition function
-  motion-policy.ts            # Timing and geometry eligibility rules
-hooks/
-  use-lab-motion.ts            # Environmental subscriptions and cancellation
-  use-morph-sound.ts           # Native audio resource lifecycle
+  SharedPart.tsx              # Shared layout identity and movement policy
+  TemplatePart.tsx            # Part content for Toast/Bento; destination part wrapper
+  ButtonTemplate.tsx          # Button preview and part content
+  ToastTemplate.tsx           # Toast preview
+  BentoTemplate.tsx           # Bento preview
 public/audio/
-  morph.mp3                   # Future authored/licensed local cue
+  morph.mp3                   # Morph cue, generated by scripts/make-morph-cue.sh
+scripts/
+  make-morph-cue.sh           # Synthesises the cue with the system ffmpeg (deterministic)
+src/hooks/
+  use-morph-sound.ts          # Native audio lifecycle; reports "unavailable" once per preparation
+src/lib/lab/
+  types.ts                    # AppState, Command, pure transition function
+  button.ts                   # Button content, tokens and lines, morphSpring, sharedId
+  templates.ts                # Toast and Bento content, template registry, validateTemplate
+src/app/fixtures/two-labs/
+  page.fixture.tsx            # Test fixture: two labs on one page (QA Q04); routed only when LAB_FIXTURES=1
 tests/
-  state.test.ts
-  templates.test.ts
-  lab.spec.ts                 # Browser behavior and visual checks
+  button.spec.ts              # Button state, motion, responsive, reduced-motion and no-JS checks
+  templates.spec.ts           # Mappings, selection, Toast/Bento motion, layouts
+  controls.spec.ts            # Keyboard and ARIA contracts of Example, View and Sound
+  failure.spec.ts             # Sound unavailable (audio route forced to 404), error boundary, invalid registry
+  sound.spec.ts               # Cue loads and play() is called once on a mode-changing Morph
+  accessibility.spec.ts       # axe scan in six states, measured contrast, forced colors
+  environment.spec.ts         # 960/959, 768 × 1024, 844 × 390, 200% zoom, orientation, tab hiding
+  robustness.spec.ts          # QA Q07 rapid-input sequences, blocked storage
+  devmode.spec.ts             # Strict Mode under `next dev` (own server on 4175), two-lab isolation
+  performance.spec.ts         # Records initial JS size and a frame-timing sample (no budget)
+  motion.ts, contrast.ts      # Shared helpers: divider-straddle path test, composited contrast
+next.config.ts                # Strict Mode; fixture routes only when LAB_FIXTURES=1
+playwright.config.ts          # Serves the production build on 127.0.0.1:4173; never reuses a server
 ```
 
-Keep template-specific markup in the three preview components. Do not build a universal JSON-to-DOM renderer. Token data and mapping metadata are shared; rendering composition stays readable and explicit.
+`public/audio/morph.mp3` is generated by `scripts/make-morph-cue.sh` and committed. There are no unit-test runners other than Playwright; the pure state and registry checks run inside the Playwright specs.
+
+Template-specific markup lives in the three `*Template.tsx` components. There is no universal JSON-to-DOM renderer. Token data and mapping metadata are shared; rendering composition stays readable and explicit.
 
 ## Server/client boundary and initial render
 
@@ -119,15 +146,20 @@ Rendered copy should reference the same content constants as source token text s
 
 ```text
 LabErrorBoundary
-└ Lab
-  ├ Header + View controls
-  ├ MotionConfig (reducedMotion="user")
-  │ └ LayoutGroup (stable lab-instance namespace)
-  │   └ Shared lab stacking context
-  │     ├ CodePane → stable source slots → conditional active pieces
-  │     └ RenderPane → stable target slots → conditional active pieces
-  ├ MappingExplanation
-  └ One polite live region
+└ SoundProvider (page-level preference, one status region)
+  ├ TopBar (Sound)
+  └ main
+    ├ Opening, ChapterIndex
+    └ Chapter ×5, each with a Lab (01–03 fixed; 05 after generation; 04 holds the diagram)
+       Lab (one instance, one template, its own useId namespace)
+       ├ View control + Morph action (the sheet's toolbar)
+       ├ MotionConfig (reducedMotion="user")
+       │ └ LayoutGroup (stable lab-instance namespace)
+       │   └ Shared lab stacking context
+       │     ├ CodePane → stable source slots → conditional active pieces
+       │     └ RenderPane → stable target slots → conditional active pieces
+       ├ Caption line and mapping disclosure (inline in Lab.tsx)
+       └ One polite live region per lab
 ```
 
 Shared identity is `${templateId}:${partKey}`, scoped by the lab instance. React keys identify stable authored nodes and differ by endpoint where two endpoint trees exist; `layoutId` is what connects them. Do not key the whole lab or LayoutGroup on `viewMode`, and do not add mode to an identity. Template IDs separate examples even when both contain a `surface` part.
@@ -178,24 +210,38 @@ For each eligible activation, stop the prior cue, rewind if media is ready, set 
 
 Playback may be rejected by browser policy and must not block interaction. [HTMLMediaElement.play()](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play). The visible “Sound on” state describes preference; a separate “Sound unavailable” note describes a failed resource. Default silence and reduced motion are independent.
 
-The future cue must be authored or appropriately licensed and committed locally with provenance. Do not fetch stock audio at runtime. If no cue is supplied during implementation, sound-on must show the unavailable state; release is not complete until the requested sound behavior can be tested with a real asset.
+Provenance of `public/audio/morph.mp3`: Synthesised by scripts/make-morph-cue.sh; no third-party audio; owned by the project. The script uses only the system ffmpeg (a band-passed noise burst with a fixed seed, plus a soft downward sine blip; 2 ms attack, exponential decay, 15 ms fade-out) and is deterministic: rerunning it writes identical bytes. Measured values are in [QA.md](QA.md) Q10. Do not fetch stock audio at runtime. A listening review is still required before release ([RELEASE.md](RELEASE.md) A1).
+
+## Generated examples
+
+`src/lib/lab/generated.ts` defines `GeneratedSpec`, its JSON Schema (`specSchema`), `parseSpec` (validates and sanitizes untrusted input) and `buildTemplate` (spec to `TemplateDefinition`: code lines, tokens and parts with keys `c{card}.surface|icon|t{n}`). The result is the template id `custom`, rendered by `CustomTemplate` and the same `SharedPart` identities as the built-ins; components receive the active `TemplateDefinition` through `PartMotion.template` rather than looking it up globally. `LOAD_GENERATED` always resets to code mode and settles like a template change. The client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering.
+
+`src/app/api/generate/route.ts` is a thin adapter: it builds a Gemini call with `@google/genai` (`interactions.create`, `response_format` = `specSchema` as JSON, model `GEMINI_MODEL` or `gemini-3.5-flash-lite` (Google's fastest stable 3.5 model), the lowest thinking level the model accepts (`minimal` for 3.5 Flash-Lite and 3.6 Flash, otherwise `low`), 1024 output tokens, `retries: none`, 20 s timeout; `node scripts/gemini-check.mjs` times the network, a tiny answer and a small structured answer with the local key; the system instruction lives in `src/lib/lab/generate-prompt.ts`) and hands it to `createGenerateHandler` in `src/lib/lab/generate-server.ts`. That module holds every rule from SPEC R13 (origin, body size, prompt, rate limits, timeout, error mapping, `parseSpec`) with no SDK import, so `tests/generate-server.spec.ts` drives it directly with a stand-in model. The rate limiter is in memory per server instance: on serverless hosting each instance counts separately, so Google's project quota and a billing alert remain the hard ceiling.
+
+| Environment variable | Purpose |
+| --- | --- |
+| `GEMINI_API_KEY` | Server-only key. Unset disables generation (503). |
+| `GEMINI_MODEL` | Optional model override. |
+| `GENERATE_DAILY_CAP` | Optional global generations per instance per day (default 200). |
+
+`.env.example` lists them with empty values; `.env` and `.env*.local` are git-ignored.
 
 ## Security, privacy, and content handling
 
-All content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
+Generated specs are data only: text goes through React text nodes, icons come from a fixed allowlist, and element names are reduced to PascalCase identifiers. The API key stays on the server. A learner's description is sent to Google Gemini (the prompt says so); the app stores nothing, and the system instruction tells the model to treat the description as content, not instructions. All other content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
 
 ## Performance and delivery
 
 Render all three definitions locally; mount only the active template's animated pieces. At most 10 live shared pieces at rest, or 20 briefly if outgoing retention is required. Avoid animation-driven React state updates each frame. Use transform/opacity for movement, no filters or animated layout from application-level timers.
 
-Initial target budgets: first-load route JavaScript at most 200 KiB gzip including framework and app; total optional audio at most 30 KiB; no morph-related network requests. Measure with the eventual production build rather than assuming tree shaking. If the baseline exceeds the JS target, inspect imports before introducing lazy-loading that could interrupt the first morph.
+Initial target budgets: first-load route JavaScript at most 200 KiB gzip including framework and app; total optional audio at most 30 KiB; no morph-related network requests. Measure the production build rather than assuming tree shaking; [QA.md](QA.md) Q11 records the measured first-load size, which has not been evaluated against this target on reference hardware. If the baseline exceeds the JS target, inspect imports before introducing lazy-loading that could interrupt the first morph.
 
-No custom server is needed. Standard Next.js hosting is sufficient; a static export is eligible because the planned route has no server features, but configure and verify it only if the deployment target requires it. Do not promise hosting or publish a site as part of this specification.
+No custom server is needed. Standard Next.js hosting is sufficient; a static export is eligible because the route has no server features, but configure and verify it only if the deployment target requires it. Do not promise hosting or publish a site as part of this specification.
 
 ## Implementation sequence and gates
 
 1. **Resolve dependencies and prototype Button.** Verify same-commit cross-pane handoff, reverse during flight, no clipping, and position-only label behavior with the chosen versions. Failure blocks expanding the system.
-2. **Establish state and semantic UI.** Pure command function, deterministic initial render, native controls, code accessibility, and described preview.
+2. **Establish state and semantic UI.** Pure command function, deterministic initial render, semantic controls, code accessibility, and described preview.
 3. **Add exact authored registries and all previews.** Validate the 3/4/10 maps and shared copy.
 4. **Apply responsive layout and visual tokens.** Verify stacked panes, target containers, source wrapping, and 320 px reflow.
 5. **Add lifecycle safeguards and optional audio.** Reduced motion, offscreen fallback, cancellation, sound readiness and failure.
@@ -214,4 +260,4 @@ No custom server is needed. Standard Next.js hosting is sufficient; a static exp
 | Small screen hides the journey | Responsive stack plus deliberate endpoint-only fallback and legend |
 | Hydration or sound causes nondeterminism | Fixed initial state, browser work after mount, audio tied to explicit commands |
 
-Documentation consulted on 1 November 2026. Linked library documentation establishes available mechanisms; the design values, source-to-target mappings, budgets, and lifecycle policies above are proposed application decisions requiring implementation validation.
+Documentation consulted on 1 November 2026. Linked library documentation establishes available mechanisms; the design values, source-to-target mappings, budgets, and lifecycle policies above are this application's decisions; [QA.md](QA.md) "Current results" records which have been verified and which have not.

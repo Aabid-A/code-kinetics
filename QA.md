@@ -1,6 +1,104 @@
 # Quality assurance and acceptance plan
 
-Product: **Spatial DOM Transition Lab**. This is a test specification for a future implementation. No application tests, browser tests, accessibility audits, or performance measurements have been run as part of this documentation delivery.
+Product: **Spatial DOM Transition Lab**. This is the test specification for the implemented lab. What has actually been run, and what has not, is recorded under "Current results" below; anything not listed there as run has not been verified.
+
+## Current results (8 November 2026)
+
+### Test environment
+
+Linux 6.18.44, Node v22.23.4, Playwright 1.64.1, @axe-core/playwright 4.14.0, headless Chromium from the pre-installed build `/opt/pw-browsers/chromium-1243` (Chrome for Testing 153.0.8010.12), viewport 1440 × 900 and device scale 1 unless a test sets another. Branch `claude/jolly-hopper-ffu1aq`; production server on 127.0.0.1:4173 (`npm run start`), except `tests/devmode.spec.ts`, which starts its own `next dev` on 127.0.0.1:4175.
+
+This Playwright expects Chromium build 1248 and ffmpeg build 1013, neither of which is installed here. The suite therefore ran with a temporary config **outside the repository** that imports `playwright.config.ts` unchanged and overrides only two things: `launchOptions.executablePath` (the Chromium 1243 binary) and `video: "off"`, because recording video needs the missing ffmpeg 1013. **`playwright.config.ts` itself is unchanged** (it still sets `video: "on"`). **Video evidence: not run** in this environment. Tracing was off (`--trace off`) for every run.
+
+The command lines below omit that temporary config (`-c <temporary config>`); in an environment with the expected browsers, run them as written.
+
+### Commands
+
+| Command | Result |
+| --- | --- |
+| `npm run lint` | Pass |
+| `npm run typecheck` | Pass |
+| `npm run build` | Pass; routes `/`, `/_not-found`, `/icon.svg` and the dynamic `/api/generate` (the test fixture route is not built, see Q04) |
+| `npx playwright test --trace off` | 91 of 91 passed (8 November 2026, after the switch to Gemini, the generate hardening and the prompt rewrite; 79 of 79 before it, after the editorial redesign) |
+| `npx playwright test --trace off --repeat-each=10` | 610 of 610 passed (61 tests × 10, before the cue and `tests/sound.spec.ts` were added) |
+| `npx playwright test --trace off --repeat-each=3 tests/accessibility.spec.ts tests/environment.spec.ts tests/devmode.spec.ts tests/robustness.spec.ts tests/performance.spec.ts` (new tests) | 114 of 114 passed |
+
+Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 6, `accessibility.spec.ts` 15, `environment.spec.ts` 5, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 10, `generate-server.spec.ts` 11, `chapters.spec.ts` 10: 91 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, chapter index, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
+
+### Visual evidence (8 November 2026)
+
+Screenshots (device scale 2) of every chapter in both modes at 1440 × 900, 1024 × 768, 390 × 844 and 320 × 640, with the generated lab mocked, were reviewed after the redesign; no horizontal overflow at any of the four widths (a 320 px overflow in the generated lab was found and fixed, with a regression test). These are review images, not committed artifacts. Not verified: real screen readers, real forced-colors rendering, real 400% zoom, and sound by ear.
+
+### Intermittent failures
+
+Three intermittent failures were reported before this pass. Root causes found by `npx playwright test --trace off --repeat-each=10` (22 tests, 220 runs, 2 failed):
+
+1. `templates.spec.ts` › "bento: continuous forward/reverse…", assertion that some sampled frame has spring progress between 0.35 and 0.7 ("midway"). Cause: sampling, not the app. The spring spends about 59 ms in that band, and headless frames can be up to about 87 ms apart. Fixed by asserting equal progress across parts on **every** frame between 5% and 95% progress (same 0.1 tolerance).
+2. `button.spec.ts` › "desktop forward, reverse…", assertion that a sampled frame shows the surface straddling the pane divider. Same sampling cause. Fixed by testing the path between sampled frames as well (`straddlesDivider`, `tests/motion.ts`), as the template specs already did.
+3. Third failure: **not reproduced in 690 runs on Chromium 1243 headless; original failure unidentified.**
+
+After the fixes, 230 of 230 runs passed, twice.
+
+### Recorded measurements (Q09, Q11)
+
+Contrast, measured by `tests/contrast.ts` against the composited background as rendered: text and icons are recorded, hidden, the page is screenshotted, and each foreground colour is composited over every background pixel under it; the worst pixel is reported. Large text is ≥ 24 px, or ≥ 18.66 px at weight ≥ 700. Indicators are icons, the checked View marker and the focus ring (3:1). A control check, `#777` on `#888`, measures 1.26:1, matching the WCAG formula. Command: `npx playwright test --trace off tests/accessibility.spec.ts --reporter=json` (attachments `contrast.json`, `forced-colors-contrast.json`).
+
+| State | Text (≥ 4.5:1): lowest | Large text (≥ 3:1): lowest | Indicators (≥ 3:1): lowest |
+| --- | --- | --- | --- |
+| Button / code | 4.81:1, chapter number (accent on paper) (159 text runs) | 4.81:1, the opening full stop | 4.72:1, disclosure focus ring (19) |
+| Button / rendered | 4.81:1, chapter number (159) | 4.81:1, full stop | 4.72:1, focus ring (20) |
+| Toast / code | 4.81:1, chapter number (158) | 4.81:1, full stop | 4.72:1, focus ring (19) |
+| Toast / rendered | 4.81:1, chapter number (159) | 4.81:1, full stop | 4.72:1, focus ring (20) |
+| Bento / code | 4.80:1, chapter number "02" (167) | 4.81:1, full stop | 4.72:1, focus ring (19) |
+| Bento / rendered | 4.81:1, chapter number (171) | 4.81:1, full stop | 4.72:1, focus ring (20) |
+| Forced colors, Toast / code | 8.73:1, chapter number (158) | 8.73:1, full stop | 8.73:1, checked View marker (19) |
+| Forced colors, Toast / rendered | 8.73:1, chapter number (159) | 8.73:1, full stop | 8.73:1, checked View marker (20) |
+
+The whole page is measured in each state (all five chapters, the diagram, the top bar and the floating chapter index), not only one lab. Numbers in brackets are how many items of that kind were measured. The fixed chapter index is pinned to its page position for the measurement (a full-page screenshot lays fixed elements out differently), and its hidden/visible state is kept as it was.
+
+Token pairs computed from the design tokens (see DESIGN.md "Colour"): ink on paper 15.28, ink-muted on paper 6.05, accent on paper 4.81, white on accent 5.47, paper-raised on ink 16.66, code text on code sheet 14.00, accent over a drafting-rule pixel 4.23 (no measured state has accent text on a rule pixel).
+
+No measured ratio is below 4.5:1 for text or 3:1 for large text and indicators. Not measured: hover and pressed states, and mid-flight frames. The Example listbox no longer exists.
+
+Bundle and frame timing: **recorded, no budget set.** Command: `npx playwright test --trace off tests/performance.spec.ts --reporter=json` (annotations and attachments `scripts.json`, `frame-timing.json`).
+
+| Measurement | Final run (`--reporter=json`, whole suite) | Earlier sample (`tests/performance.spec.ts` alone) |
+| --- | --- | --- |
+| Initial route JavaScript | 6 scripts, 604.8 KiB raw, 184.0 KiB gzip | Same |
+| Frame intervals over 10 morphs | 318 frames; median 33.3 ms, p95 49.9 ms, max 50.1 ms; 34.3% ≤ 20 ms | 329 frames; median 33.3 ms, p95 33.4 ms, max 50.1 ms; 36.5% ≤ 20 ms |
+| Long tasks during the morphs | 0 | 0 |
+| Click to first visible change | median 116.1 ms, max 132.8 ms | median 66.2 ms, max 132.7 ms |
+
+The headless browser renders at about 30 frames per second here, so the frame and latency numbers describe this container, not the product.
+
+These are headless software-rendered numbers on a shared container, not the reference laptop or phone that Q11 requires. Initial JavaScript gzip is computed with Node zlib's default level over the script responses of the first load.
+
+### Case status
+
+"Pass" means the automated checks in "Covered" passed with the evidence command. Everything in the "Not run" column is not run. No case is complete until its "Not run" column is empty.
+
+| Case | Automated status | Covered | Evidence command | Not run |
+| --- | --- | --- | --- | --- |
+| Q01 Initial load | Pass | Server-rendered source, disabled controls and no-JS notice; default state; no console errors or hydration messages in any test; blocked storage (every storage API throws): loads, works, and reload returns the exact default state; development Strict Mode | `npx playwright test --trace off tests/button.spec.ts tests/robustness.spec.ts tests/devmode.spec.ts` | Real browsers other than Chromium |
+| Q02 State contract | Pass | Initial state; Morph twice restores; same-view no-op; Select template and Toggle sound over all 12 states | `npx playwright test --trace off tests/button.spec.ts tests/templates.spec.ts` | Invalid-input diagnostic; stale callback and audio-result assertions in unit form |
+| Q03 Controls | Pass | View radiogroup and Sound button keyboard and pointer contracts; 44 px targets; no native select or radio; Tab order (Sound, the five chapter-index links, then per chapter the checked View radio, Morph and disclosure) identical at 960 and 959 px; the chapter index never covers a lab control (scroll sweep at 900 and 700 px tall); radio, Morph label, endpoint and status message agree after every Q07 sequence (per lab; labs stay independent); forced-colors checked marker and focus outline | `npx playwright test --trace off tests/controls.spec.ts tests/environment.spec.ts tests/robustness.spec.ts tests/accessibility.spec.ts` | Screen-reader announcements; manual keyboard walk-through |
+| Q04 Content and identity | Pass | 3/4/10 parts, exact sources, one owner per identity; registry invariant failure is contained; two lab instances on one page: morphing or changing one never moves or changes the other (fixture `src/app/fixtures/two-labs/page.fixture.tsx`, routed only in the dev-mode test server) | `npx playwright test --trace off tests/templates.spec.ts tests/failure.spec.ts tests/devmode.spec.ts` | None |
+| Q05 Continuous movement | Pass | Sampled geometry for all templates: travel, hit-testing, unscaled text and icons, reverse, interruption | `npx playwright test --trace off tests/button.spec.ts tests/templates.spec.ts` | Filmstrips and video review (video off, see environment); contrast during transit over both grounds |
+| Q06 Responsive layout | Pass | 1440, 1024, 960 (split), 959 (stacked), 768 × 1024, 390, 320 and 844 × 390: no horizontal overflow, one layout tree, source before preview; 768 × 1024 travels for Button and Toast and shows the compare notice for Bento (its preview does not fit); 844 × 390 shows the compare notice for all three, with no automatic scroll; 200% zoom (1440 × 900 at 200%, emulated as a 720 × 450 CSS viewport at device scale 2): no overflow, no truncated control, all controls reachable; Bento 360 px threshold | `npx playwright test --trace off tests/environment.spec.ts tests/templates.spec.ts tests/button.spec.ts` | 400% zoom; real browser zoom and text-only enlargement; forced colors at small widths |
+| Q07 Rapid input | Pass | Every sequence in the Q07 table at 100 ms and 30 ms spacing with real browser events: final state after settling and again after 2 s; one owner per identity; live region ends on the latest view, at most one message per input | `npx playwright test --trace off tests/robustness.spec.ts tests/button.spec.ts tests/templates.spec.ts` | Late sounds |
+| Q08 Environment changes | Pass | During a flight: resize, scroll and reduced-motion change; orientation change (CDP screen orientation, portrait to landscape); tab hiding, **simulated** (headless Chromium never reports a hidden tab, so `visibilityState` is overridden and a real `visibilitychange` event dispatched). All settle at the new geometry, keep the latest state and focus, and do not resume old motion. Strict Mode: one live observer and listener set per lab after the extra mount | `npx playwright test --trace off tests/environment.spec.ts tests/button.spec.ts tests/devmode.spec.ts` | Zoom during flight; a real hidden tab; audio stopping on hide; unmount during motion or a pending play promise |
+| Q09 Accessibility | Pass | axe (@axe-core/playwright 4.14.0, default rules) in all six settled states: 0 violations. axe "needs review" items: none beyond what the contrast measurement covers separately. Contrast as recorded above; forced colors (emulated `forced-colors: active`): system colours, checked marker, borders, piece outlines, focus outline, contrast; reduced motion removes transforms | `npx playwright test --trace off tests/accessibility.spec.ts tests/templates.spec.ts` | VoiceOver, NVDA; manual semantic review; real Windows High Contrast; reduced transparency |
+| Q10 Sound | Pass | Enabling Sound loads the cue (HTTP 200, `readyState` ≥ 2) and plays nothing; one mode-changing Morph calls `play()` exactly once, on `/audio/morph.mp3`, and it resolves; with the audio route forced to 404: one visible and announced "Sound unavailable", preference kept, silent morph, retry only after off then on | `npx playwright test --trace off tests/sound.spec.ts tests/failure.spec.ts` | Audible confirmation and listening review; the other Q10 rows (activation before readiness, rapid reversals, disable or template change during playback, hide and unmount during playback, late play resolution, reduced motion with sound); autoplay policy in a fresh profile; real mobile browsers |
+| Q11 Performance | Recorded, no budget set | Initial JavaScript size and a 10-morph frame-timing sample, as recorded above | `npx playwright test --trace off tests/performance.spec.ts --reporter=json` | Budget evaluation on the reference laptop and phone; CLS; interaction latency on reference hardware; node and listener growth over 100 morphs; throttled CPU; morph network requests |
+| Q12 Failure and scope | Pass | JavaScript disabled; asset 404 (audio blocked) keeps everything else working; injected effect exception and an invalid registry both show the contained error message and reload button | `npx playwright test --trace off tests/failure.spec.ts tests/button.spec.ts` | Offline after load; reload returning default after the error fallback; dependency and source review for excluded capabilities |
+| Educational usability | Not run | None | None | Whole check |
+
+Browser and device coverage: Chromium only. Firefox, Safari/WebKit, real iOS and Android devices, VoiceOver and NVDA: **not run**. Audio provenance: recorded under Q10 below. Listening review: **not run**.
+
+### Defects fixed in this pass
+
+- Sound pill (`label-content-name-mismatch`, serious, all six states): the accessible name "Sound" came from `aria-label` and did not include the visible "Sound off/on", breaking voice control (WCAG 2.5.3). The name is now the visible word "Sound"; the state word is hidden from assistive technology, and `aria-pressed` carries the state. SPEC R03's stable name "Sound" is kept.
+- Forced colors: mapped pieces were sized to their text, so their 1 px forced-colors border overlapped the last glyph. They now use a 1 px outline with a 1 px offset, which takes no layout space.
 
 ## Release standard
 
@@ -34,7 +132,7 @@ Required browser coverage: current stable Chrome/Chromium, Firefox, and Safari/W
 | Viewport / condition | Required coverage |
 | --- | --- |
 | 1440 × 900 | All six endpoints, all three templates in both directions, motion filmstrips |
-| 1024 × 768 | Split-pane fit, all templates, header wrapping, interruption |
+| 1024 × 768 | Split-pane fit, all templates, top-bar wrapping, interruption, inline chapter index and drafting rules boundary |
 | 960 and 959 px wide | Breakpoint transition, focus order, no duplicate layout tree |
 | 768 × 1024 | Stacked layout, vertical travel when both endpoints visible |
 | 390 × 844 | Phone controls, natural scrolling, all templates, offscreen fallback |
@@ -74,9 +172,9 @@ Inspect that AppState has exactly the three specified fields. Tests should verif
 
 ## Q03 — Controls and navigation
 
-Use keyboard only from page entry. Tab through Example, Sound, Morph, the View radio group, and the disclosure in logical DOM order. Confirm native select keys, radio arrow keys, Space, and Enter behave normally. There must be no trap and no keyboard stop on decorative dots, code tokens, line numbers, or preview artwork.
+Use keyboard only from page entry. Tab through Sound, the chapter index, then each lab's View radio group, Morph and disclosure in DOM order. Confirm the View radiogroup arrow keys, Space, and Enter behave as SPEC R03 specifies. There must be no trap and no keyboard stop on decorative dots, code tokens, line numbers, or preview artwork.
 
-For each action, verify selector value, checked radio, Morph label, visible endpoint, and status message all describe the same latest state. Focus remains on the initiating control through normal movement, reversal, template reset, reduced motion, and geometry cancellation. Morph must stay operable while pieces are moving. The action text must not change header geometry enough to move the lab.
+For each action, verify the checked radio, Morph label, visible endpoint, and status message all describe the same latest state. Focus remains on the initiating control through normal movement, reversal, template reset, reduced motion, and geometry cancellation. Morph must stay operable while pieces are moving. The action text must not change the toolbar enough to move the lab.
 
 At touch sizes, targets are at least 44 × 44 CSS px with adequate separation. Touching the illustrative Button or Toast does not initiate application behavior, show misleading press feedback, or move focus. The preview caption identifies its noninteractive nature.
 
@@ -103,7 +201,7 @@ Check the following in a continuous recording and frame inspection:
 - The expanding surface does not stretch its text or icon; the mapped label remains legible at midpoint.
 - Transit backing preserves label/icon contrast over both grounds, clears at the current destination, and cannot be removed by a stale completion after reversal.
 - Token lettering fades to surface paint or icon artwork as designed, without claiming glyph morphing.
-- Stationary syntax, line spacing, source slot positions, pane geometry, and header controls do not jump.
+- Stationary syntax, line spacing, source slot positions, pane geometry, and the lab toolbar do not jump.
 - Reference tokens remain readable in the source after departure and never act as duplicate movers.
 - Layer order remains correct: text and icons above surfaces, all movers above pane grounds.
 - Visual endpoint accuracy matches the static destination within 1 CSS px for principal box edges at device scale 1, allowing font rasterization differences; reversal remains continuous when retargeted; and the settled state is correct with no residual scale or flattened type.
@@ -167,6 +265,8 @@ Confirm:
 
 ## Q10 — Sound lifecycle and failure
 
+Cue provenance (8 November 2026): Synthesised by scripts/make-morph-cue.sh; no third-party audio; owned by the project. Measured with `ffprobe` and `ffmpeg -af volumedetect` / `astats` on the committed file: MP3, mono, 44.1 kHz, 64 kbit/s; 130.0 ms of decoded audio (5,733 samples), 156.7 ms container duration (six MP3 frames); peak −6.15 dBFS; RMS −19.53 dBFS (mean volume −19.5 dB); first sample above −60 dBFS at 0.00 ms; 1,481 bytes. Two runs of the script produce byte-identical files.
+
 Test with headphones and speakers at a moderate system volume. Confirm a quiet, short, non-verbal cue, no clipping, and no startling transient. Digital volume 0.15 is only an initial parameter; perceived loudness must be reviewed.
 
 | Condition | Expected result |
@@ -185,7 +285,7 @@ Test with headphones and speakers at a moderate system volume. Confirm a quiet, 
 | Explicit off → on after failure | Preparation can be retried |
 | Reduced motion with sound on | Preference remains on; otherwise same audio rules |
 
-Test browser autoplay restrictions in a fresh context and real mobile browsers. Record the future asset's source/license, format, duration, size, and listening review. A stubbed audio call alone cannot establish this feature works.
+Test browser autoplay restrictions in a fresh context and real mobile browsers. Record the asset's source/license, format, duration, size, and listening review. A stubbed audio call alone cannot establish this feature works.
 
 ## Q11 — Performance and stability
 
@@ -202,13 +302,21 @@ Use a production build and identify a reference machine: a documented ordinary l
 
 If budgets fail, inspect bundled imports, large painted areas, layering, duplicate nodes, and cleanup before adding architectural complexity. Do not remove accessibility or correctness to meet a size number.
 
+## Q13 — Optional generation (SPEC R13)
+
+Automated, no network and no key: `tests/generate-server.spec.ts` drives the route policy with a stand-in model (valid spec returned; cross-site and foreign-origin refused before any model call; 413 / 400 for size and prompt; 503 without a key and no quota used; per-client minute and day limits with `Retry-After`; global daily cap and its reset; 504 on timeout with the call aborted; provider 429 / 401 / 403 / 400 / 500 mapped without leaking details; empty, non-JSON and invalid output rejected). `tests/generate.spec.ts` covers the UI with the route mocked, the real route's 503 without a key, and the privacy notice.
+
+SDK wiring was checked on 8 November 2026 against a local stand-in server: `@google/genai` 2.31.0 sends `POST /v1beta/interactions` with the key in a header and the documented `model`, `input`, `system_instruction`, `response_format` and `generation_config` fields, reads `output_text`, and raises errors carrying `statusCode` 429 / 401 / 400 / 500.
+
+**Not run:** a real call to Gemini (no key in the test environment); output quality across varied prompts; rate limits on the deployed host (proxy headers, multiple instances). Run these once the key is set on the host (RELEASE.md).
+
 ## Q12 — Failure, offline, and scope checks
 
 Disable JavaScript: initial source and explanatory text remain, controls are disabled, and the notice is readable. Block audio only: all visual functionality remains. After loading the app, disable the network: morphing still works with available local assets; this does not promise offline navigation or a service worker.
 
 Inject an invalid registry in a test build: development assertions identify the missing mapping. Trigger a rendering exception: the contained reload fallback appears and is keyboard accessible. Reload returns to the default state. No perpetual loading overlay or compilation status appears.
 
-Review source and dependency graph for excluded capabilities: no editor package, parser/compiler, dynamic code execution, user-content HTML injection, arbitrary module loading, backend route, analytics, persistence, or duplicate animation runtime. The source pane is structured React elements and shared IDs, not a raw highlighted string used as the entire visual.
+Review source and dependency graph for excluded capabilities: no editor package, parser/compiler, dynamic code execution, user-content HTML injection, arbitrary module loading, backend routes other than `/api/generate`, analytics, persistence, or duplicate animation runtime. The source pane is structured React elements and shared IDs, not a raw highlighted string used as the entire visual.
 
 ## Educational usability check
 
@@ -226,8 +334,8 @@ Record observations without presenting them as broad statistical proof. This rev
 6. Measure bundle size, animation performance, and cleanup; review the real audio asset.
 7. Produce a requirement-by-requirement result with evidence and unresolved defects.
 
-The future evidence packet must include exact build/browser identifiers, command results, screenshots, recordings, accessibility findings, performance measurements, audio provenance, and a pass/fail/not-run entry for each Q01–Q12 case. Stop expanding tests after relevant checks pass unless a new change or failure justifies further testing.
+The evidence packet must include exact build/browser identifiers, command results, screenshots, recordings, accessibility findings, performance measurements, audio provenance, and a pass/fail/not-run entry for each Q01–Q12 case. Stop expanding tests after relevant checks pass unless a new change or failure justifies further testing.
 
 ## Documentation delivery check
 
-For this task, validate only the five requested specification files: names, cross-links, required stack, exact AppState, complete 3/4/10 mapping tables, consistent motion values and state behavior, and explicit implementation/test status. Confirm that no application code, package files, generated assets, or unrelated files were added or overwritten. This documentation check is distinct from all future application verification above.
+Historical: this check applied to the original specification-only delivery of five documents, before the application existed (names, cross-links, required stack, exact AppState, complete 3/4/10 mapping tables, consistent motion values and state behavior). It does not apply to the current repository, which contains the application; the verification above does.

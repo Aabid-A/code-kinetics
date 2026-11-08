@@ -11,7 +11,7 @@ An interaction-design and frontend engineering case study in spatial continuity.
 - **Interruptible springs:** reverse a moving morph; the latest requested mode wins.
 - **Independent surfaces and content:** Toast's four parts move together without stretching its text or icon.
 - **Responsive composition:** split panes become a vertical stack on narrow screens; Bento reflows through CSS Grid container queries.
-- **Accessible interaction:** native controls, visible focus, readable mapping explanations, and a reduced-motion alternative.
+- **Accessible interaction:** a custom ARIA radiogroup and native buttons with full keyboard support, visible focus, readable mapping explanations, and a reduced-motion alternative.
 
 ## How the morphing works
 
@@ -22,6 +22,10 @@ One endpoint owns each active identity at rest. Unshared reference tokens keep t
 All mappings use the same spring: stiffness `200`, damping `20`, mass `0.8`. Morph retargets movement without queueing transitions. Changing templates cancels the previous run and resets to code mode.
 
 This is visual correspondence between predefined elements. The app does not compile the displayed code or execute arbitrary JSX.
+
+## The page
+
+One page, one idea per section: an opening statement, then chapters 01–05, then a quiet footer. Chapters 01–03 each hold their own lab, locked to one template; 04 explains the matching-names idea with one diagram; 05 hosts the optional generate feature, whose lab appears after a successful generation. A floating chapter index (desktop) or inline list (below 1024 px) links the chapters. The visual system (paper, ink, one teal accent, Instrument Serif for titles) is in [DESIGN.md](DESIGN.md).
 
 ## Template examples
 
@@ -39,7 +43,8 @@ The previews are illustrative and noninteractive. Toast does not report an actua
 - TypeScript `6.0.3` and Tailwind CSS `4.3.3`, using its v4 PostCSS integration and container queries.
 - Motion for React: `motion` `14.9.0`, imported from `motion/react`.
 - Geist Sans and Geist Mono via `geist` `1.9.0`; Lucide React `1.66.0`.
-- Playwright `1.64.1` for state contracts, browser behavior, sampled motion geometry, and endpoint captures; ESLint for static checks.
+- Optional generation through Google Gemini: `@google/genai` `2.31.0` (server only).
+- Playwright `1.64.1` for state contracts, browser behavior, sampled motion geometry, and endpoint captures; `@axe-core/playwright` `4.14.0` for accessibility scans; ESLint for static checks.
 
 ## Getting started
 
@@ -48,7 +53,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Select an example and activate **Morph to component**; activate **Morph to code** to reverse it.
+Open the URL that `npm run dev` prints (Next.js uses port 3000 unless it is taken). The page is a short narrative with five chapters (Button, Toast, Bento, How it knows, Try your own). In any chapter, activate **Morph to component**; activate **Morph to code** to reverse it. Sound is one preference in the top bar.
+
+The optional "Try your own" chapter needs a Google Gemini API key. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY` there (never in code or commits; `.env.local` is git-ignored). In production, set it in the host's environment settings instead. Without a key, that chapter says generation is not configured and everything else works. It uses `gemini-3.5-flash-lite` by default for speed; if generation is slow or fails, run `node scripts/gemini-check.mjs` to time the network and the model with your key.
 
 For the Chromium test suite, install its browser and create a production build first:
 
@@ -58,7 +65,7 @@ npm run build
 npm test
 ```
 
-Playwright starts a production server on port 3000, or reuses an existing server there. Stop the development server first when verifying the production build.
+Playwright starts its own production server (`npm run start`) on `127.0.0.1:4173` and never reuses an existing one, so that port must be free and `npm run build` must have been run first. `tests/devmode.spec.ts` also starts `next dev` on `127.0.0.1:4175` with `LAB_FIXTURES=1` (for Strict Mode and the two-lab fixture), so that port must be free too; it restores `next-env.d.ts`, which `next dev` rewrites, when it stops. If Playwright cannot find its browser, install it with the command above.
 
 ## Available scripts
 
@@ -73,7 +80,7 @@ Playwright starts a production server on port 3000, or reuses an existing server
 
 ## Accessibility and motion behavior
 
-Template and sound preferences use native selects; Code / Component uses a labelled native radio group. Controls support keyboard navigation and visible focus. Focus stays on the initiating control during a morph.
+Code / Component (one per chapter) is an ARIA radiogroup with roving tab index and arrow-key selection; Sound (one per page, in the top bar) is a button with `aria-pressed`; the chapter index is a list of anchor links. Controls support keyboard navigation and visible focus. Focus stays on the initiating control during a morph.
 
 Assistive technology receives a complete source sample, a preview description, and polite view-change announcements. “How the pieces match” explains correspondence without requiring motion or syntax color.
 
@@ -81,8 +88,8 @@ Reduced motion commits directly to the requested endpoint without spatial travel
 
 ## Project status and scope
 
-All three visual templates and the controls described above are implemented. The 14-test Playwright suite has passed in Chromium `156.0.8078.4`, covering continuity, ownership, keyboard controls, cancellation, and layouts at 1440px, 1024px, 390px, and 320px. Firefox, Safari, physical devices, and manual screen-reader review remain unverified; this is not an accessibility certification.
+All three visual templates and the controls described above are implemented. The 91-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
 
-Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; failures leave the morph working silently. **The expected `public/audio/morph.mp3` asset is not included; audible delivery and the final Foley cue's listening review are incomplete.**
+Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; if the cue cannot load, is unsupported or `play()` is rejected, the morph keeps working silently, the preference stays on, and "Sound unavailable" is shown and announced once; turning Sound off and on again retries. The cue, `public/audio/morph.mp3`, is synthesised by `scripts/make-morph-cue.sh` with the system ffmpeg (no third-party audio; rerun the script to regenerate identical bytes). **Its listening review on headphones and speakers is not done.**
 
-Examples are fixed and authored in advance. There is no code editor, parser, runtime compilation, arbitrary code execution, component generation, persistence, backend, authentication, or analytics. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).
+The three chapter examples are fixed and authored in advance. The optional chapter 05 asks Google Gemini for a small declarative spec, validated on the server and in the browser and drawn by the same renderer; it never produces or runs code, and it is rate-limited and off without a key (SPEC R13). There is no code editor, parser, runtime compilation, arbitrary code execution, persistence, authentication, or analytics, and `/api/generate` is the only server route. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).

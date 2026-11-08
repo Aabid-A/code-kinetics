@@ -2,207 +2,95 @@
 
 Product: **Spatial DOM Transition Lab** · **Code-to-Component Morph Engine**.
 
-Revision: premium dark visual direction, 2 November 2026. This document specifies presentation; it does not claim the application has been visually verified.
+Revision: editorial paper direction, 8 November 2026. This document specifies presentation. Browser evidence for the implemented parts is recorded in [QA.md](QA.md).
 
-## Scope and authority
+## Decision record (8 November 2026)
 
-This revision replaces the former flat, light, dashboard-like visual system with a premium landing-page aesthetic. It governs typography, color, materials, hierarchy, and custom control presentation. Where other documents still prescribe system fonts, light panels, native selects, or native radio inputs, this revision supersedes those presentation and control-construction requirements. [SPEC.md](SPEC.md) remains authoritative for template content, commands, selection effects, and application state.
+The previous revision (near-black glass, a violet-to-blue gradient action, a pill-cluster header, window dots, a dot-grid and a mostly empty first screen) is **replaced**. It read as a generic landing page and gave the visitor no reason to scroll. The owner's direction is a calm, editorial, crafted page that takes the visitor on a journey: a warm paper ground, confident display type with occasional serif-italic emphasis, the real content as the hero, one idea per section, and diagrams in one consistent hand. The tone is learned from editorial sites in general; no font, palette, illustration, layout or copy is taken from any of them.
 
-Keep the current spring physics, shared identities, source-to-destination mappings, reversal, reduced-motion behavior, and template copy intact. Button, Toast, and Bento retain their content and composition. Only DESIGN.md is changed by this revision; no application implementation is requested.
+Unchanged by this decision: the spring (`stiffness: 200`, `damping: 20`, `mass: 0.8`), shared identities, template content and mappings, reversal, reduced-motion behaviour, the keyboard and ARIA contracts of the custom controls, sound behaviour and cue, the error boundary and the no-JavaScript fallback. [SPEC.md](SPEC.md) stays authoritative for those. SPEC.md R01, R03 and related rows change as recorded there: the single lab becomes one lab per chapter, the global Example selector is removed, and Sound is one page-level preference.
 
-## Direction and surface purpose
+## Narrative and copy
 
-The visual reference is the premium website work collected by [MotionSites](https://motionsites.ai/) and [Land-book](https://land-book.com/): use them as inspiration for art direction, not as a requirement to copy a particular site. This specification commits to a near-black stage, tightly set Geist typography, translucent glass surfaces, generous spacing, and one luminous primary action.
+One idea per section, top to bottom. Plain, short, specific, warm. Every string here is the proposal; strings that change an existing visible string are listed in the phase report.
 
-The lab remains the product's main experience. Present it with the hierarchy and finish of a high-end interactive landing page: a prominent title, a short explanation, an exceptionally clear Morph action, and a spacious demonstration. Preserve the source pane's macOS-inspired chrome and the preview's dot-grid, now both within a coherent dark environment. The only bento composition is the Bento template itself.
+| # | Section | Eyebrow | Title (one italic word at most) | Sentence / caption |
+| --- | --- | --- | --- | --- |
+| 0 | Opening | none | **Code has a shape.** (the final full stop is accent) | “Press Morph and watch each named piece of this code travel to its place in the finished component.” The Button lab sits directly below, above the fold, in code mode. Nothing plays on load. |
+| 1 | Button | 01 — Button | One name, one *surface* | “Watch the three named pieces, the button, its arrow and its label, each leave the code and land in one place.” |
+| 2 | Toast | 02 — Toast | Pieces that *travel* together | “Notice how the card carries its icon and two lines of text along, while the text keeps its shape.” |
+| 3 | Bento | 03 — Bento | A whole *layout* | “Notice ten pieces arriving at once; narrow the window and the cards stack in the same order.” |
+| 4 | How it knows | 04 — How it knows | How it *knows* | A labelled diagram (below), then: “Each piece has the same name on both sides: where it is written in the code, and where it appears in the component. The engine draws a line between the two and moves along it. In the implementation, that name is called `layoutId`.” |
+| 5 | Your turn | 05 — Your turn | Try your *own* | “Describe a small component and the lab builds a matching example from validated data. No code is compiled or run.” The existing generate feature (prompt, suggestions, status line) restyled into this system; provider, route and behaviour unchanged. The generated lab appears beneath the prompt. |
+| 6 | Footer | none | none | “A visual demonstration with fixed examples. No code is compiled or run.” Credits: “Typefaces: Instrument Serif, Geist and Geist Mono. Icons: Lucide.” |
 
-Use the glass to establish depth and the accent to identify the action. Keep the rest restrained: no unrelated KPI cards, sidebar navigation, dense administrative toolbar, marketing feature grid, testimonials, pricing sections, or invented product claims. No particles, parallax, rotating camera, or ambient animation is added.
+Top bar: the wordmark “Spatial DOM Transition Lab” at the left and one Sound control at the right (“Sound off” / “Sound on”). Nothing else.
 
-## Information hierarchy and layout
+Each lab keeps its own explanation line (“N mapped pieces · teaching sentence”) and the native “How the pieces match” disclosure, below its sheet. Avoid “compile”, “execute”, “transpile” and “generated component” for the fixed examples. Banned words: unlock, supercharge, seamless, career-ready, and any marketing claim.
 
-Reading order: identity and Morph controls → existing explanatory sentence → Code / Component control → source and preview → current mapping explanation. The Morph button is the hero control and brightest bounded element; it must not compete with several equally bright actions.
+### The diagram (chapter 04)
 
-Use one large page heading, “Spatial DOM Transition Lab”, with the secondary name on a quieter line. On wide screens, place the heading at the left of the top composition and a compact control cluster at the right, with the Morph action closest to the demonstration. Allow the cluster to occupy a second row when space is tight. Keep the introductory area compact enough to reveal the lab in the first desktop viewport; premium spacing must not push the product below a decorative full-screen hero.
+Inline SVG on its own framed sheet, drawn in the page's line style: 1.5 px ink strokes, rule-colour dashed guides for the destination slots, ink-muted Geist Mono labels, paper fills only, no gradients. Wide (≥ 720 px): the Button code on the left with its three mapped tokens boxed, a paper preview on the right with the button, its label slot and its icon slot, and three labelled connectors (`button:surface`, `button:icon`, `button:label`). Narrow: three token chips above, the component below, short vertical connectors, so labels stay at about 12 px on a phone. **Accent marks one pair only** (`button:surface`: its token box, connector and two end dots); the other two pairs are ink. Both drawings are `aria-hidden`; the text equivalent is the visible caption (three pairs share a name, written once in the code and once in the component; the term `layoutId`) plus a visually hidden list of the three pairs.
 
-Desktop topology, at 960 CSS pixels and wider:
+## Layout
 
-```text
-      Spatial DOM Transition Lab       [Example: Button ▾] [Sound off]
-      Code-to-Component Morph Engine          [✦ Morph to component]
-      Watch matching pieces move from code to component.
+Twelve columns, 24 px gutters, content width `min(1320px, 100% − 2 × gutter)` (gutter 32 px, 16 px under 640 px). Chapters are at least 160 px apart on desktop (112 px on phones). The first chapter follows the opening by 48 px so the Button lab is visible in the first desktop viewport (1440 × 900).
 
-      [ Code  |  Component ]
+- From 1280 px the chapter text takes columns 1–4 and the sheet columns 5–12 (chapters 01, 02 and 05). Chapter 03 flips for rhythm: the sheet takes columns 1–9, wide enough for Bento's two-column composition (its stage splits 1:1 so the preview keeps at least 360 px of content width from 1280 px up), and the text columns 10–12. Chapter 04 stacks: its text above a full-width diagram sheet.
+- Below 1280 px the text sits above the sheet and is limited to 68 ch.
+- Inside a sheet, code (ink) and preview (paper) are never two identical empty boxes: they differ in ground, type and role. Split from 960 px, stacked below.
 
-      ╭── glass source pane ─────────╮   ╭── glass preview pane ───────╮
-      │ ● ● ●  Button.tsx            │   │ Component preview           │
-      │        Fixed example         │   │                             │
-      │ Authored code-like elements  │ → │ Dim dot-grid + destination  │
-      │ Mapped pieces start here.    │   │ Example caption             │
-      ╰──────────────────────────────╯   ╰─────────────────────────────╯
+## Typography
 
-      3 mapped pieces · Existing template explanation
-      ▸ How the pieces match
-      Existing fixed-example disclaimer
-```
+- Display: **Instrument Serif** via `next/font/google` (self-hosted at build, OFL), regular and italic, for the opening headline and chapter titles only. One italic word per title at most. Sizes: opening 104 / 72 / 52 px (desktop ≥ 1024 / tablet ≥ 640 / phone); chapter titles 72 / 56 / 44 px. Line height 1.04, letter spacing −0.015em, a little bottom padding so descenders are never clipped.
+- UI and body: **Geist**, body 17 px / 1.6 (captions 17–18 px, maximum 68 ch), controls 15 px, small print 12–13 px.
+- Code and labels: **Geist Mono**. Eyebrows are 12 px, uppercase, letter spacing 0.08em, ink-muted, with the number in the accent colour. Code is 13 px / 22 px.
 
-The sketch expresses hierarchy, not new text, icons, or component content; use the existing Lucide Morph icon in implementation. Use a maximum-width 1440 px content frame, with 32 px outer gutters on wide screens, 24 px from 640–1199 px, and 16 px below 640 px. Allow 48–64 px above the title on roomy viewports, reducing to 24–32 px on short screens. Use 24–32 px from controls to the lab, with a 16–24 px open gutter between equal `minmax(0, 1fr)` columns. The open gutter is part of the visible travel path.
+## Colour
 
-Lab minimum height remains 520 px on desktop. Both panes stretch to the larger content requirement, including wrapped Bento source. Pane padding is 28 px at desktop, 20 px on tablet, and 16 px on phone. Code chrome occupies 40 px above the source. Center the preview within its content region, with the caption in a separate row below.
-
-Below 960 px, keep source above preview in a single column and preserve DOM reading order. Preview content has at least 280 px height, growing for stacked Bento. The source expands to fit its lines. At 640–959 px, header controls form a second row. Below 640 px, the heading occupies its own row, Example and Sound share the next row, and Morph spans the full width. The mode control stays outside both panes.
-
-Support 320 CSS px minimum width and 400% zoom through natural reflow and page scrolling. Do not hide panes, reduce the whole lab with CSS scale, or shrink source typography to fit a viewport. Preserve SPEC R08's endpoint-only behavior when the complete journey is offscreen.
-
-## Typography — mandatory font system
-
-Use **Geist** as the primary font, loaded through `next/font/google` in the root layout and exposed as `--font-geist-sans`. **Inter**, also loaded through `next/font`, is the only permitted primary-family alternative; use one family consistently, not both. A generic system stack is a fallback during loading or failure, not the intended aesthetic.
-
-Use **Geist Mono** through `next/font/google` for source code and line numbers, exposed as `--font-geist-mono`. Font variables must actually be applied to the relevant elements and design tokens. Do not merely import a font while continuing to render system UI text.
-
-Use Latin subsets and variable weights where supported. `next/font` supplies optimized, self-hosted assets; do not add browser-side Google Fonts stylesheets. See the [Next.js font documentation](https://nextjs.org/docs/app/api-reference/components/font). If build-time downloading is unavailable, use licensed local Geist or Inter files through `next/font/local` rather than silently changing the design family.
-
-| Role | Size / line height | Weight | Tracking |
-| --- | --- | --- | --- |
-| Main heading, wide | 56 px / 60 px | 600 | `-0.045em` |
-| Main heading, tablet | 44 px / 48 px | 600 | `-0.04em` |
-| Main heading, phone | 32 px / 36 px | 600 | `-0.035em` |
-| Section heading | 18 px / 26 px | 600 | `-0.025em` |
-| Secondary name / body | 14 px / 22 px | 400–500 | `-0.01em` |
-| Controls | 14 px / 20 px | 550–600 | `-0.01em` |
-| Morph label | 15 px / 22 px | 600 | `-0.015em` |
-| Supporting text | 12 px / 18 px | 400–500 | Normal |
-| Code | 13 px / 22 px | 400 | Normal |
-| Preview titles | 15 px / 22 px | 600 | `-0.02em` |
-| Metric | 32 px / 38 px | 650 | `-0.035em`; tabular numerals |
-
-Allow headings to wrap naturally; no forced single line or clipping. Do not tighten code tracking. Preserve readable source sizing on mobile. Measure layout after fonts resolve, and use the existing geometry-change cancellation policy if font loading changes an active trajectory.
-
-## Global theme and visual tokens
-
-**Dark mode is the default and the primary visual contract.** Set the page ground to `#050505`, including overscroll areas and the initial paint. Set the browser color scheme to dark. Do not introduce a theme switch or another AppState field.
-
-Optionally layer two static, low-opacity radial fields over that ground: violet `rgb(109 40 217 / 0.10)` near the upper-right edge and ocean blue `rgb(29 78 216 / 0.06)` behind the lab's lower-left edge, each fading to transparent over a broad area. This is a subtle dark mesh, not a bright gradient backdrop. The page must still read as rich black. Build the mesh as background paint, not full-screen blurred DOM filters.
+One flat accent. It is used only for the Morph action, focus, chapter numbers, the opening full stop and, in the chapter 04 diagram, one highlighted pair (its connector and the two dots at its ends). No gradients, glows, blur or violet anywhere.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `color.page` | `#050505` | Page ground, initial paint, overscroll |
-| `color.glass` | `rgb(255 255 255 / 0.05)` | Pane/card material; `bg-white/5` |
-| `color.glassHover` | `rgb(255 255 255 / 0.08)` | Hover fill for real controls |
-| `color.glassBorder` | `rgb(255 255 255 / 0.10)` | 1 px translucent material edge; `border-white/10` |
-| `color.glassBorderHover` | `rgb(255 255 255 / 0.20)` | Hover edge |
-| `color.glassFallback` | `#111116` | Opaque fallback if blur/transparency is unavailable |
-| `color.popover` | `rgb(12 12 18 / 0.96)` | Readable custom selector popup |
-| `color.ink` | `#F5F5F7` | Primary text |
-| `color.muted` | `#A3A3B3` | Supporting text; never globally dim pane content |
-| `color.grid` | `rgb(255 255 255 / 0.08)` | Decorative 1 px dots, 20 px spacing |
-| `color.accent` | `#7C3AED` | Violet identity and bounded accent details |
-| `color.accentDeep` | `#6D28D9` | Morph gradient start |
-| `color.accentBlue` | `#1D4ED8` | Morph gradient end and Button preview blue |
-| `color.accentSoft` | `rgb(124 58 237 / 0.10)` | Feature-card tint and selected-control fill |
-| `color.accentEdge` | `rgb(196 181 253 / 0.65)` | Luminous Morph edge |
-| `color.focus` | `#C4B5FD` | Visible focus ring independent of glow |
-| `color.code` | `rgb(8 8 13 / 0.78)` | Darker code backing beneath glass finish |
-| `color.codeChrome` | `rgb(255 255 255 / 0.03)` | macOS-inspired title strip |
-| `color.codeText` | `#E7EDF6` | Source text |
-| `color.codeMuted` | `#A1AFC2` | Punctuation, line numbers, code notes |
-| `color.tag` | `#93C5FD` | Component names |
-| `color.attribute` | `#C4B5FD` | Attribute names |
-| `color.string` | `#86EFAC` | Quoted literals |
-| `color.success` | `#86EFAC` | Toast check and status cue |
-| `color.successSoft` | `rgb(34 197 94 / 0.10)` | Check icon ground |
+| paper | `#F3F0E8` | page ground; preview ground |
+| paper-raised | `#FBFAF6` | sheets, cards, inputs, controls |
+| ink | `#1B1A17` | text; ink surfaces in the previews |
+| ink-muted | `#5C5A54` | secondary text, control edges |
+| rule | `#D9D4C7` | hairlines, sheet and preview borders |
+| accent | `#0F766E` | Morph action, focus ring, chapter numbers, the full stop |
+| code | `#16181D` | code sheet ground; text `#E9E4D8`, muted `#A8A396`, tag `#F0B48F`, attribute `#D9C27F` |
 
-These are design targets, not a completed rendered contrast audit. Text must reach 4.5:1, large text 3:1, and essential control indicators 3:1 against the actual composited background. A decorative `border-white/10` edge is not sufficient on its own to identify selection or focus: use a clear checked marker, text treatment, and the explicit focus ring.
+Measured pairs (WCAG ratio): ink on paper 15.28, on raised 16.66; ink-muted on paper 6.05, on raised 6.60; accent on paper 4.81, on raised 5.24; white on accent 5.47 (Morph); raised on ink 16.66 (preview button, checked View option); code text 14.00, muted 7.06, tag 9.84, attribute 10.13 on code; tag on the travelling code surface `#2B2E36` 7.52; accent focus ring on the code sheet 3.24 (indicator, ≥ 3). Control edges use ink-muted (6.05), because rule alone is only about 1.3:1. The actual rendered pixels are re-measured in the browser by `tests/accessibility.spec.ts` in every state.
 
-| Material token | Value |
-| --- | --- |
-| Glass blur | `backdrop-blur-xl`, nominally 24 px; static |
-| Pane radius | 24 px desktop, 20 px mobile |
-| Card radius | 16 px |
-| Control radius | `9999px` / `rounded-full` |
-| Token chip radius | 6 px |
-| Pane shadow | `0 20px 64px rgb(0 0 0 / 0.36)` |
-| Glass inner highlight | `inset 0 1px 0 rgb(255 255 255 / 0.06)` |
-| Secondary control glow | `0 0 16px rgb(124 58 237 / 0.10)` |
-| Spacing scale | 4, 8, 12, 16, 20, 24, 28, 32, 48, 64 px |
+## Surfaces
 
-## Depth and glass materials
+- **Framed sheet.** Each chapter's lab sits on one paper-raised sheet: radius 28 px, 1 px rule border, no glow, shadow at most `0 24px 60px -30px rgb(27 26 23 / 0.12)`. The sheet holds the toolbar (View group at the left, Morph at the right) above the two panes.
+- **Code sheet.** An ink block (`#16181D`, radius 20 px) with warm syntax colours, a mono file name, a hairline under it, and line numbers. The code is top-aligned and left-aligned (never vertically centred). The sheet is sized to its content; the stage grid gives the preview the same height, and the preview's slots are laid out in both modes, so the stage keeps exactly one height whether it shows code or component and nothing jumps on a morph. No window dots and no fake app chrome.
+- **Preview.** The paper ground with a 1 px rule border (radius 20 px), a small mono heading, and, in code mode, the instruction “Choose Morph to see these pieces become a component.” No corner marks, no dot-grid.
+- **Visually hidden labels.** “Fixed example” (or “Generated example”), “Mapped pieces start here.” / “Mapped pieces are shown in the preview.” and the preview figure caption stay in the DOM as visually hidden text for assistive technology (SPEC R04, R10).
+- **Caption line.** Under every sheet, one line: **“N mapped pieces · Example only, not interactive”** (Bento: “Example only, fictional content, not interactive”), then the native “How the pieces match” disclosure. The template's teaching sentence is the first paragraph inside the disclosure.
+- **Drafting rules.** Three faint verticals at the quarter marks of the grid (rule colour at about 50 % opacity), desktop ≥ 1024 px only, `aria-hidden`, behind all content; they never cross a sheet (sheets are opaque). Removed in forced-colors mode.
 
-Panes and cards use the `bg-white/5 backdrop-blur-xl border border-white/10` material or its darker code equivalent. Light catches the top edge through a subtle inset highlight; a restrained black shadow separates planes. Keep the dark dot-grid visible through the preview glass at low contrast. No opaque white cards or flat gray page panels remain.
+## Controls
 
-**Apply glass to separate decorative paint layers.** A pane's blur must not be on an ancestor wrapping the shared moving elements: backdrop filters create stacking contexts and can trap cross-pane travel. Put a rounded, noninteractive, `aria-hidden` glass layer behind each pane's content, with the moving slots as siblings in the existing shared stacking context. Use translucent background colors, not reduced opacity on the whole pane.
+All controls are native buttons with custom styling. Targets are at least 44 px. Edges are ink-muted; focus is a 2 px accent outline with 3 px offset.
 
-For preview cards, attach the blur/material plate to the stationary destination geometry. Keep it separate from the travelling surface paint, label, and icon. The moving paint retains a compatible translucent tint and border; do not attach a backdrop filter to a projected node or animate a blur radius. Destination glass appears through the existing surface-decoration opacity channel. Do not create new shared identities, duplicate active endpoints, or change spring settings to achieve the material.
+- **Sound** (top bar, one per page): a bordered button, “Sound off” / “Sound on”, `aria-pressed`, accessible name “Sound”, a dot when on. “Sound unavailable” appears beside it when needed. The preference is shared by all chapters.
+- **View** (per chapter): the ARIA radiogroup “View” with “Code” and “Component”, roving `tabIndex`; the checked option is an ink fill with a paper marker.
+- **Morph** (per chapter): the one accent-filled action, flat, 216 px wide so its two labels never shift the layout (“Morph to component” / “Morph to code”). Hover and press darken it; disabled it turns to rule and ink-muted.
+- The Example selector no longer exists: each lab is locked to its chapter's template.
 
-Cap backdrop blur to the visible pane/card plates; do not blur each token or nest several blur layers unnecessarily. With unsupported backdrop filters, reduced-transparency preferences, or performance fallback, use `color.glassFallback`, the same borders and highlights, and fully readable text. Preserve the hierarchy without requiring blur.
+## Preview components
 
-## Custom controls — mandatory
+Illustrations only; none is interactive. Content, mappings and copy are unchanged ([SPEC.md](SPEC.md) R05).
 
-**Do not use HTML `<select>` elements or native `<input type="radio">` controls, including hidden native inputs behind custom skins.** Build the header controls, template selector, and mode selector as fully custom-styled pill components. Semantic `<button>` elements remain required for button actions; banning default browser styling does not mean replacing accessible buttons with generic divs.
+- **Button:** an ink surface (radius 10), label and arrow in paper-raised.
+- **Toast:** a paper-raised card with a rule outline and a soft shadow; ink title, ink-muted description, the check icon in ink on a pale circle.
+- **Bento:** the Feature card is an ink card with paper text and a translucent paper icon tile; Metric and Status are paper-raised cards with a rule outline.
 
-All interactive pills have at least a 44 × 44 px target, 16–20 px horizontal padding, translucent glass fill, a 1 px edge, and a restrained violet halo. Hover brightens the fill and border without moving the layout. Press darkens the fill; disabled controls retain readable labels and remove their halo. Focus is an explicit 2 px `color.focus` outline with 3 px offset, visually distinct from decorative glow. Preserve the existing 80–120 ms color-feedback timing; no scale, lift, spring, or animated sliding indicator is introduced for controls.
+## Opening entrance and chapter reveal
 
-### Template selector
-
-Use a labelled button trigger reading “Example: Button”, “Example: Toast”, or “Example: Bento”, with a Lucide chevron. It opens a custom single-select listbox with dark glass popup material, a 16 px radius, generous option spacing, and pill-shaped active option surfaces. Options remain exactly Button, Toast, Bento.
-
-The trigger exposes `aria-haspopup="listbox"`, `aria-expanded`, and `aria-controls`. Label the popup “Example”; options use `role="option"` and `aria-selected`. Use one focus strategy consistently: a focusable listbox with `aria-activedescendant`, while options have no independent Tab stops.
-
-Enter, Space, or Arrow Down opens the popup and activates the selected option. Up/Down move the active option, Home/End move to the first/last, and typeahead finds an option. Enter or Space commits the active option and returns focus to the trigger. Escape cancels without changing the template and returns focus. Tab closes without committing and follows normal focus order; outside pointer dismissal preserves the clicked target's focus. Pointer selection commits immediately. Navigation alone must not reset a template.
-
-Keep the popup above the lab and within the viewport without clipping. An ordinary control-popover portal is permitted; this does not change the existing prohibition on portalling shared animation endpoints. Popup visibility and active-option focus are local ephemeral UI state, not additions to AppState.
-
-### Mode selector
-
-Use a glass pill containing two custom `<button role="radio">` options, Code and Component, inside a labelled `role="radiogroup"`. These are custom ARIA radio controls, not native radio inputs or tabs. Both panes remain visible.
-
-Reflect the current mode with `aria-checked`, a persistent high-contrast marker, and a violet-tinted selected pill. Use roving `tabIndex`: only the selected option is in the Tab order. Left/Right and Up/Down move and select, wrapping between the two options; Home/End select the first/last; Space or Enter selects the focused option. A click selects directly. All dispatch the existing view command; selecting the current value remains a no-op. Update selected styling immediately without an animated indicator.
-
-### Sound control
-
-Use a custom glass pill button with visible “Sound off” / “Sound on”, the existing Lucide volume icon, stable accessible name “Sound”, and `aria-pressed`. Show the on state through a clear marker and brighter label, with a restrained accent edge. Preserve all existing sound preferences, playback behavior, and unavailable feedback.
-
-### Morph — the hero action
-
-Make Morph the strongest visual affordance on the page. Use a 52 px minimum height, 24 px horizontal padding, pill radius, white label, and the existing `ArrowRightLeft` icon at 18 px. Preserve “Morph to component” / “Morph to code” and reserve the longer label's width on desktop; fill the row on phones.
-
-- Fill: static `linear-gradient(135deg, #6D28D9 0%, #7C3AED 52%, #1D4ED8 100%)`.
-- Border: 1 px `rgb(196 181 253 / 0.65)`, plus a fine inner highlight.
-- Depth: `0 8px 24px rgb(76 29 149 / 0.28)`.
-- Glow: `0 0 20px rgb(124 58 237 / 0.22)`, localized to the button.
-- Hover: brighter luminous edge and a subtle white fill overlay; retain a dark enough gradient for white-label contrast.
-- Press: reduce the highlight and deepen the fill, without translation or scale.
-- Focus: the separate explicit focus outline remains visible outside the glow.
-- Disabled before readiness: retain the label and subdued gradient; remove the glow.
-
-No pulsing halo, moving gradient, sparkle loop, shimmer sweep, or new animation physics. The premium effect comes from color, material, and hierarchy. Only this action receives the full vibrant gradient; secondary controls should not compete with it.
-
-## Component specifications
-
-### Code pane
-
-Keep the macOS-inspired chrome: three decorative 10 px window dots, the current filename, and “Fixed example”. Use the darker glass backing, a translucent chrome strip, and a fine top highlight. Dots are not buttons or focus stops.
-
-Use Geist Mono and authored line containers. Each moving `motion.span` remains `inline-block` or block, never plain inline. Long authored lines wrap between tokens; continuation indentation must fit 320 px. Line numbers stay decorative and hidden from assistive technology.
-
-Mapped slots retain their fine underline. During travel, the active token rises above both material plates. The ordinary reference token retains reserved source geometry after departure. Do not collapse source spacing, indentation, or empty lines between modes. Do not reduce the whole source pane's opacity in rendered mode.
-
-### Button preview
-
-Keep the existing “Explore” label, up-right arrow, caption, mapping, and static illustrative behavior. Intrinsic width, minimum 156 px and height 48 px, 16 px horizontal padding, 10 px gap, 10 px radius. Retain the blue surface and white label/18 px arrow, adding only a fine translucent edge and restrained depth. The illustrative button must be visually subordinate to the real Morph hero action; no hover glow, pointer cursor, press response, or simulated click action.
-
-### Toast preview
-
-Keep the exact notification content and all four mappings. Width `min(360px, 100%)`, minimum height 100 px, 16 px padding and 12 px gap; 32 px icon area beside the text column. Replace the former white plate with the dark glass card material and 16 px radius. Use a 20 px light-green check on a translucent green ground, off-white title, and muted description.
-
-Allow text wrapping. No close control, timer, action, or viewport-corner entrance is added; the arrival remains the existing morph.
-
-### Bento preview
-
-Preserve all existing content, 10 mappings, card ordering, icon, metric, and fictional-content caption. Width `min(460px, 100%)`. At a preview content width of at least 360 px, columns remain `1.2fr 1fr`, with 12 px gap; Feature spans two rows, Metric is above Status. Target minimum composition height is 260 px, with 16 px internal padding, 20 px Layers icon, and 32 px metric.
-
-Use glass for all three cards. Add a restrained violet tint beneath the Feature plate; Metric and Status use neutral dark glass. Text is off-white with muted supporting text, and all edges are translucent. No opaque white card remains.
-
-Below 360 px preview content width, stack Feature, Metric, Status using the existing container-query rule. Cards grow for wrapped text without fixed-height clipping; the caption remains visible.
+On first load only: headline, then sentence (80 ms later), then (when the chapter index exists) the index, each fading in with at most 10 px of upward travel, 160 ms each, 320 ms in total. Chapters further down reveal their text once as they enter the viewport (opacity and at most 12 px). None of this runs under reduced motion, and **no lab piece ever animates on load** (SPEC R01). The lab itself is never inside a revealed or transformed ancestor.
 
 ## Shared-layout visual construction
 
@@ -229,17 +117,17 @@ The baseline is a **spring animation** with `type: 'spring'`, `stiffness: 200`, 
 
 All parts depart together and arrive together. Avoid entrance and exit delays: rapid reversal should retarget a single movement, not race a scheduled sequence. The visual destination updates immediately on input. If the pinned Motion version cannot preserve continuous reversal at the required topology, that is a failed prototype gate in QA.md, not permission to replace the lab with a crossfade.
 
-Text and icons must remain readable while crossing both light and dark grounds. During spatial travel, give their wrappers a compact dark backing and light foreground, painted without changing slot dimensions. Keep the backing until that part settles, then remove it and apply its endpoint colors together; an optional 80 ms opacity finish is allowed. On reversal, retain the backing until the new destination settles. On immediate/reduced-motion paths, use endpoint colors directly. This backing is local transient presentation, cleared by the current run's completion or cancellation, not another application mode.
+Text and icons must remain readable while crossing both the ink code sheet and the paper preview. During spatial travel, give their wrappers a compact ink backing and light foreground, painted without changing slot dimensions. Keep the backing until that part settles, then remove it and apply its endpoint colors together; an optional 80 ms opacity finish is allowed. On reversal, retain the backing until the new destination settles. On immediate/reduced-motion paths, use endpoint colors directly. This backing is local transient presentation, cleared by the current run's completion or cancellation, not another application mode.
 
-Stationary surfaces use the glass materials below; travelling surface paint keeps a stable tint and restrained shadow. Do not animate blur, backdrop filters, font size, line height, letter spacing, gradients, perspective, rotation, or camera movement. “Spatial” means visible travel between screen positions; v1 does not need 3D. Do not add an `x`/`y` keyframe animation to a node whose transform is owned by layout projection.
+Stationary surfaces use the paper and ink fills in "Preview components"; travelling surface paint keeps a stable tint and restrained shadow. Do not animate blur, font size, line height, letter spacing, gradients, perspective, rotation, or camera movement. “Spatial” means visible travel between screen positions; v1 does not need 3D. Do not add an `x`/`y` keyframe animation to a node whose transform is owned by layout projection.
 
 At rest, the final target layout must be indistinguishable from its static version. There must be no lingering scale, stretched type, or one-frame full-size flash at the destination.
 
 ### Layering and clipping
 
-Use one shared lab stacking context. Pane ground and grid: layer 0. Stationary source syntax: layer 10. Moving surfaces: layer 20. Moving labels and icons: layer 30. Header controls and focus affordances: layer 50 outside the lab movement region.
+Use one shared lab stacking context. Pane ground: layer 0. Stationary source syntax: layer 10. Moving surfaces: layer 20. Moving labels and icons: layer 30. Top bar and focus affordances: layer 50 outside the lab movement region.
 
-The lab and all ancestors of moving pieces must allow visible overflow. Round backgrounds on separate paint elements; do not apply `overflow: hidden`, masks, `clip-path`, transforms, opacity less than 1, or paint containment to whole panes. A child's large z-index cannot escape an ancestor clipping boundary or stacking context. The divider sits behind the moving pieces. Keep the header outside the straight paths rather than masking travel near it.
+The lab, its sheet and all ancestors of moving pieces must allow visible overflow. Round backgrounds on separate paint elements; do not apply `overflow: hidden`, masks, `clip-path`, transforms, opacity less than 1, or paint containment to whole panes. A child's large z-index cannot escape an ancestor clipping boundary or stacking context. The divider sits behind the moving pieces. Keep the top bar outside the straight paths rather than masking travel near it.
 
 No portal or DOM screenshot overlay is part of v1. Both endpoints live under the same React layout coordination tree. There is no nested pane scroller; the page scrolls naturally. Motion accounts for layout; the app does not calculate per-frame screen coordinates.
 
@@ -251,28 +139,31 @@ Reverse from the current screen position when the same template changes mode. On
 
 ## Copy and educational disclosure
 
-Main explanation: **“Watch matching pieces move from code to component.”**
+Mechanism explanation (inside each lab's disclosure): **“Each moving piece has a matching name in both views. Morph moves it between those places. These examples are prepared in advance.”**
 
-Mechanism explanation: **“Each moving piece has a matching name in both views. Morph moves it between those places. These examples are prepared in advance.”**
+Technical note: **“In the implementation, this matching name is called a shared identity (`layoutId`). The code view is made of styled elements, too.”**
 
-Disclosure technical note: **“In the implementation, this matching name is called a shared identity (`layoutId`). The code view is made of styled elements, too.”**
-
-Use the per-template teaching sentences in SPEC.md. Prefer “piece”, “surface”, “label”, and “example” in interface copy. Avoid “compile”, “execute”, “transpile”, “build succeeded”, and “generated component” for this interaction.
+Use the per-template teaching sentences in SPEC.md. Prefer “piece”, “surface”, “label” and “example” in interface copy.
 
 ## Accessible visual behavior
 
-Custom styling must preserve accessible names, roles, states, keyboard navigation, and focus restoration. Use the explicit custom listbox and ARIA radio contracts above instead of the superseded native-select/native-radio instructions elsewhere. Keep all focus indicators visible and outside clipping. Decorative glass layers, mesh, grids, chrome dots, sizers, line numbers, and duplicate visual text are hidden from assistive technology.
+Custom styling preserves accessible names, roles, states, keyboard navigation and focus. The View radiogroup keeps its roving `tabIndex` contract; the Sound button keeps `aria-pressed`. Focus indicators stay visible and outside clipping. Decorative rules, corner ticks, sizers, line numbers and duplicate visual text are hidden from assistive technology. Pane wrappers are `role="group"` (not landmarks), so repeated pane names across chapters raise no duplicate-landmark finding.
 
-Keep the existing full code text alternative, described preview illustrations, single polite status region, and native explanatory `<details>` disclosure. No extra per-piece announcements or preview actions are introduced.
+The page has one `h1` (the opening statement) and one `h2` per chapter; pane headings are `h3`. Each lab keeps its full code text alternative, described preview, polite status region and native “How the pieces match” disclosure. A page-level polite region announces “Sound unavailable.”
 
-In forced-colors mode, remove mesh, blur, gradients, shadows, and glows, and use system colors with explicit borders, selected markers, and focus outlines. Dark glass is the normal visual contract; high-contrast and reduced-transparency fallbacks remain fully usable. At increased text size, controls, headings, popovers, and cards wrap or grow without clipped text.
+In forced-colors mode the drafting rules, shadows and corner ticks are removed, tokens map to system colours, mapped pieces keep an outline marker, and the checked View option and focus ring stay distinguishable. Reduced motion removes the entrance, the reveal and all spatial travel. At increased text size, controls, headings and cards wrap or grow without clipped text.
+
+## Banned
+
+Gradients on buttons, text or borders; glassmorphism and backdrop blur; glows and glow ellipses; neon; violet; dot-grid filler; pill-cluster headers; all-caps hero headlines; emoji; stock 3D; background video or any media from external hosts; brand-logo marquees or third-party logos; marketing claims and hype copy.
 
 ## Implementation review standard
 
-Review all six settled template/mode states in desktop and phone layouts. Check rich-black initial paint, actual Geist/Inter font application, tightened heading tracking, glass depth, subtle dot-grid visibility, custom selector keyboard behavior, mode-control semantics, and Morph hierarchy.
+Review every settled template and mode at 1440, 1024, 390 and 320 px. Check the paper ground and the ink code sheet, the serif headline at its real size, the italic word, the drafting rules (desktop only), the accent used only where listed, and the Morph hierarchy. Inspect contrast against the composited pixels, forced colours, reduced motion and 200 % zoom. Inspect forward and reverse motion at departure, midpoint and arrival; the sheet and panes must never clip or isolate shared pieces. Static screenshots alone cannot establish continuity.
 
-Inspect contrast against composited glass, the entire Morph gradient, and hover/selected states. Check font loading, unsupported-blur fallback, reduced transparency, forced colors, and zoom. Confirm the listbox popup stays within the viewport and restores focus correctly.
+## Implementation notes and open items (8 November 2026)
 
-Inspect forward/reverse motion, rapid reversal, and stacked mobile layout at departure, midpoint, and arrival. Glass must never clip or isolate shared pieces. Preserve the exact spring settings and existing shared-layout/reduced-motion contracts above. Static screenshots alone cannot establish continuity.
-
-This revision changes the visual acceptance criteria for fonts, materials, and custom controls in older specifications; it does not authorize changes to physics, template content, or product state. Record browser evidence during implementation before claiming the redesigned appearance is verified.
+- **Implemented (8 November 2026):** top bar, opening, five chapters, per-chapter labs, page-level Sound, the paper token set, the diagram, the footer, the drafting rules, the opening entrance and the chapter reveal. **Chapter index:** a `<nav aria-label="Chapters">` of five links (“01” … “05”, each with a visually hidden chapter name), `aria-current="location"` on the chapter in view (IntersectionObserver). From 1024 px it floats at the bottom centre (paper-raised, 1 px rule border, no blur) and hides itself while it would overlap a lab control, and, on viewports shorter than 900 px, any lab sheet; below 1024 px it is a plain inline list after the opening. **Reveal:** chapter text that starts below the first screen is held back after mount and released once; labs are never inside a revealed element.
+- **Generated lab** (chapter 05): the prompt card sits in the chapter and, after a successful generation, the generated lab mounts beneath it in code mode (a second generation replaces it). Under the character count, one ink-muted line states that descriptions are sent to Google Gemini (SPEC R13).
+- **Fonts.** Geist and Geist Mono come from the `geist` package (local files); Instrument Serif comes from `next/font/google`, which downloads and self-hosts it at build time. No font request is made at runtime.
+- **Header.tsx** keeps its name but now holds only the Sound and Morph buttons.

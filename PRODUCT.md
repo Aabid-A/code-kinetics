@@ -2,7 +2,7 @@
 
 Secondary name: **Code-to-Component Morph Engine**.
 
-Status: implementation-ready product specification, 1 November 2026. This delivery contains documentation only; no application has been implemented or validated in a browser.
+Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromium results, and everything not yet run, are recorded in [QA.md](QA.md) "Current results". Open items are listed at the end of [SPEC.md](SPEC.md); the remaining people and owner items are in [RELEASE.md](RELEASE.md).
 
 <!-- impeccable:product-schema 1 -->
 
@@ -15,12 +15,9 @@ Status: implementation-ready product specification, 1 November 2026. This delive
 | [DESIGN.md](DESIGN.md) | Layout, visual tokens, interaction, motion choreography, accessible presentation |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Component boundaries, mapping contracts, dependencies, runtime lifecycle |
 | [QA.md](QA.md) | Verification matrix, release gates, evidence requirements |
+| [RELEASE.md](RELEASE.md) | Remaining owner and people items before release |
 
-The user's brief is authoritative. Each document owns its topic; a future change that affects multiple topics must update all affected documents together. Requirements identified in SPEC.md are traced to QA.md. Proposed source paths in ARCHITECTURE.md describe future implementation, not existing files.
-
-## Workspace inspection
-
-Before authoring, `/Users/aabidanas/Documents/code-kinetics` contained only `.git/`. There were no tracked files, application sources, package manifest, assets, local project instructions, or existing PRODUCT.md, SPEC.md, DESIGN.md, ARCHITECTURE.md, or QA.md. All five documents are new. Preserve Git metadata and any unrelated files added later. This delivery must not scaffold the app, install packages, generate assets, or add other files.
+The user's brief is authoritative. Each document owns its topic; a future change that affects multiple topics must update all affected documents together. Requirements identified in SPEC.md are traced to QA.md. ARCHITECTURE.md lists the source files as they exist.
 
 ## Platform
 
@@ -46,15 +43,15 @@ The differentiator is visible continuity across the code and preview panes. This
 
 Always show the note: **“A visual demonstration with fixed examples. No code is compiled or run.”** The secondary product name describes the visual engine; it must not imply an executable editor.
 
-The rendered examples are static demonstrations of component appearance. The Button does not submit anything; the Toast does not announce a real save; the Bento metrics are fictional. Label the preview “Example component · not interactive.”
+The rendered examples are static demonstrations of component appearance. The Button does not submit anything; the Toast does not announce a real save; the Bento metrics are fictional. Say so in the caption line under each sheet (“Example only, not interactive”); the preview's own caption stays as visually hidden text.
 
 ## First-use outcome
 
 1. Arrive at `/` with Button selected, code mode selected, and sound off.
-2. Read a short explanation and see the dark code environment beside the empty dot-grid preview.
+2. Read a short statement and see the Button lab: an ink code sheet beside the paper preview with its instruction.
 3. Activate “Morph to component.” The mapped pieces travel into the preview.
 4. Activate “Morph to code” to see the correspondence in reverse.
-5. Select Toast or Bento; the new example starts in code mode.
+5. Scroll to the Toast and Bento chapters, each with its own lab, and to the diagram that explains the matching names; the optional last chapter generates a new example.
 
 No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain present in both modes; mode means where the active mapped pieces live, not which pane is mounted.
 
@@ -70,18 +67,19 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 
 ### Version 1
 
-- One route, one lab, three fixed templates, two modes.
-- Header identity, template selector, sound toggle, and direction-aware Morph action.
+- One route with five chapters; one lab per fixed template (Button, Toast, Bento), two modes each, plus an optional generate chapter.
+- A top bar with the wordmark and one page-level sound toggle; a direction-aware Morph action in each lab.
 - A Code / Component mode control synchronized with the Morph action.
 - Persistent code and render panes, responsive stacking on narrow screens.
 - An authored mapping legend and a disclosure explaining the mechanism.
 - Deterministic shared-layout movement, interruptible reversal, reduced-motion alternative.
 - Optional quiet sound, keyboard support, screen-reader equivalents, touch usability.
 - Local operation after application assets load; no service dependency for morphing.
+- Optional "Try your own" chapter (added 8 November 2026): a learner describes a small component and Google Gemini returns a declarative spec that the lab validates and renders as a new lab. It is off unless the server has `GEMINI_API_KEY`; the three fixed chapters never depend on it. The prompt states that descriptions are sent to Google. Limits: 200 characters, rate-limited per client and per day (SPEC R13).
 
 ### Excluded
 
-Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation, custom templates, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs, payments, collaboration, WebGL, and a generalized morph SDK.
+Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation beyond the optional chapter 05 generator, custom template files, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs other than the single `/api/generate` route, payments, collaboration, WebGL, and a generalized morph SDK.
 
 Do not add these as inactive controls. A native explanatory disclosure is sufficient; this is not a full documentation portal.
 
@@ -95,7 +93,7 @@ The audience and core stack come from the brief and follow-up answer. The follow
 | Template changes reset to code | Establish a fresh starting point and avoid misleading cross-template continuity |
 | No persistence, including sound | Reproducible initial load and no browser-storage complexity |
 | Static rendered previews | Keep learning focused on the morph, without unrelated application state |
-| Native select, radio controls, disclosure | Familiar semantics and a small dependency footprint |
+| ARIA radiogroup per lab, one page-level Sound button; native disclosure | DESIGN.md "Controls" supersedes the earlier native select and radio decision; the Example selector was removed when each chapter got its own lab; the disclosure stays native |
 | Simultaneous, fixed-duration movement | Easier comparison and cancellation than a staged timeline |
 | English content in v1 | Bound the authored examples; retain wrapping and zoom support |
 
@@ -113,4 +111,4 @@ Release requires all three templates to pass both directions, interruption, temp
 
 ## Evidence on hand
 
-The user brief and confirmed audience are the product evidence. There is no existing UI, user research, brand asset library, audio file, implementation benchmark, or working prototype. Examples and numerical metrics in the Bento template are explicitly fictional. Do not manufacture validation claims.
+The user brief and confirmed audience are the product evidence. A working implementation exists; its automated test results are in [QA.md](QA.md). There is no user research, brand asset library, audio file, performance benchmark, or manual accessibility review. Examples and numerical metrics in the Bento template are explicitly fictional. Do not manufacture validation claims.

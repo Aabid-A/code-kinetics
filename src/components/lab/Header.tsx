@@ -1,21 +1,17 @@
-import { ArrowRightLeft, ChevronDown } from "lucide-react";
-import type { TemplateId, ViewMode } from "@/lib/lab/types";
+import { ArrowRightLeft, Volume2, VolumeX } from "lucide-react";
+import type { ViewMode } from "@/lib/lab/types";
 
-export function TemplateSelector({ ready, templateId, onSelect }: {
-  ready: boolean; templateId: TemplateId; onSelect: (id: TemplateId) => void;
-}) {
-  return <label className="template-selector">
-    <span>Example</span>
-    <select aria-label="Example" value={templateId} disabled={!ready} onChange={event => {
-      const id = event.currentTarget.value;
-      if (id === "button" || id === "toast" || id === "bento") onSelect(id);
-    }}>
-      <option value="button">Button</option>
-      <option value="toast">Toast</option>
-      <option value="bento">Bento</option>
-    </select>
-    <ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true" />
-  </label>;
+// Shared controls. The Example selector was removed when every chapter got its own lab locked to one template;
+// the file keeps its name so history stays readable.
+export function SoundButton({ enabled, ready, onToggle }: { enabled: boolean; ready: boolean; onToggle: () => void }) {
+  const Icon = enabled ? Volume2 : VolumeX;
+  // The accessible name is the visible word "Sound" (stable, per SPEC R03); the state word is hidden from
+  // assistive technology because aria-pressed carries it. The name stays a prefix of the visible label (WCAG 2.5.3).
+  return <button type="button" className="sound-pill" aria-pressed={enabled}
+    disabled={!ready} onClick={onToggle}>
+    <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+    <span>Sound<span aria-hidden="true">{enabled ? " on" : " off"}</span></span>
+  </button>;
 }
 
 export function MorphButton({ mode, ready, onMorph }: { mode: ViewMode; ready: boolean; onMorph: () => void }) {
@@ -23,31 +19,4 @@ export function MorphButton({ mode, ready, onMorph }: { mode: ViewMode; ready: b
     <ArrowRightLeft size={18} strokeWidth={1.75} aria-hidden="true" />
     {mode === "code" ? "Morph to component" : "Morph to code"}
   </button>;
-}
-
-export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => void;
-  templateId: TemplateId; onSelect: (id: TemplateId) => void;
-  soundEnabled: boolean; onToggleSound: () => void;
-}) {
-  return <header className="lab-header">
-    <div className="identity">
-      <h1>Spatial DOM Transition Lab</h1>
-      <p>Code-to-Component Morph Engine</p>
-    </div>
-    <div className="header-controls">
-      <TemplateSelector ready={props.ready} templateId={props.templateId} onSelect={props.onSelect} />
-      <label className="template-selector">
-        <span className="sr-only">Sound</span>
-        <select aria-label="Sound" value={props.soundEnabled ? "on" : "off"} disabled={!props.ready}
-          onChange={event => {
-            if ((event.currentTarget.value === "on") !== props.soundEnabled) props.onToggleSound();
-          }}>
-          <option value="off">Sound off</option>
-          <option value="on">Sound on</option>
-        </select>
-        <ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true" />
-      </label>
-      <MorphButton {...props} />
-    </div>
-  </header>;
 }
