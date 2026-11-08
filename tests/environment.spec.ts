@@ -74,7 +74,7 @@ async function onDestination(page: Page, id: TemplateId, mode: ViewMode = "rende
 async function tabOrder(page: Page) {
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   const order: string[] = [];
-  for (let step = 0; step < 6; step++) {
+  for (let step = 0; step < 12; step++) {
     await page.keyboard.press("Tab");
     order.push(await page.evaluate(() => {
       const element = document.activeElement as HTMLElement;
@@ -106,8 +106,9 @@ test("960 px is split and 959 px is stacked, with one layout tree, the same focu
       expect(await onDestination(page, id)).toBe(true);
     }
   }
-  // Page order: the page-level Sound control, then each chapter's View group, Morph action and disclosure.
-  expect(orders[0]).toEqual(["button:Sound off", "radio:Code", "button:Morph to component", "summary:How the pieces match", "radio:Code", "button:Morph to component"]);
+  // Page order: the page-level Sound control, the chapter index, then each chapter's View group, Morph action and disclosure.
+  expect(orders[0]).toEqual(["button:Sound off", "a:01 — Button", "a:02 — Toast", "a:03 — Bento", "a:04 — How it knows", "a:05 — Your turn",
+    "radio:Code", "button:Morph to component", "summary:How the pieces match", "radio:Code", "button:Morph to component", "summary:How the pieces match"]);
   expect(orders[1]).toEqual(orders[0]);
 });
 
@@ -159,7 +160,7 @@ test.describe("200% zoom (1440 × 900 at 200%: a 720 × 450 CSS viewport at devi
         expect(await noHorizontalOverflow(page)).toBe(true);
         // No control label or heading is truncated, and every control lies within the page width.
         const clipped = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>("button, summary, h1, h2, .mode-label, figcaption")]
-          .filter(element => element.checkVisibility() && (element.scrollWidth > element.clientWidth + 1 || element.getBoundingClientRect().right > innerWidth + 1))
+          .filter(element => element.checkVisibility() && !element.closest(".sr-only") && (element.scrollWidth > element.clientWidth + 1 || element.getBoundingClientRect().right > innerWidth + 1))
           .map(element => element.className || element.tagName));
         expect(clipped).toEqual([]);
         expect(await onDestination(page, id, mode)).toBe(true);

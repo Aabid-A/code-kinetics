@@ -19,6 +19,21 @@ const hideForegrounds = `*, *::before, *::after { color: transparent !important;
   svg, .mode-option::before, .sound-pill::after { visibility: hidden !important; }`;
 
 export async function measureContrast(page: Page, focusables = ".sound-pill, .morph-button, .mode-option[tabindex='0'], summary") {
+  // A full-page screenshot lays fixed elements out against the whole page, not the viewport, so their boxes would be
+  // read from the wrong pixels. Pin each fixed element where it is on the page for the measurement, then restore it.
+  await page.evaluate(() => {
+    document.querySelectorAll<HTMLElement>("body *").forEach(element => {
+      if (getComputedStyle(element).position !== "fixed") return;
+      const box = element.getBoundingClientRect();
+      element.setAttribute("data-was-fixed", element.getAttribute("style") ?? "");
+      // Absolute positioning is relative to the nearest positioned ancestor: place at its origin, read where that is,
+      // then offset so the element keeps exactly the page position it had when fixed.
+      // Visibility is pinned too: the page hides its floating index over lab controls, and re-laying out must not undo that.
+      Object.assign(element.style, { position: "absolute", top: "0px", left: "0px", right: "auto", bottom: "auto", margin: "0", transform: "none", visibility: getComputedStyle(element).visibility });
+      const origin = element.getBoundingClientRect();
+      Object.assign(element.style, { top: `${box.top - origin.top}px`, left: `${box.left - origin.left}px` });
+    });
+  });
   const regions: Region[] = await page.evaluate(focusSelector => {
     const parse = (value: string): [number, number, number, number] => {
       const match = value.match(/rgba?\(([^)]+)\)/);
@@ -112,7 +127,13 @@ export async function measureContrast(page: Page, focusables = ".sound-pill, .mo
   const shot = (await page.screenshot({ fullPage: true, animations: "disabled" })).toString("base64");
   await hidden.evaluate(element => (element as Element).remove());
   await freeze.evaluate(element => (element as Element).remove());
-  await page.evaluate(() => document.querySelectorAll("[data-contrast-freeze]").forEach(element => element.removeAttribute("data-contrast-freeze")));
+  await page.evaluate(() => {
+    document.querySelectorAll("[data-contrast-freeze]").forEach(element => element.removeAttribute("data-contrast-freeze"));
+    document.querySelectorAll<HTMLElement>("[data-was-fixed]").forEach(element => {
+      element.setAttribute("style", element.getAttribute("data-was-fixed")!);
+      element.removeAttribute("data-was-fixed");
+    });
+  });
 
   return page.evaluate(async ({ shot, regions }) => {
     const image = new Image();

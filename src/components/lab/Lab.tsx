@@ -125,12 +125,13 @@ export function Lab({ id, definition = null }: { id: TemplateId; definition?: Te
       </MotionConfig>
     </div>
     <div className="mapping-explanation">
-      <p><strong>{template.parts.length} mapped pieces</strong><span className="mapping-separator" aria-hidden="true"> · </span>
-        {template.teaching}</p>
+      <p className="lab-caption"><strong>{template.parts.length} mapped pieces</strong><span className="mapping-separator" aria-hidden="true"> · </span>
+        {template.id === "bento" ? "Example only, fictional content, not interactive" : "Example only, not interactive"}</p>
       {run.offscreen ? <p className="compare-notice">View changed. Scroll to compare the example.</p> : null}
       <details>
         <summary>How the pieces match</summary>
         <div className="disclosure-content">
+          <p>{template.teaching}</p>
           <p>Each moving piece has a matching name in both views. Morph moves it between those places. These examples are prepared in advance.</p>
           <ul>{template.parts.map(part => <li key={part.key}>{part.sourceLabel} → {part.destinationLabel}</li>)}</ul>
           <p>In the implementation, this matching name is called a shared identity (<code>layoutId</code>). The code view is made of styled elements, too.</p>

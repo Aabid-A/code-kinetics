@@ -49,9 +49,7 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
     }
   }
 
-  return <section className="try-own" aria-labelledby={`${base}-heading`}>
-    <h2 id={`${base}-heading`}>Try your own</h2>
-    <p className="try-own-intro">Optional: describe a small component and the lab builds a matching example from validated data. No code is compiled or run, and the fixed examples stay available.</p>
+  return <div className="try-own">
     <form className="prompt-bar" aria-busy={busy} onSubmit={event => { event.preventDefault(); void generate(prompt); }}>
       <label className="prompt-label" htmlFor={`${base}-input`}>Describe a component</label>
       <div className="prompt-row">
@@ -70,5 +68,5 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
       </div>
       <p className="prompt-status" id={`${base}-status`} aria-live="polite" aria-atomic="true" data-failed={failed || undefined}>{message}</p>
     </form>
-  </section>;
+  </div>;
 }

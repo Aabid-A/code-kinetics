@@ -14,7 +14,7 @@ export function CodePane({ mode, contentRef, headingId, ...motion }: PartMotion 
   return <div className="code-pane pane" role="group" aria-labelledby={headingId} data-view-mode={mode}>
     <div className="pane-ground code-ground" aria-hidden="true" />
     <div className="code-chrome">
-      <h3 id={headingId}>{template.filename}</h3><span>{template.generated ? "Generated example" : "Fixed example"}</span>
+      <h3 id={headingId}>{template.filename}</h3><span className="sr-only">{template.generated ? "Generated example" : "Fixed example"}</span>
     </div>
     <pre className="sr-only"><code>{sourceFor(template)}</code></pre>
     <div className="code-content" ref={contentRef}>
@@ -34,6 +34,6 @@ export function CodePane({ mode, contentRef, headingId, ...motion }: PartMotion 
         </div>)}
       </div>
     </div>
-    <p className="code-note">{mode === "code" ? "Mapped pieces start here." : "Mapped pieces are shown in the preview."}</p>
+    <p className="sr-only">{mode === "code" ? "Mapped pieces start here." : "Mapped pieces are shown in the preview."}</p>
   </div>;
 }
