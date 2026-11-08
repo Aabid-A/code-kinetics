@@ -1,15 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { SoundButton } from "@/components/lab/Header";
+import { useHydrated } from "@/hooks/use-hydrated";
+import { SoundButton } from "@/components/lab/Controls";
 import { useSound } from "./Sound";
 
-const subscribeReady = () => () => {};
-const getReady = () => true;
-const getServerReady = () => false;
-
 export function TopBar() {
-  const ready = useSyncExternalStore(subscribeReady, getReady, getServerReady);
+  const ready = useHydrated();
   const sound = useSound();
   return <header className="topbar">
     <p className="wordmark">Spatial DOM Transition Lab</p>

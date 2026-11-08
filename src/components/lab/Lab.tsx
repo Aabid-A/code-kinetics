@@ -1,19 +1,17 @@
 "use client";
 
 import { LayoutGroup, MotionConfig } from "motion/react";
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useSound } from "@/components/site/Sound";
 import { resolveTemplate, type PartKey, type TemplateDefinition } from "@/lib/lab/templates";
 import { initialState, transition, type Command, type TemplateId } from "@/lib/lab/types";
-import { MorphButton } from "./Header";
+import { MorphButton } from "./Controls";
 import { ModeControl } from "./ModeControl";
 import { CodePane } from "./CodePane";
 import { RenderPane } from "./RenderPane";
 import type { MotionRun } from "./SharedPart";
 
-const subscribeReady = () => () => {};
-const getReady = () => true;
-const getServerReady = () => false;
 const initialRun: MotionRun = { generation: 0, epoch: 0, spatial: true, travelling: false, offscreen: false };
 
 function visible(element: HTMLElement | null) {
@@ -27,7 +25,7 @@ function visible(element: HTMLElement | null) {
 // page-level sound preference (see components/site/Sound.tsx), and their layout identities are namespaced by useId.
 export function Lab({ id, definition = null }: { id: TemplateId; definition?: TemplateDefinition | null }) {
   const namespace = useId();
-  const ready = useSyncExternalStore(subscribeReady, getReady, getServerReady);
+  const ready = useHydrated();
   const start = { ...initialState, activeTemplate: id };
   const [state, setState] = useState(start);
   const latest = useRef(start);
