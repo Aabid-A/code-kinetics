@@ -37,8 +37,8 @@ export function Opening() {
           <PromptBar ready={ready} onGenerated={definition => setGenerated(previous => ({ definition, count: (previous?.count ?? 0) + 1 }))} />
           <a className="hero-secondary" href="#what-this-is">Or see how it works <span aria-hidden="true">↓</span></a>
         </> : null}
-        {availability === "unavailable" ? <a className="morph-button hero-primary" href="#button">See it work</a> : null}
-        <noscript><a className="morph-button hero-primary" href="#button">See it work</a></noscript>
+        {availability === "unavailable" ? <a className="hero-primary" href="#button">See it work</a> : null}
+        <noscript><a className="hero-primary" href="#button">See it work</a></noscript>
       </div>
     </section>
     {generated ? <section className="hero-result" aria-labelledby="hero-result-title">
