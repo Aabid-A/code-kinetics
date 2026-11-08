@@ -30,3 +30,12 @@ export async function mockGenerate(page: Page, options: { configured: boolean; p
     return route.continue();
   });
 }
+
+// A full-page screenshot stretches the viewport and then restores it, and the hero's height follows the viewport, so
+// the page can still scroll or resize a moment later (the lab cancels a flight on either). Bring the lab back into
+// view, let that settle, and re-align, so the next morph starts from a quiet page.
+export async function backToLab(page: Page, id: LabId = "button") {
+  await bringIntoView(page, id);
+  await page.waitForTimeout(300);
+  await bringIntoView(page, id);
+}

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { bringIntoView, lab } from "./lab";
+import { backToLab, bringIntoView, lab } from "./lab";
 import { morphSpring, sharedIdentity } from "../src/lib/lab/motion";
 import { sourceFor, templates } from "../src/lib/lab/templates";
 import { initialState, transition } from "../src/lib/lab/types";
@@ -61,7 +61,7 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   await expect(lab(page).getByRole("radio", { name: "Code", exact: true })).toBeChecked();
   await page.screenshot({ path: info.outputPath("desktop-code.png"), fullPage: true });
   // The lab sits below the hero, and a full-page screenshot stretches the hero and moves the page, so bring the lab back into view (spatial travel needs both panes visible).
-  await bringIntoView(page);
+  await backToLab(page);
   const start = await box(page, '[data-part="surface"]');
   const target = await box(page, ".button-template");
   const sourceLines = await box(page, ".code-lines");
@@ -114,7 +114,7 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   expect(await box(page, ".lab-stage")).toEqual(stage);
   await expect(lab(page).getByRole("img", { name: "Example button labelled Explore, with an up-right arrow." })).toBeVisible();
   await page.screenshot({ path: info.outputPath("desktop-rendered.png"), fullPage: true });
-  await bringIntoView(page);
+  await backToLab(page);
 
   const reverseSampling = sample();
   await lab(page).getByRole("button", { name: "Morph to code" }).click();
