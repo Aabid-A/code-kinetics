@@ -151,3 +151,11 @@ test("not configured: the real route answers 503, the message is inline and anno
   await lab(page, "bento").locator(".morph-button").click();
   await settledIn(page, "bento", "rendered");
 });
+
+test("the prompt states that descriptions are sent to Google Gemini", async ({ page }) => {
+  await page.goto("/");
+  const notice = page.locator(".prompt-privacy");
+  await expect(notice).toHaveText("Your description is sent to Google Gemini to create the example. Don’t include personal information.");
+  const describedBy = (await field(page).getAttribute("aria-describedby")) ?? "";
+  expect(describedBy.split(" ")).toContain(await notice.getAttribute("id"));
+});

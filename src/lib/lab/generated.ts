@@ -31,6 +31,8 @@ export const specSchema = {
     layout: { type: "string", enum: [...LAYOUTS], description: "single for one card; row or stack for several" },
     cards: {
       type: "array",
+      minItems: 1,
+      maxItems: limits.cards,
       items: {
         type: "object",
         additionalProperties: false,
@@ -40,6 +42,8 @@ export const specSchema = {
           icon: { type: "string", enum: [...ICON_NAMES] },
           texts: {
             type: "array",
+            minItems: 1,
+            maxItems: limits.texts,
             items: {
               type: "object",
               additionalProperties: false,

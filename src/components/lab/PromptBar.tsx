@@ -55,13 +55,14 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
       <div className="prompt-row">
         <input id={`${base}-input`} className="prompt-input" type="text" value={prompt} maxLength={limits.prompt} disabled={!ready}
           placeholder="For example, a pricing card with a badge" autoComplete="off"
-          aria-describedby={`${base}-count ${base}-status`} aria-invalid={failed || undefined}
+          aria-describedby={`${base}-count ${base}-privacy ${base}-status`} aria-invalid={failed || undefined}
           onChange={event => setPrompt(event.currentTarget.value)} />
         <button type="submit" className="pill prompt-submit" disabled={!ready || busy || !prompt.trim()}>
           <Sparkles size={18} strokeWidth={1.75} aria-hidden="true" />{busy ? "Generating…" : "Generate"}
         </button>
       </div>
       <p className="prompt-count" id={`${base}-count`}>{prompt.length} / {limits.prompt} characters</p>
+      <p className="prompt-privacy" id={`${base}-privacy`}>Your description is sent to Google Gemini to create the example. Don&rsquo;t include personal information.</p>
       <div className="prompt-suggestions" role="group" aria-label="Suggestions">
         {suggestions.map(text => <button key={text} type="button" className="pill prompt-suggestion" disabled={!ready || busy}
           onClick={() => { setPrompt(text); void generate(text); }}>{text}</button>)}
