@@ -1,6 +1,6 @@
 # Technical architecture
 
-This document specifies future implementation. No source tree, package installation, lockfile, assets, or running application is supplied by this documentation task.
+Status, 8 November 2026: implemented. This document describes the architecture and the source layout as it exists; deviations are recorded in [SPEC.md](SPEC.md) "Open items".
 
 ## Architecture summary
 
@@ -27,44 +27,43 @@ Do not install packages as part of this specification task. At implementation st
 
 `use-sound` remains a possible replacement behind the same hook contract if future scope needs multiple assets or playback features; it wraps Howler, which is unnecessary for this single-cue proposal. [Project documentation](https://github.com/joshwcomeau/use-sound).
 
-## Proposed source boundaries
-
-The following tree is a plan, not a request to create these files now:
+## Source layout (as implemented)
 
 ```text
-app/
-  layout.tsx                  # Server: metadata, language, global styles
-  page.tsx                    # Server: renders Lab client entry and static fallback
-  globals.css                 # Tailwind import, semantic tokens, focused layout rules
-components/lab/
-  Lab.tsx                     # Client entry, state, commands, shared layout root
-  LabHeader.tsx               # Native controls, no independent selection state
+src/app/
+  layout.tsx                  # Metadata, language, Geist fonts (geist package), global CSS
+  page.tsx                    # Renders Lab inside LabErrorBoundary
+  globals.css                 # Tailwind import, tokens, layout and component rules
+  icon.svg                    # App icon (App Router convention)
+src/components/lab/
+  Lab.tsx                     # Client entry: state, commands, motion runs, sound wiring, status
+                              #   announcements, mapping explanation and disclosure (inline)
+  LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
+  Header.tsx                  # Example select, Sound select, Morph button (native controls)
+  ModeControl.tsx             # View radios (native)
   CodePane.tsx                # Authored lines, source slots, accessible source
   RenderPane.tsx              # Destination frame and described illustration
-  SharedPart.tsx              # ID and movement policy, no template parsing
-  MappingExplanation.tsx     # Human-readable correspondence and native disclosure
-  LabErrorBoundary.tsx        # Local rendering failure fallback
-  previews/
-    ButtonPreview.tsx
-    ToastPreview.tsx
-    BentoPreview.tsx
-lib/lab/
-  types.ts                    # AppState, commands, token and part contracts
-  templates.ts                # Fixed content, IDs, and descriptions
-  state.ts                    # Pure state transition function
-  motion-policy.ts            # Timing and geometry eligibility rules
-hooks/
-  use-lab-motion.ts            # Environmental subscriptions and cancellation
-  use-morph-sound.ts           # Native audio resource lifecycle
-public/audio/
-  morph.mp3                   # Future authored/licensed local cue
+  SharedPart.tsx              # Shared layout identity and movement policy
+  TemplatePart.tsx            # Part content for Toast/Bento; destination part wrapper
+  ButtonTemplate.tsx          # Button preview and part content
+  ToastTemplate.tsx           # Toast preview
+  BentoTemplate.tsx           # Bento preview
+src/hooks/
+  use-morph-sound.ts          # Native audio lifecycle; reports "unavailable" once per preparation
+src/lib/lab/
+  types.ts                    # AppState, Command, pure transition function
+  button.ts                   # Button content, tokens and lines, morphSpring, sharedId
+  templates.ts                # Toast and Bento content, template registry, validateTemplate
 tests/
-  state.test.ts
-  templates.test.ts
-  lab.spec.ts                 # Browser behavior and visual checks
+  button.spec.ts              # Button state, motion, responsive, reduced-motion and no-JS checks
+  templates.spec.ts           # Mappings, selection, Toast/Bento motion, layouts
+  failure.spec.ts             # Sound unavailable and error-boundary behavior
+playwright.config.ts          # Serves the production build on 127.0.0.1:4173; never reuses a server
 ```
 
-Keep template-specific markup in the three preview components. Do not build a universal JSON-to-DOM renderer. Token data and mapping metadata are shared; rendering composition stays readable and explicit.
+`public/audio/morph.mp3` is not present. There are no unit-test runners other than Playwright; the pure state and registry checks run inside the Playwright specs.
+
+Template-specific markup lives in the three `*Template.tsx` components. There is no universal JSON-to-DOM renderer. Token data and mapping metadata are shared; rendering composition stays readable and explicit.
 
 ## Server/client boundary and initial render
 
@@ -126,7 +125,7 @@ LabErrorBoundary
   │   └ Shared lab stacking context
   │     ├ CodePane → stable source slots → conditional active pieces
   │     └ RenderPane → stable target slots → conditional active pieces
-  ├ MappingExplanation
+  ├ Mapping explanation (inline in Lab.tsx)
   └ One polite live region
 ```
 
@@ -178,7 +177,7 @@ For each eligible activation, stop the prior cue, rewind if media is ready, set 
 
 Playback may be rejected by browser policy and must not block interaction. [HTMLMediaElement.play()](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play). The visible “Sound on” state describes preference; a separate “Sound unavailable” note describes a failed resource. Default silence and reduced motion are independent.
 
-The future cue must be authored or appropriately licensed and committed locally with provenance. Do not fetch stock audio at runtime. If no cue is supplied during implementation, sound-on must show the unavailable state; release is not complete until the requested sound behavior can be tested with a real asset.
+Status: no cue has been supplied, so Sound on currently shows the unavailable state. The cue must be authored or appropriately licensed and committed locally with provenance. Do not fetch stock audio at runtime. If no cue is supplied during implementation, sound-on must show the unavailable state; release is not complete until the requested sound behavior can be tested with a real asset.
 
 ## Security, privacy, and content handling
 

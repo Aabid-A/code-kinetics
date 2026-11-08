@@ -2,7 +2,7 @@
 
 Product: **Spatial DOM Transition Lab** · **Code-to-Component Morph Engine**.
 
-Status: normative v1 behavior, documentation only. Product scope is in [PRODUCT.md](PRODUCT.md); visual and motion values are in [DESIGN.md](DESIGN.md).
+Status: normative v1 behavior; implemented as of 8 November 2026 except the open items at the end of this document. Product scope is in [PRODUCT.md](PRODUCT.md); visual and motion values are in [DESIGN.md](DESIGN.md).
 
 ## R01 — Application structure and first load
 
@@ -205,3 +205,9 @@ No network request, fake build delay, loading percentage, or compilation status 
 ## R12 — Completion criteria
 
 All content and mappings above are fixed. Six template/mode endpoint combinations must be stable. All commands must obey R02. Cross-pane motion, reverse motion, reduced motion, and degradation must satisfy R06–R11. The complete verification and evidence plan is [QA.md](QA.md); implementation cannot be called complete based only on static screenshots.
+
+## Open items (8 November 2026)
+
+1. **Header controls do not match this document or DESIGN.md.** R03 specifies a native select for Example, a native `<button>` with `aria-pressed` for Sound, and native radios for View. DESIGN.md "Custom controls — mandatory" forbids `<select>` and native radios and requires a custom listbox, an ARIA radiogroup and a pill Sound button. The code uses a native `<select>` for Example **and** for Sound, and native radios for View. It matches neither document, and Sound deviates from R03. Unresolved; the planned resolution follows DESIGN.md and will update R03.
+2. **No audio asset.** `public/audio/morph.mp3` does not exist, so no cue can play. Sound on shows and announces "Sound unavailable" once (R09), and the morph stays silent. Audible delivery and the listening review are not done.
+3. **Registry invariant failures (R11).** `validateTemplate` runs when `templates.ts` is imported. A React error boundary catches render and effect exceptions, not module-evaluation errors, so whether a failed invariant reaches the fallback in production is unverified.

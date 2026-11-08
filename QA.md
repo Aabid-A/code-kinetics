@@ -1,6 +1,39 @@
 # Quality assurance and acceptance plan
 
-Product: **Spatial DOM Transition Lab**. This is a test specification for a future implementation. No application tests, browser tests, accessibility audits, or performance measurements have been run as part of this documentation delivery.
+Product: **Spatial DOM Transition Lab**. This is the test specification for the implemented lab. What has actually been run, and what has not, is recorded under "Current results" below; anything not listed there as run has not been verified.
+
+## Current results (8 November 2026)
+
+Environment: Linux 6.18.44, Node v22.23.4, Playwright 1.64.1, Chrome for Testing 153.0.8010.12 (headless), viewport 1440 × 900 unless a test sets another. Run from branch `claude/jolly-hopper-ffu1aq`. The installed Playwright browser was missing, so the suite ran with a temporary config outside the repository that set the pre-installed Chrome binary, disabled video and tracing, and otherwise reused `playwright.config.ts` (production server on 127.0.0.1:4173).
+
+| Command | Result |
+| --- | --- |
+| `npm run lint` | Pass |
+| `npm run typecheck` | Pass |
+| `npm run build` | Pass |
+| `npx playwright test` | 16 of 16 passed (`button.spec.ts` 7, `templates.spec.ts` 7, `failure.spec.ts` 2) |
+
+Repeat-run note: before the change, the Bento "continuous forward/reverse" test failed in 4 of 11 repeat runs, each time on the assertion that a sampled frame shows the surface straddling the pane divider. The surface does straddle it (the window covers 13–26% of spring progress); a headless browser renders roughly 35–48 frames per second with gaps up to 87 ms, so samples could miss the window. The assertion now also tests the path between consecutive sampled frames, and still requires the straddle. After that change the group (Toast and Bento) was run 75 more times and 3 runs failed: one on a different sampling-dependent assertion (a frame with spring progress between 0.35 and 0.7, "midway" in `templates.spec.ts`), and two whose failing assertion was not captured, so it is unknown whether they involved the divider check. Treat this test as intermittently flaky in a headless container; the cause of the two uncaptured failures is unresolved.
+
+Automated checks cover only what is listed in each row. Everything else in the case is **not run**.
+
+| Case | Status | Covered by automated tests | Not run |
+| --- | --- | --- | --- |
+| Q01 Initial load | Partial | Server-rendered Button source, disabled Morph and the no-JS notice; initial state value; every test fails on console errors or hydration messages | Reload after changing state, blocked storage, development Strict Mode |
+| Q02 State contract | Partial | Initial state; Morph twice restores; same-view no-op; Select template and Toggle sound over all 12 states | Invalid-input diagnostic; stale callback and audio-result assertions |
+| Q03 Controls | Partial | Radio arrow keys; focus stays on Morph; native select changes | Full Tab-order walk, touch-target sizes, status-text consistency. Controls differ from DESIGN.md (open item) |
+| Q04 Content and identity | Partial | 3/4/10 parts; exact sources; one owner per identity in each settled state | Two-instance isolation fixture |
+| Q05 Continuous movement | Partial | Sampled geometry for Button, Toast and Bento: travel, hit-testing, unscaled text and icons, reverse, interruption | Filmstrips and recordings review, 1 px endpoint comparison at all states, contrast over both grounds |
+| Q06 Responsive layout | Partial | 1440, 1024, 390 and 320 px: no horizontal overflow; 390 px offscreen fallback; stacked vertical travel; Bento 360 px threshold | 960/959, 768, 844 × 390, 200%/400% zoom, forced colors |
+| Q07 Rapid input | Partial | Morph × 6 at 100 ms and 30 ms spacing; radio sequence; template selection cancels flights | The other sequences in the table; the two-second stale-state check |
+| Q08 Environment changes | Partial | Resize, scroll and reduced-motion toggle during flight | Orientation, zoom, tab hiding, unmount and Strict Mode cleanup |
+| Q09 Accessibility | Partial | Reduced motion removes transforms for all templates | Automated accessibility scan, screen readers, contrast measurement, forced colors, keyboard walk-through |
+| Q10 Sound | Partial | Missing asset: one visible and announced "Sound unavailable", preference kept, silent morph, retry only after off then on | Any audible cue (no asset exists), autoplay policy, real mobile browsers, rapid reversal and playback-stop rows, listening review |
+| Q11 Performance | Not run | None | Bundle size, frame timing, interaction latency, CLS, node and listener growth |
+| Q12 Failure and scope | Partial | JavaScript disabled; injected effect exception shows the error fallback and reload button | Audio blocked only, invalid registry, offline, dependency and source review for excluded capabilities |
+| Educational usability | Not run | None | Whole check |
+
+Browser and device coverage: Chromium-family only. Firefox, Safari/WebKit, real iOS and Android devices, VoiceOver and NVDA: **not run**. Audio provenance and listening review: **not run** (no asset).
 
 ## Release standard
 
@@ -185,7 +218,7 @@ Test with headphones and speakers at a moderate system volume. Confirm a quiet, 
 | Explicit off → on after failure | Preparation can be retried |
 | Reduced motion with sound on | Preference remains on; otherwise same audio rules |
 
-Test browser autoplay restrictions in a fresh context and real mobile browsers. Record the future asset's source/license, format, duration, size, and listening review. A stubbed audio call alone cannot establish this feature works.
+Test browser autoplay restrictions in a fresh context and real mobile browsers. Record the asset's source/license, format, duration, size, and listening review. A stubbed audio call alone cannot establish this feature works.
 
 ## Q11 — Performance and stability
 
@@ -226,8 +259,8 @@ Record observations without presenting them as broad statistical proof. This rev
 6. Measure bundle size, animation performance, and cleanup; review the real audio asset.
 7. Produce a requirement-by-requirement result with evidence and unresolved defects.
 
-The future evidence packet must include exact build/browser identifiers, command results, screenshots, recordings, accessibility findings, performance measurements, audio provenance, and a pass/fail/not-run entry for each Q01–Q12 case. Stop expanding tests after relevant checks pass unless a new change or failure justifies further testing.
+The evidence packet must include exact build/browser identifiers, command results, screenshots, recordings, accessibility findings, performance measurements, audio provenance, and a pass/fail/not-run entry for each Q01–Q12 case. Stop expanding tests after relevant checks pass unless a new change or failure justifies further testing.
 
 ## Documentation delivery check
 
-For this task, validate only the five requested specification files: names, cross-links, required stack, exact AppState, complete 3/4/10 mapping tables, consistent motion values and state behavior, and explicit implementation/test status. Confirm that no application code, package files, generated assets, or unrelated files were added or overwritten. This documentation check is distinct from all future application verification above.
+This check applied to the original five specification files: names, cross-links, required stack, exact AppState, complete 3/4/10 mapping tables, consistent motion values and state behavior, and explicit implementation/test status. Confirm that no application code, package files, generated assets, or unrelated files were added or overwritten. This documentation check is distinct from all future application verification above.

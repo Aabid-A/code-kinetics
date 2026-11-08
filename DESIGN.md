@@ -2,7 +2,7 @@
 
 Product: **Spatial DOM Transition Lab** · **Code-to-Component Morph Engine**.
 
-Revision: premium dark visual direction, 2 November 2026. This document specifies presentation; it does not claim the application has been visually verified.
+Revision: premium dark visual direction, 2 November 2026. This document specifies presentation; it does not claim the application has been visually verified. Implementation deviations are listed under "Implementation notes and open items" at the end.
 
 ## Scope and authority
 
@@ -276,3 +276,8 @@ Inspect contrast against composited glass, the entire Morph gradient, and hover/
 Inspect forward/reverse motion, rapid reversal, and stacked mobile layout at departure, midpoint, and arrival. Glass must never clip or isolate shared pieces. Preserve the exact spring settings and existing shared-layout/reduced-motion contracts above. Static screenshots alone cannot establish continuity.
 
 This revision changes the visual acceptance criteria for fonts, materials, and custom controls in older specifications; it does not authorize changes to physics, template content, or product state. Record browser evidence during implementation before claiming the redesigned appearance is verified.
+
+## Implementation notes and open items (8 November 2026)
+
+- **Custom controls: not implemented (open).** The header uses a native `<select>` for Example and Sound and native radios for View, which this document forbids. See SPEC.md "Open items".
+- **Fonts.** The code loads Geist and Geist Mono from the `geist` package (`geist/font/sans`, `geist/font/mono`), which supplies the font files locally, instead of `next/font/google`. This is treated as the local-font fallback that Typography allows when build-time downloading is not used; the family is unchanged and the variables are `--font-geist-sans` and `--font-geist-mono`. Visual verification of the applied fonts is not done.

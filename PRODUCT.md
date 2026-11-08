@@ -2,7 +2,7 @@
 
 Secondary name: **Code-to-Component Morph Engine**.
 
-Status: implementation-ready product specification, 1 November 2026. This delivery contains documentation only; no application has been implemented or validated in a browser.
+Status: v1 is implemented and partly verified, 8 November 2026. Automated Chromium results, and everything not yet run, are recorded in [QA.md](QA.md) "Current results". Open items: the header controls do not match SPEC R03 or DESIGN.md (see SPEC.md "Open items"), and `public/audio/morph.mp3` is not shipped.
 
 <!-- impeccable:product-schema 1 -->
 
@@ -16,11 +16,7 @@ Status: implementation-ready product specification, 1 November 2026. This delive
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Component boundaries, mapping contracts, dependencies, runtime lifecycle |
 | [QA.md](QA.md) | Verification matrix, release gates, evidence requirements |
 
-The user's brief is authoritative. Each document owns its topic; a future change that affects multiple topics must update all affected documents together. Requirements identified in SPEC.md are traced to QA.md. Proposed source paths in ARCHITECTURE.md describe future implementation, not existing files.
-
-## Workspace inspection
-
-Before authoring, `/Users/aabidanas/Documents/code-kinetics` contained only `.git/`. There were no tracked files, application sources, package manifest, assets, local project instructions, or existing PRODUCT.md, SPEC.md, DESIGN.md, ARCHITECTURE.md, or QA.md. All five documents are new. Preserve Git metadata and any unrelated files added later. This delivery must not scaffold the app, install packages, generate assets, or add other files.
+The user's brief is authoritative. Each document owns its topic; a future change that affects multiple topics must update all affected documents together. Requirements identified in SPEC.md are traced to QA.md. ARCHITECTURE.md lists the source files as they exist.
 
 ## Platform
 
@@ -113,4 +109,4 @@ Release requires all three templates to pass both directions, interruption, temp
 
 ## Evidence on hand
 
-The user brief and confirmed audience are the product evidence. There is no existing UI, user research, brand asset library, audio file, implementation benchmark, or working prototype. Examples and numerical metrics in the Bento template are explicitly fictional. Do not manufacture validation claims.
+The user brief and confirmed audience are the product evidence. A working implementation exists; its automated test results are in [QA.md](QA.md). There is no user research, brand asset library, audio file, performance benchmark, or manual accessibility review. Examples and numerical metrics in the Bento template are explicitly fictional. Do not manufacture validation claims.
