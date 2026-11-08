@@ -41,7 +41,8 @@ export function Opening() {
         <noscript><a className="morph-button hero-primary" href="#button">See it work</a></noscript>
       </div>
     </section>
-    {generated ? <section className="hero-result" aria-label="Your generated example">
+    {generated ? <section className="hero-result" aria-labelledby="hero-result-title">
+      <h2 id="hero-result-title" className="sr-only">Your generated example</h2>
       <Lab key={generated.count} id="custom" definition={generated.definition} />
     </section> : null}
   </>;
