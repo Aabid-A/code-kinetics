@@ -16,7 +16,7 @@ Automated Chromium checks are recorded in [QA.md](QA.md) "Current results". Ever
   - Owner:
 - [ ] **A2 Billing alert.** Set a budget or billing alert for the Gemini API project in Google AI Studio / Cloud Billing; the in-app limits are per server instance.
   - Owner:
-- [ ] **A3 Merge decision and pull request.** Decide whether `claude/jolly-hopper-ffu1aq` goes to `main`, then open and review the pull request. The generate feature (Gemini) is on this branch.
+- [x] **A3 Merge decision and pull request.** Merged into `main` as [Aabid-A/code-kinetics#1](https://github.com/Aabid-A/code-kinetics/pull/1) on 8 November 2026. Later work arrives through new pull requests, checked by CI.
   - Owner:
 - [ ] **A4 Hosting.** Choose the hosting target and deploy. Standard Next.js hosting is sufficient ([ARCHITECTURE.md](ARCHITECTURE.md) "Performance and delivery").
   - Owner:

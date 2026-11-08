@@ -40,7 +40,7 @@ src/components/site/
   TopBar.tsx                  # Wordmark and the one Sound control
   Opening.tsx                 # The h1 and the opening sentence
   Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
-  ChapterIndex.tsx            # Floating / inline index; IntersectionObserver; hides over lab controls
+  ChapterIndex.tsx            # Contents: five labelled anchor links in the page flow under the opening
   Reveal.tsx                  # One-time reveal for text below the first screen
   Diagram.tsx                 # Chapter 04: two inline SVG drawings and the text equivalent
   Footer.tsx                  # Disclaimer and credits
