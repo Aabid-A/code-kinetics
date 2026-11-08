@@ -52,11 +52,13 @@ Focus stays on the control that initiated the change. The preview has no focusab
 
 ## R04 — Two persistent panes
 
-The code pane is an ink "code sheet" (DESIGN.md "Surfaces"): a mono header with the filename `Button.tsx`, `Toast.tsx`, or `Bento.tsx`, line numbers, and the label “Fixed example”. It is not a textbox or editor. No caret, editing cursor, file tabs, line selection tools, or syntax-error UI.
+The code pane is an ink "code sheet" (DESIGN.md "Surfaces"), top-aligned and sized to its content, with a mono header showing the filename `Button.tsx`, `Toast.tsx`, or `Bento.tsx` and line numbers. The label “Fixed example” (“Generated example” for a generated lab) is **visually hidden text**, kept for assistive technology. It is not a textbox or editor. No caret, editing cursor, file tabs, line selection tools, or syntax-error UI.
 
-The render pane has the title “Component preview” on the paper ground, with corner ticks marking where the component arrives (no dot-grid). In code mode it shows an unobtrusive empty-state instruction: “Choose Morph to see these pieces become a component.” No finished component ghost should compete with the journey. Reserve enough layout space for the eventual preview.
+The render pane has the title “Component preview” on the paper ground, with corner ticks marking where the component arrives (no dot-grid). In code mode it shows an unobtrusive empty-state instruction: “Choose Morph to see these pieces become a component.” No finished component ghost should compete with the journey. Reserve enough layout space for the eventual preview: the preview's slots are laid out in both modes and the preview takes the code sheet's height, so the stage keeps one height when it morphs.
 
-In rendered mode, the left pane remains readable. The positions vacated by moving tokens are filled by ordinary, unshared reference tokens, with an underline marker identifying their correspondence. They are not second active animation endpoints. Punctuation and unmapped tokens remain stationary. Add “Mapped pieces are shown in the preview.” beneath the code. In code mode use “Mapped pieces start here.”
+In rendered mode, the left pane remains readable. The positions vacated by moving tokens are filled by ordinary, unshared reference tokens, with an underline marker identifying their correspondence. They are not second active animation endpoints. Punctuation and unmapped tokens remain stationary. Add “Mapped pieces are shown in the preview.” beneath the code, and in code mode “Mapped pieces start here.”, both as **visually hidden text** (not shown). The visible caption line is below.
+
+**Caption line (from 8 November 2026).** Below each lab's sheet, one visible line replaces the three removed labels: “N mapped pieces · Example only, not interactive” (Bento: “N mapped pieces · Example only, fictional content, not interactive”), followed by the “How the pieces match” disclosure. The preview's figure caption (“Example component · not interactive”, Bento “Example component · fictional content · not interactive”) stays as visually hidden text.
 
 Treat the left reference tokens and the active moving pieces as two different presentation roles. Retaining readable reference text is intentional; the implementation must not attach shared IDs to those references.
 
@@ -74,7 +76,7 @@ The following snippets specify visible content and line breaks, not runtime stri
 </Button>
 ```
 
-Preview: an ink (near-black), rounded button illustration with “Explore” followed by an up-right arrow. Caption: “Example component · not interactive”. Accessible description: “Example button labelled Explore, with an up-right arrow.”
+Preview: an ink (near-black), rounded button illustration with “Explore” followed by an up-right arrow. Caption (visually hidden; the visible caption line is in R04): “Example component · not interactive”. Accessible description: “Example button labelled Explore, with an up-right arrow.”
 
 | Part key | Exact source occurrence | Render destination | Kind |
 | --- | --- | --- | --- |
@@ -126,7 +128,7 @@ Teaching sentence: “A surface, icon, and two lines of text keep their matching
 </Bento>
 ```
 
-Preview: three cards in a bento composition. The larger feature card spans the left column; metric and status cards stack on the right. At narrow widths, all three stack in source order. “12” is fictional sample content, unrelated to the actual count of mapped pieces. Use the visible caption “Example component · fictional content · not interactive”.
+Preview: three cards in a bento composition. The larger feature card spans the left column; metric and status cards stack on the right. At narrow widths, all three stack in source order. “12” is fictional sample content, unrelated to the actual count of mapped pieces. Use the caption “Example component · fictional content · not interactive” (visually hidden; the visible caption line is in R04).
 
 | Part key | Exact source occurrence | Render destination | Kind |
 | --- | --- | --- | --- |
@@ -181,7 +183,7 @@ If loading or playback fails, keep the preference but show “Sound unavailable�
 
 ## R10 — Accessibility and explanation
 
-Provide, for each chapter, a visible one-sentence caption saying what to notice, and in the page footer the fixed-example disclaimer from PRODUCT.md. Below each lab's sheet, show the current template's mapped-piece count and a native disclosure labelled “How the pieces match”. Its contents list human-readable source → destination pairs from the mapping table. Use “Shared identity (`layoutId`)” only inside this disclosure to introduce the technical term.
+Provide, for each chapter, a visible one-sentence caption saying what to notice, and in the page footer the fixed-example disclaimer from PRODUCT.md. Below each lab's sheet, show the caption line of R04 (mapped-piece count first) and a native disclosure labelled “How the pieces match”. Its contents open with the template's teaching sentence and list human-readable source → destination pairs from the mapping table. Use “Shared identity (`layoutId`)” only inside this disclosure to introduce the technical term.
 
 Visible animated code is `aria-hidden`; expose a single visually hidden, complete `<pre><code>` representation generated from the same token data. Keep that accessible source present in both modes. Never make the entire labelled code section `aria-hidden`.
 

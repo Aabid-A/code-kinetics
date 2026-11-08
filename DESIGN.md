@@ -21,7 +21,7 @@ One idea per section, top to bottom. Plain, short, specific, warm. Every string 
 | 2 | Toast | 02 — Toast | Pieces that *travel* together | “Notice how the card carries its icon and two lines of text along, while the text keeps its shape.” |
 | 3 | Bento | 03 — Bento | A whole *layout* | “Notice ten pieces arriving at once; narrow the window and the cards stack in the same order.” |
 | 4 | How it knows | 04 — How it knows | How it *knows* | A labelled diagram (below), then: “Each piece has the same name on both sides: where it is written in the code, and where it appears in the component. The engine draws a line between the two and moves along it. In the implementation, that name is called `layoutId`.” |
-| 5 | Try your own | 05 — Try your own | Try your *own* | The existing generate feature, restyled into this system with its current behaviour and copy. It never claims that code is compiled or run. |
+| 5 | Your turn | 05 — Your turn | Try your *own* | “Describe a small component and the lab builds a matching example from validated data. No code is compiled or run.” The existing generate feature (prompt, suggestions, status line) restyled into this system; provider, route and behaviour unchanged. The generated lab appears beneath the prompt. |
 | 6 | Footer | none | none | “A visual demonstration with fixed examples. No code is compiled or run.” Credits: “Typefaces: Instrument Serif, Geist and Geist Mono. Icons: Lucide.” |
 
 Top bar: the wordmark “Spatial DOM Transition Lab” at the left and one Sound control at the right (“Sound off” / “Sound on”). Nothing else.
@@ -30,13 +30,13 @@ Each lab keeps its own explanation line (“N mapped pieces · teaching sentence
 
 ### The diagram (chapter 04)
 
-One inline SVG, drawn in one hand: 1.5 px strokes in ink, ink-muted labels in Geist Mono 12 px, no fills except paper, no gradients. Left: a source token (`Button`) in a small ink block. Right: a destination slot (the button surface) drawn as a dashed paper outline. One labelled line joins them: “same name: button:surface”. Under it the technical term appears once: `layoutId`. It uses the same type sizes and rule colour as the rest of the page and carries a text alternative (`<title>` and `<desc>`).
+Inline SVG on its own framed sheet, drawn in the page's line style: 1.5 px ink strokes, rule-colour dashed guides for the destination slots, ink-muted Geist Mono labels, paper fills only, no gradients. Wide (≥ 720 px): the Button code on the left with its three mapped tokens boxed, a paper preview on the right with the button, its label slot and its icon slot, and three labelled connectors (`button:surface`, `button:icon`, `button:label`). Narrow: three token chips above, the component below, short vertical connectors, so labels stay at about 12 px on a phone. **Accent marks one pair only** (`button:surface`: its token box, connector and two end dots); the other two pairs are ink. Both drawings are `aria-hidden`; the text equivalent is the visible caption (three pairs share a name, written once in the code and once in the component; the term `layoutId`) plus a visually hidden list of the three pairs.
 
 ## Layout
 
 Twelve columns, 24 px gutters, content width `min(1320px, 100% − 2 × gutter)` (gutter 32 px, 16 px under 640 px). Chapters are at least 160 px apart on desktop (112 px on phones). The first chapter follows the opening by 48 px so the Button lab is visible in the first desktop viewport (1440 × 900).
 
-- From 1280 px the chapter text takes columns 1–4 and the sheet columns 5–12 (Button). Other chapters may flip or stack the text above a full-width sheet where the content wants width (Toast, Bento).
+- From 1280 px the chapter text takes columns 1–4 and the sheet columns 5–12 (chapters 01, 02 and 05). Chapter 03 flips for rhythm: the sheet takes columns 1–9, wide enough for Bento's two-column composition (its stage splits 1:1 so the preview keeps at least 360 px of content width from 1280 px up), and the text columns 10–12. Chapter 04 stacks: its text above a full-width diagram sheet.
 - Below 1280 px the text sits above the sheet and is limited to 68 ch.
 - Inside a sheet, code (ink) and preview (paper) are never two identical empty boxes: they differ in ground, type and role. Split from 960 px, stacked below.
 
@@ -48,7 +48,7 @@ Twelve columns, 24 px gutters, content width `min(1320px, 100% − 2 × gutter)`
 
 ## Colour
 
-One flat accent. It is used only for the Morph action, focus, chapter numbers and the opening full stop. No gradients, glows, blur or violet anywhere.
+One flat accent. It is used only for the Morph action, focus, chapter numbers, the opening full stop and, in the chapter 04 diagram, one highlighted pair (its connector and the two dots at its ends). No gradients, glows, blur or violet anywhere.
 
 | Token | Value | Use |
 | --- | --- | --- |
@@ -65,8 +65,10 @@ Measured pairs (WCAG ratio): ink on paper 15.28, on raised 16.66; ink-muted on p
 ## Surfaces
 
 - **Framed sheet.** Each chapter's lab sits on one paper-raised sheet: radius 28 px, 1 px rule border, no glow, shadow at most `0 24px 60px -30px rgb(27 26 23 / 0.12)`. The sheet holds the toolbar (View group at the left, Morph at the right) above the two panes.
-- **Code sheet.** An ink block (`#16181D`, radius 20 px) with warm syntax colours, a mono file name at the left and “Fixed example” at the right, a hairline under them, line numbers, and the note beneath. No window dots and no fake app chrome.
-- **Preview.** The paper ground with a 1 px rule border (radius 20 px), a small mono heading, four corner ticks that reserve the place of the component, and the figure caption. No dot-grid.
+- **Code sheet.** An ink block (`#16181D`, radius 20 px) with warm syntax colours, a mono file name, a hairline under it, and line numbers. The code is top-aligned and left-aligned (never vertically centred). The sheet is sized to its content; the stage grid gives the preview the same height, and the preview's slots are laid out in both modes, so the stage keeps exactly one height whether it shows code or component and nothing jumps on a morph. No window dots and no fake app chrome.
+- **Preview.** The paper ground with a 1 px rule border (radius 20 px), a small mono heading, and, in code mode, the instruction “Choose Morph to see these pieces become a component.” No corner marks, no dot-grid.
+- **Visually hidden labels.** “Fixed example” (or “Generated example”), “Mapped pieces start here.” / “Mapped pieces are shown in the preview.” and the preview figure caption stay in the DOM as visually hidden text for assistive technology (SPEC R04, R10).
+- **Caption line.** Under every sheet, one line: **“N mapped pieces · Example only, not interactive”** (Bento: “Example only, fictional content, not interactive”), then the native “How the pieces match” disclosure. The template's teaching sentence is the first paragraph inside the disclosure.
 - **Drafting rules.** Three faint verticals at the quarter marks of the grid (rule colour at about 50 % opacity), desktop ≥ 1024 px only, `aria-hidden`, behind all content; they never cross a sheet (sheets are opaque). Removed in forced-colors mode.
 
 ## Controls
@@ -161,6 +163,7 @@ Review every settled template and mode at 1440, 1024, 390 and 320 px. Check the 
 
 ## Implementation notes and open items (8 November 2026)
 
-- **Phase A implemented:** top bar, opening, Button chapter, per-chapter labs, page-level Sound, the paper token set and all lab restyling. Toast, Bento and Try your own are mounted as bare labs (no eyebrow, title or caption yet) so every test keeps running; Phase B adds their chapters, the diagram, the chapter index, the reveal and the footer.
+- **Implemented (8 November 2026):** top bar, opening, five chapters, per-chapter labs, page-level Sound, the paper token set, the diagram, the footer, the drafting rules, the opening entrance and the chapter reveal. **Chapter index:** a `<nav aria-label="Chapters">` of five links (“01” … “05”, each with a visually hidden chapter name), `aria-current="location"` on the chapter in view (IntersectionObserver). From 1024 px it floats at the bottom centre (paper-raised, 1 px rule border, no blur) and hides itself while it would overlap a lab control, and, on viewports shorter than 900 px, any lab sheet; below 1024 px it is a plain inline list after the opening. **Reveal:** chapter text that starts below the first screen is held back after mount and released once; labs are never inside a revealed element.
+- **Generated lab** (chapter 05): the prompt card sits in the chapter and, after a successful generation, the generated lab mounts beneath it in code mode (a second generation replaces it).
 - **Fonts.** Geist and Geist Mono come from the `geist` package (local files); Instrument Serif comes from `next/font/google`, which downloads and self-hosts it at build time. No font request is made at runtime.
 - **Header.tsx** keeps its name but now holds only the Sound and Morph buttons.

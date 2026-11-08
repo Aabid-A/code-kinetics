@@ -43,15 +43,15 @@ The differentiator is visible continuity across the code and preview panes. This
 
 Always show the note: **“A visual demonstration with fixed examples. No code is compiled or run.”** The secondary product name describes the visual engine; it must not imply an executable editor.
 
-The rendered examples are static demonstrations of component appearance. The Button does not submit anything; the Toast does not announce a real save; the Bento metrics are fictional. Label the preview “Example component · not interactive.”
+The rendered examples are static demonstrations of component appearance. The Button does not submit anything; the Toast does not announce a real save; the Bento metrics are fictional. Say so in the caption line under each sheet (“Example only, not interactive”); the preview's own caption stays as visually hidden text.
 
 ## First-use outcome
 
 1. Arrive at `/` with Button selected, code mode selected, and sound off.
-2. Read a short explanation and see the dark code environment beside the empty dot-grid preview.
+2. Read a short statement and see the Button lab: an ink code sheet beside the paper preview with its instruction.
 3. Activate “Morph to component.” The mapped pieces travel into the preview.
 4. Activate “Morph to code” to see the correspondence in reverse.
-5. Select Toast or Bento; the new example starts in code mode.
+5. Scroll to the Toast and Bento chapters, each with its own lab, and to the diagram that explains the matching names; the optional last chapter generates a new example.
 
 No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain present in both modes; mode means where the active mapped pieces live, not which pane is mounted.
 
@@ -67,8 +67,8 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 
 ### Version 1
 
-- One route, one lab, three fixed templates, two modes.
-- Header identity, template selector, sound toggle, and direction-aware Morph action.
+- One route with five chapters; one lab per fixed template (Button, Toast, Bento), two modes each, plus an optional generate chapter.
+- A top bar with the wordmark and one page-level sound toggle; a direction-aware Morph action in each lab.
 - A Code / Component mode control synchronized with the Morph action.
 - Persistent code and render panes, responsive stacking on narrow screens.
 - An authored mapping legend and a disclosure explaining the mechanism.
@@ -92,7 +92,7 @@ The audience and core stack come from the brief and follow-up answer. The follow
 | Template changes reset to code | Establish a fresh starting point and avoid misleading cross-template continuity |
 | No persistence, including sound | Reproducible initial load and no browser-storage complexity |
 | Static rendered previews | Keep learning focused on the morph, without unrelated application state |
-| Custom listbox, ARIA radiogroup, pill Sound button; native disclosure | DESIGN.md "Custom controls" supersedes the earlier native select and radio decision; the disclosure stays native |
+| ARIA radiogroup per lab, one page-level Sound button; native disclosure | DESIGN.md "Controls" supersedes the earlier native select and radio decision; the Example selector was removed when each chapter got its own lab; the disclosure stays native |
 | Simultaneous, fixed-duration movement | Easier comparison and cancellation than a staged timeline |
 | English content in v1 | Bound the authored examples; retain wrapping and zoom support |
 

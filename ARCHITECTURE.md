@@ -4,7 +4,7 @@ Status, 8 November 2026: implemented. This document describes the architecture a
 
 ## Architecture summary
 
-Build a single Next.js App Router route with a small interactive client island. The server owns the document shell and metadata. The client owns the three-field AppState, authored template registry, controls, and both animation endpoints. Layout and code display are ordinary React DOM. No compiler, parser, interpreter, sandbox iframe, worker, server action, API route, database, or external data fetch is required.
+Build a single Next.js App Router route. The page is a server-rendered narrative with interactive client islands: one lab per chapter, the page-level sound provider, the chapter index and the reveal. Labs share nothing except the sound preference (a React context), and their layout identities are namespaced per instance. The server owns the document shell and metadata. The client owns the three-field AppState, authored template registry, controls, and both animation endpoints. Layout and code display are ordinary React DOM. No compiler, parser, interpreter, sandbox iframe, worker, server action, API route, database, or external data fetch is required.
 
 The motion engine is intentionally bounded to the three templates. It maps semantic part keys to DOM slots and coordinates Motion layout identities. It does not inspect arbitrary component trees or infer correspondences from JSX.
 
@@ -31,15 +31,28 @@ Exact versions are pinned in `package.json` and `package-lock.json`, and listed 
 
 ```text
 src/app/
-  layout.tsx                  # Metadata, language, Geist fonts (geist package), global CSS
-  page.tsx                    # Renders Lab inside LabErrorBoundary
+  layout.tsx                  # Metadata, language, Geist fonts (geist package), Instrument Serif (next/font/google), global CSS
+  page.tsx                    # LabErrorBoundary > SoundProvider > top bar, opening, chapter index, chapters 01–05, footer
   globals.css                 # Tailwind import, tokens, layout and component rules
+  fixtures/two-labs/          # Test-only route (LAB_FIXTURES=1): two lab instances on one page
+src/components/site/
+  Sound.tsx                   # Page-level sound preference: context, provider, one status region
+  TopBar.tsx                  # Wordmark and the one Sound control
+  Opening.tsx                 # The h1 and the opening sentence
+  Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
+  ChapterIndex.tsx            # Floating / inline index; IntersectionObserver; hides over lab controls
+  Reveal.tsx                  # One-time reveal for text below the first screen
+  Diagram.tsx                 # Chapter 04: two inline SVG drawings and the text equivalent
+  Footer.tsx                  # Disclaimer and credits
   icon.svg                    # App icon (App Router convention)
 src/components/lab/
-  Lab.tsx                     # Client entry: state, commands, motion runs, sound wiring, status
-                              #   announcements, mapping explanation and disclosure (inline)
+  Lab.tsx                     # One lab instance locked to a template (prop): state, commands, motion runs,
+                              #   View control and Morph, status announcements, caption line and disclosure
+  TryOwn.tsx                  # Chapter 05: prompt plus the generated lab (a fresh Lab per generation)
+  PromptBar.tsx               # The generate form (unchanged behaviour)
+  CustomTemplate.tsx          # Destination for generated examples
   LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
-  Header.tsx                  # Example listbox trigger and popup, Sound pill button, Morph button
+  Header.tsx                  # Sound button and Morph button (the Example selector was removed)
   ModeControl.tsx             # View radiogroup (custom ARIA radios, roving tabIndex)
   CodePane.tsx                # Authored lines, source slots, accessible source
   RenderPane.tsx              # Destination frame and described illustration
@@ -133,15 +146,20 @@ Rendered copy should reference the same content constants as source token text s
 
 ```text
 LabErrorBoundary
-└ Lab
-  ├ Header + View controls
-  ├ MotionConfig (reducedMotion="user")
-  │ └ LayoutGroup (stable lab-instance namespace)
-  │   └ Shared lab stacking context
-  │     ├ CodePane → stable source slots → conditional active pieces
-  │     └ RenderPane → stable target slots → conditional active pieces
-  ├ Mapping explanation (inline in Lab.tsx)
-  └ One polite live region
+└ SoundProvider (page-level preference, one status region)
+  ├ TopBar (Sound)
+  └ main
+    ├ Opening, ChapterIndex
+    └ Chapter ×5, each with a Lab (01–03 fixed; 05 after generation; 04 holds the diagram)
+       Lab (one instance, one template, its own useId namespace)
+       ├ View control + Morph action (the sheet's toolbar)
+       ├ MotionConfig (reducedMotion="user")
+       │ └ LayoutGroup (stable lab-instance namespace)
+       │   └ Shared lab stacking context
+       │     ├ CodePane → stable source slots → conditional active pieces
+       │     └ RenderPane → stable target slots → conditional active pieces
+       ├ Caption line and mapping disclosure (inline in Lab.tsx)
+       └ One polite live region per lab
 ```
 
 Shared identity is `${templateId}:${partKey}`, scoped by the lab instance. React keys identify stable authored nodes and differ by endpoint where two endpoint trees exist; `layoutId` is what connects them. Do not key the whole lab or LayoutGroup on `viewMode`, and do not add mode to an identity. Template IDs separate examples even when both contain a `surface` part.
