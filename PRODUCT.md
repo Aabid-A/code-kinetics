@@ -67,7 +67,7 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 
 ### Version 1
 
-- One route with six chapters; one lab per fixed template (Button, Toast, Bento), two modes each; a card-to-page chapter showing the technique in a familiar interface; a diagram; and an optional generate chapter.
+- One route with a hero, a short “What this is” section and five chapters; one lab per fixed template (Button, Toast, Bento), two modes each; a card-to-page chapter showing the technique in a familiar interface; a diagram; and an optional “Try your own” prompt in the hero.
 - A top bar with the wordmark and one page-level sound toggle; a direction-aware Morph action in each lab.
 - A Code / Component mode control synchronized with the Morph action.
 - Persistent code and render panes, responsive stacking on narrow screens.
@@ -75,11 +75,11 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 - Deterministic shared-layout movement, interruptible reversal, reduced-motion alternative.
 - Optional quiet sound, keyboard support, screen-reader equivalents, touch usability.
 - Local operation after application assets load; no service dependency for morphing.
-- Optional "Try your own" chapter (added 8 November 2026): a learner describes a small component and Google Gemini returns a declarative spec that the lab validates and renders as a new lab. It is off unless the server has `GEMINI_API_KEY`; the three fixed chapters never depend on it. The prompt states that descriptions are sent to Google. Limits: 200 characters, rate-limited per client and per day (SPEC R13).
+- Optional "Try your own" prompt (added 8 November 2026; moved from chapter 06 into the hero the same day, so the visitor's own idea is the first thing on the page): a learner describes a small component and Google Gemini returns a declarative spec that the lab validates and renders as a new lab. It is off unless the server has `GEMINI_API_KEY`; when it is off the hero offers “See it work” instead of the prompt (`GET /api/generate` reports only `{ configured }`), and the fixed chapters never depend on it. The prompt states that descriptions are sent to Google. Limits: 200 characters, rate-limited per client and per day (SPEC R13).
 
 ### Excluded
 
-Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation beyond the optional chapter 06 generator, custom template files, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs other than the single `/api/generate` route, payments, collaboration, WebGL, and a generalized morph SDK.
+Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation beyond the optional hero generator, custom template files, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs other than the single `/api/generate` route, payments, collaboration, WebGL, and a generalized morph SDK.
 
 Do not add these as inactive controls. A native explanatory disclosure is sufficient; this is not a full documentation portal.
 

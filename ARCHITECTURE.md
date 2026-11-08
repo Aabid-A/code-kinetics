@@ -37,19 +37,20 @@ src/app/
   fixtures/two-labs/          # Test-only route (LAB_FIXTURES=1): two lab instances on one page
 src/components/site/
   Sound.tsx                   # Page-level sound preference: context, provider, one status region
-  TopBar.tsx                  # Wordmark and the one Sound control
-  Opening.tsx                 # Eyebrow, h1, why it matters, and the instruction to press Morph
+  TopBar.tsx                  # Logotype link and the one Sound control
+  Logotype.tsx                # 20 px inline SVG mark and “Code Kinetics”, one link to #top
+  Opening.tsx                 # Hero (client): h1, one line, availability check, PromptBar or “See it work”, and the generated lab under it
+  Intro.tsx                   # “What this is”: the why-it-matters paragraph and the contents
   Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
-  ChapterIndex.tsx            # Contents: five labelled anchor links in the page flow under the opening
+  ChapterIndex.tsx            # Contents: five labelled anchor links in the page flow inside “What this is”
   Reveal.tsx                  # One-time reveal for text below the first screen
   CardToPage.tsx              # Chapter 04: three project cards that open into a page through shared identities
   Diagram.tsx                 # Chapter 05: two inline SVG drawings and the text equivalent
-  Footer.tsx                  # About this lab, disclaimer, generation note and credits
+  Footer.tsx                  # One row (name and sentence, disclaimer) and one credits line
   icon.svg                    # App icon (App Router convention)
 src/components/lab/
   Lab.tsx                     # One lab instance locked to a template (prop): state, commands, motion runs,
                               #   View control and Morph, status announcements, caption line and disclosure
-  TryOwn.tsx                  # Chapter 06: prompt plus the generated lab (a fresh Lab per generation)
   PromptBar.tsx               # The generate form (unchanged behaviour)
   CustomTemplate.tsx          # Destination for generated examples
   LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
@@ -149,10 +150,10 @@ Rendered copy should reference the same content constants as source token text s
 ```text
 LabErrorBoundary
 └ SoundProvider (page-level preference, one status region)
-  ├ TopBar (Sound)
+  ├ TopBar (Logotype, Sound)
   └ main
-    ├ Opening, ChapterIndex
-    └ Chapter ×5, each with a Lab (01–03 fixed; 05 after generation; 04 holds the diagram)
+    ├ Opening (hero, PromptBar, generated Lab), Intro (ChapterIndex)
+    └ Chapter ×5 (01–03 each hold a fixed Lab; 04 is Card to page; 05 is the diagram)
        Lab (one instance, one template, its own useId namespace)
        ├ View control + Morph action (the sheet's toolbar)
        ├ MotionConfig (reducedMotion="user")
@@ -218,7 +219,7 @@ Provenance of `public/audio/morph.mp3`: Synthesised by scripts/make-morph-cue.sh
 
 `src/lib/lab/generated.ts` defines `GeneratedSpec`, its JSON Schema (`specSchema`), `parseSpec` (validates and sanitizes untrusted input) and `buildTemplate` (spec to `TemplateDefinition`: code lines, tokens and parts with keys `c{card}.surface|icon|t{n}`). The result is the template id `custom`, rendered by `CustomTemplate` and the same `SharedPart` identities as the built-ins; components receive the active `TemplateDefinition` through `PartMotion.template` rather than looking it up globally. `LOAD_GENERATED` always resets to code mode and settles like a template change. The client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering.
 
-`src/app/api/generate/route.ts` is a thin adapter: it builds a Gemini call with `@google/genai` (`interactions.create`, `response_format` = `specSchema` as JSON, model `GEMINI_MODEL` or `gemini-3.5-flash-lite` (Google's fastest stable 3.5 model), the lowest thinking level the model accepts (`minimal` for 3.5 Flash-Lite and 3.6 Flash, otherwise `low`), 1024 output tokens, `retries: none`, 20 s timeout; `node scripts/gemini-check.mjs` times the network, a tiny answer and a small structured answer with the local key; the system instruction lives in `src/lib/lab/generate-prompt.ts`) and hands it to `createGenerateHandler` in `src/lib/lab/generate-server.ts`. That module holds every rule from SPEC R13 (origin, body size, prompt, rate limits, timeout, error mapping, `parseSpec`) with no SDK import, so `tests/generate-server.spec.ts` drives it directly with a stand-in model. The rate limiter is in memory per server instance: on serverless hosting each instance counts separately, so Google's project quota and a billing alert remain the hard ceiling.
+`GET /api/generate` in the same file returns `{ configured: Boolean(GEMINI_API_KEY) }` and nothing else; the hero calls it once after mount to decide between the prompt and “See it work”. `src/app/api/generate/route.ts` is a thin adapter: it builds a Gemini call with `@google/genai` (`interactions.create`, `response_format` = `specSchema` as JSON, model `GEMINI_MODEL` or `gemini-3.5-flash-lite` (Google's fastest stable 3.5 model), the lowest thinking level the model accepts (`minimal` for 3.5 Flash-Lite and 3.6 Flash, otherwise `low`), 1024 output tokens, `retries: none`, 20 s timeout; `node scripts/gemini-check.mjs` times the network, a tiny answer and a small structured answer with the local key; the system instruction lives in `src/lib/lab/generate-prompt.ts`) and hands it to `createGenerateHandler` in `src/lib/lab/generate-server.ts`. That module holds every rule from SPEC R13 (origin, body size, prompt, rate limits, timeout, error mapping, `parseSpec`) with no SDK import, so `tests/generate-server.spec.ts` drives it directly with a stand-in model. The rate limiter is in memory per server instance: on serverless hosting each instance counts separately, so Google's project quota and a billing alert remain the hard ceiling.
 
 | Environment variable | Purpose |
 | --- | --- |

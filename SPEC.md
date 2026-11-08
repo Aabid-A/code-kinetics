@@ -6,9 +6,9 @@ Status: normative v1 behavior; implemented as of 8 November 2026 except the open
 
 ## R01 — Application structure and first load
 
-Serve one page at `/`. The document title is “Spatial DOM Transition Lab — Code-to-Component Morph Engine”. The page is a short narrative (DESIGN.md "Narrative and copy"): a top bar, an opening statement (the one page heading), then chapters 01–06, then a quiet footer. Chapters 01–03 (Button, Toast, Bento) each contain their own **lab instance**, locked to that template; chapter 04 shows the same technique on a card that opens into a page (R14); chapter 05 explains it with a diagram; chapter 06 hosts the generate feature, whose lab appears only after a successful generation. A lab is a View control and Morph action, a sheet holding two labelled panes (code, preview) and a compact explanatory area below it. Each lab has its own namespace, state and live region; labs share only the page-level Sound preference.
+Serve one page at `/`. The document title is “Spatial DOM Transition Lab — Code-to-Component Morph Engine”. The page is a short narrative (DESIGN.md "Narrative and copy"): a top bar, the hero (the one page heading, one line and the visitor's own prompt), a short “What this is” section with the contents, then chapters 01–05, then a quiet footer. Chapters 01–03 (Button, Toast, Bento) each contain their own **lab instance**, locked to that template; chapter 04 shows the same technique on a card that opens into a page (R14); chapter 05 explains it with a diagram. The generate feature lives in the hero (R13); its lab appears directly under the hero only after a successful generation. A lab is a View control and Morph action, a sheet holding two labelled panes (code, preview) and a compact explanatory area below it. Each lab has its own namespace, state and live region; labs share only the page-level Sound preference.
 
-Each lab's initial state is `{ activeTemplate: <its chapter's template>, viewMode: "code", soundEnabled: false }`; the Button lab's is exactly `{ activeTemplate: "button", viewMode: "code", soundEnabled: false }`. Render the same initial state on the server and first client render. No entrance flight, auto-morph, focus theft, or startup sound. The opening headline and sentence may fade in once on first load (DESIGN.md "Opening entrance"); lab pieces never animate on load. Before hydration, show the code and explanatory text; interactive controls are disabled until their event handlers are available. With JavaScript unavailable, show one page-level notice that interaction requires JavaScript, while every lab's initial example and explanation remain readable.
+Each lab's initial state is `{ activeTemplate: <its chapter's template>, viewMode: "code", soundEnabled: false }`; the Button lab's is exactly `{ activeTemplate: "button", viewMode: "code", soundEnabled: false }`. Render the same initial state on the server and first client render. No entrance flight, auto-morph, focus theft, or startup sound. **First screen (revised 8 November 2026):** only the top bar, the hero title “Code has a shape.” (no eyebrow), one line of at most 16 words, and the primary action (the prompt, or “See it work” when generation is unavailable), plus a quiet “Or see how it works ↓” link when the prompt is shown. The “What this is” paragraph, the contents and every chapter start below the fold at 1440 × 900 and 390 × 844. The hero title, line and action may fade in once on first load (DESIGN.md "Opening entrance"); lab pieces never animate on load. Before hydration, show the code and explanatory text; interactive controls are disabled until their event handlers are available. With JavaScript unavailable, show one page-level notice that interaction requires JavaScript, while every lab's initial example and explanation remain readable.
 
 ## R02 — Minimal state and commands
 
@@ -37,11 +37,11 @@ Only these commands change AppState. Use the latest state when applying commands
 
 ## R03 — Top bar and controls
 
-The top bar holds the wordmark “Spatial DOM Transition Lab” (not a heading) and one Sound control. The Example selector (custom listbox) was **removed on 8 November 2026**: each chapter's lab is locked to its template, so there is nothing to select. Its listbox contract no longer exists.
+The top bar is 72 px tall with no border. It holds the logotype link (a 20 px inline SVG of two rounded squares joined by one curved line, the second filled with the accent, then “Code Kinetics” in Instrument Serif at 22 px; one link to `#top`, accessible name “Code Kinetics”, one line on phones) and one Sound control. The long name “Spatial DOM Transition Lab” is never shown in the top bar; it appears in the footer and as the document title's prefix. The Example selector (custom listbox) was **removed on 8 November 2026**: each chapter's lab is locked to its template, so there is nothing to select. Its listbox contract no longer exists.
 
 | Element | Visible content | Behavior and semantics |
 | --- | --- | --- |
-| Wordmark | Spatial DOM Transition Lab | Plain text in the top bar; the page's `h1` is the opening statement |
+| Logotype | Mark and “Code Kinetics” | One link to the top of the page; accessible name “Code Kinetics”; the mark is decorative (`aria-hidden`); the page's `h1` is the hero title |
 | Sound toggle (one per page) | “Sound off” / “Sound on” plus Lucide volume icon | Bordered `<button>` with stable accessible name “Sound”, `aria-pressed` follows the page-level preference; shared by every chapter lab |
 | Morph action (per lab) | “Morph to component” in code; “Morph to code” in rendered | Native button; text reflects the next destination immediately after each command |
 | Mode selector (per lab) | “Code” / “Component” | Custom `role="radiogroup"` labelled “View” containing two `<button role="radio">` with `aria-checked` and roving `tabIndex`; values `code` / `rendered` |
@@ -205,15 +205,16 @@ Honor `prefers-reduced-motion`: no spatial travel, scaling, stagger, or overshoo
 
 No network request, fake build delay, loading percentage, or compilation status belongs to a normal morph.
 
-## R13 — Optional generation (chapter 06)
+## R13 — Optional generation (the hero)
 
 Added 8 November 2026. A learner types a short description (1–200 characters) and receives one generated lab, built from data, never from code.
 
 | Concern | Required behaviour |
 | --- | --- |
-| Endpoint | `POST /api/generate` with JSON `{ "prompt": string }`; responds `{ "spec": GeneratedSpec }` or `{ "error": string }`. Other methods are not routed. |
+| Endpoint | `POST /api/generate` with JSON `{ "prompt": string }`; responds `{ "spec": GeneratedSpec }` or `{ "error": string }`. `GET /api/generate` answers `{ "configured": boolean }` and nothing else (no key details, no model name, `Cache-Control: no-store`). Other methods are not routed. |
+| Entry point | The hero's primary interaction. After mount the page calls `GET /api/generate` once (5 s timeout). Configured: the hero shows the prompt (label, input at least 48 px tall, Generate, three suggestion chips, the privacy line, one status line) and a quiet “Or see how it works ↓” link to “What this is”. Not configured, or the check fails: the hero shows its title, one line (at most 16 words) and a primary “See it work” link to chapter 01; the prompt is not rendered. Nothing is generated or played automatically. Errors from a generation stay inline in the status line. |
 | Provider | Google Gemini through `@google/genai` `interactions.create` with structured output (`response_format` JSON schema = `specSchema`). Model from `GEMINI_MODEL`, default `gemini-3.5-flash-lite`; lowest thinking level the model accepts (`minimal` for the default); 1024 output tokens; no SDK retries. |
-| Key | Server-only `GEMINI_API_KEY`. Never sent to the client, logged or committed. Without it the route answers 503 “Generation is not configured…” and the chapter shows that message inline; the fixed chapters are unaffected. |
+| Key | Server-only `GEMINI_API_KEY`. Never sent to the client, logged or committed. Without it `GET` reports `configured: false`, the hero shows “See it work” instead of the prompt, and a direct `POST` answers 503 “Generation is not configured…”; the fixed chapters are unaffected. |
 | Same origin | A request with `Sec-Fetch-Site: cross-site`, or an `Origin` whose host differs from the request host, is refused with 403 before any model call. |
 | Size | Body ≤ 2 KB (413); empty prompt or > 200 characters (400). |
 | Rate limits | Per client address (first `X-Forwarded-For` entry): 5 per minute and 30 per day; global: `GENERATE_DAILY_CAP` per day (default 200). Exceeded limits answer 429 with `Retry-After`. Counts are in memory per server instance; requests refused for configuration, origin, size or prompt do not count. |
@@ -221,7 +222,7 @@ Added 8 November 2026. A learner types a short description (1–200 characters) 
 | Errors | Provider 429 → 429; 401/403 → 503 “credentials were rejected”; 400 → 422; empty, non-JSON or invalid output → 502; anything else → 502. Messages never expose provider details. |
 | Validation | The server runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering. Text renders as React text nodes; icons come from a fixed allowlist. |
 | Privacy | The prompt shows: “Your description is sent to Google Gemini to create the example. Don’t include personal information.”, linked to the input through `aria-describedby`. Nothing is stored by the app. |
-| Result | A successful generation mounts one lab in code mode, replacing any earlier generated lab (R07). |
+| Result | A successful generation mounts one lab in code mode directly under the hero (before “What this is”), replacing any earlier generated lab (R07). At 1440 × 900 its Morph button is in view without scrolling. |
 
 ## R14 — Card to page (chapter 04)
 
