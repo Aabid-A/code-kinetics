@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { bringIntoView, lab } from "./lab";
+import { backToLab, bringIntoView, lab } from "./lab";
 import { morphSpring, sharedIdentity } from "../src/lib/lab/motion";
 import { sourceFor, templates } from "../src/lib/lab/templates";
 import { initialState, transition } from "../src/lib/lab/types";
@@ -60,6 +60,8 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   await settled(page, "code");
   await expect(lab(page).getByRole("radio", { name: "Code", exact: true })).toBeChecked();
   await page.screenshot({ path: info.outputPath("desktop-code.png"), fullPage: true });
+  // The lab sits below the hero, and a full-page screenshot stretches the hero and moves the page, so bring the lab back into view (spatial travel needs both panes visible).
+  await backToLab(page);
   const start = await box(page, '[data-part="surface"]');
   const target = await box(page, ".button-template");
   const sourceLines = await box(page, ".code-lines");
@@ -112,6 +114,7 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   expect(await box(page, ".lab-stage")).toEqual(stage);
   await expect(lab(page).getByRole("img", { name: "Example button labelled Explore, with an up-right arrow." })).toBeVisible();
   await page.screenshot({ path: info.outputPath("desktop-rendered.png"), fullPage: true });
+  await backToLab(page);
 
   const reverseSampling = sample();
   await lab(page).getByRole("button", { name: "Morph to code" }).click();
@@ -171,6 +174,9 @@ test("390px phone reflow, offscreen fallback, both stable endpoints", async ({ p
   await expect(lab(page).locator(".morph-button")).toBeEnabled();
   await settled(page, "code");
   await page.screenshot({ path: info.outputPath("mobile-code.png"), fullPage: true });
+  // The lab now sits below the hero. Put its toolbar low on the screen, as it was when the lab opened the page, so the
+  // stacked preview is below the fold and the offscreen fallback is what is under test.
+  await page.evaluate(() => window.scrollTo(0, document.querySelector('[data-lab="button"] .lab-toolbar')!.getBoundingClientRect().top + scrollY - 560));
   await lab(page).locator(".morph-button").click();
   await settled(page, "rendered");
   await expect(lab(page).getByText("View changed. Scroll to compare the example.")).toBeVisible();

@@ -7,8 +7,8 @@ import { validateTemplate, type TemplateDefinition } from "@/lib/lab/templates";
 
 const suggestions = ["A pricing card with a badge", "A login form card", "A weather summary with three stats"];
 
-// "Try your own": an optional add-on below the lab. The fixed examples stay the core; when generation is not
-// configured or fails, the message appears inline and the lab keeps working unchanged. One polite live line
+// "Try your own": the hero's primary interaction. The fixed examples stay the core; when generation fails, the
+// message appears inline and the lab keeps working unchanged (when it is not configured the hero does not draw this). One polite live line
 // carries loading, success and error text, so each message is announced once.
 export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated: (template: TemplateDefinition) => void }) {
   const base = useId();
@@ -49,7 +49,7 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
     }
   }
 
-  return <div className="try-own">
+  return <div className="hero-prompt">
     <form className="prompt-bar" aria-busy={busy} onSubmit={event => { event.preventDefault(); void generate(prompt); }}>
       <label className="prompt-label" htmlFor={`${base}-input`}>Describe a component</label>
       <div className="prompt-row">
@@ -61,12 +61,12 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
           <Sparkles size={18} strokeWidth={1.75} aria-hidden="true" />{busy ? "Generating…" : "Generate"}
         </button>
       </div>
-      <p className="prompt-count" id={`${base}-count`}>{prompt.length} / {limits.prompt} characters</p>
-      <p className="prompt-privacy" id={`${base}-privacy`}>Your description is sent to Google Gemini to create the example. Don&rsquo;t include personal information.</p>
       <div className="prompt-suggestions" role="group" aria-label="Suggestions">
         {suggestions.map(text => <button key={text} type="button" className="pill prompt-suggestion" disabled={!ready || busy}
           onClick={() => { setPrompt(text); void generate(text); }}>{text}</button>)}
       </div>
+      <p className="prompt-count" id={`${base}-count`}>{prompt.length} / {limits.prompt} characters</p>
+      <p className="prompt-privacy" id={`${base}-privacy`}>Your description is sent to Google Gemini to create the example. Don&rsquo;t include personal information.</p>
       <p className="prompt-status" id={`${base}-status`} aria-live="polite" aria-atomic="true" data-failed={failed || undefined}>{message}</p>
     </form>
   </div>;

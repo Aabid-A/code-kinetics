@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { bringIntoView, lab } from "./lab";
+import { bringIntoView, lab, mockGenerate } from "./lab";
 import { buildTemplate, parseSpec } from "../src/lib/lab/generated";
 import { sourceFor, validateTemplate } from "../src/lib/lab/templates";
 import { initialState, transition } from "../src/lib/lab/types";
@@ -54,7 +54,7 @@ async function settledIn(page: Page, template: "button" | "toast" | "bento" | "c
   await expect(lab(page, template).locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
 }
 async function generatePricing(page: Page) {
-  await page.route("**/api/generate", route => route.fulfill({ json: { spec: pricing } }));
+  await mockGenerate(page, { configured: true, post: { json: { spec: pricing } } });
   await page.goto("/");
   await expect(lab(page).locator(".morph-button")).toBeEnabled();
   await field(page).fill("a pricing card");
@@ -84,7 +84,7 @@ test("typing a request generates an example that morphs like the built-in ones",
 });
 
 test("a failed generation shows its message and adds no generated lab", async ({ page }) => {
-  await page.route("**/api/generate", route => route.fulfill({ status: 503, json: { error: "Generation is not configured." } }));
+  await mockGenerate(page, { configured: true, post: { status: 503, json: { error: "Generation is not configured." } } });
   await page.goto("/");
   await field(page).fill("anything");
   await generate(page).click();
@@ -94,7 +94,7 @@ test("a failed generation shows its message and adds no generated lab", async ({
 });
 
 test("the generated lab appears only after a successful generation, and a second one replaces it in code mode", async ({ page }) => {
-  await page.route("**/api/generate", route => route.fulfill({ json: { spec: pricing } }));
+  await mockGenerate(page, { configured: true, post: { json: { spec: pricing } } });
   await page.goto("/");
   await expect(lab(page).locator(".morph-button")).toBeEnabled();
   // Before any generation: the three fixed chapters only.
@@ -127,12 +127,27 @@ test("keyboard only: generate, then morph the generated lab", async ({ page }) =
   await settledIn(page, "custom", "code");
 });
 
-test("not configured: the real route answers 503, the message is inline and announced, and the labs keep working", async ({ page, request }) => {
+test("not configured: GET reports only { configured: false }, POST answers 503, and the page offers See it work instead of a prompt", async ({ page, request }) => {
   // The test server runs without a provider key, so this exercises the real server path (no mock).
+  const status = await request.get("/api/generate");
+  expect(status.status()).toBe(200);
+  expect(await status.json()).toEqual({ configured: false });
   const direct = await request.post("/api/generate", { data: { prompt: "a pricing card" } });
   expect(direct.status()).toBe(503);
   expect((await direct.json()).error).toMatch(/not configured/i);
 
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "See it work" })).toBeVisible();
+  await expect(field(page)).toHaveCount(0);
+  await expect(lab(page, "custom")).toHaveCount(0);
+  await bringIntoView(page, "bento");
+  await lab(page, "bento").locator(".morph-button").click();
+  await settledIn(page, "bento", "rendered");
+});
+
+test("configured, but the server then refuses: the message is inline and announced, and the labs keep working", async ({ page }) => {
+  // The check says configured (mock) and the POST reaches the real route, which answers 503 without a key.
+  await mockGenerate(page, { configured: true });
   await page.goto("/");
   await expect(lab(page).locator(".morph-button")).toBeEnabled();
   const input = field(page);
@@ -144,15 +159,12 @@ test("not configured: the real route answers 503, the message is inline and anno
   await expect(status).toHaveAttribute("data-failed", "true");
   await expect(input).toHaveAttribute("aria-invalid", "true");
   expect((await input.getAttribute("aria-describedby"))!.split(" ")).toContain(await status.getAttribute("id"));
-  // Nothing else changed: no generated lab, and a fixed chapter morphs normally.
   await settledIn(page, "button", "code");
   await expect(lab(page, "custom")).toHaveCount(0);
-  await bringIntoView(page, "bento");
-  await lab(page, "bento").locator(".morph-button").click();
-  await settledIn(page, "bento", "rendered");
 });
 
 test("the prompt states that descriptions are sent to Google Gemini", async ({ page }) => {
+  await mockGenerate(page, { configured: true });
   await page.goto("/");
   const notice = page.locator(".prompt-privacy");
   await expect(notice).toHaveText("Your description is sent to Google Gemini to create the example. Don’t include personal information.");

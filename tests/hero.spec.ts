@@ -1,0 +1,208 @@
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Page } from "@playwright/test";
+import { lab, mockGenerate } from "./lab";
+import { measureContrast } from "./contrast";
+
+// The first screen, the top bar, the hero prompt and the footer (SPEC R01, R13; DESIGN "Narrative and copy").
+
+const browserErrors = new WeakMap<Page, string[]>();
+test.beforeEach(async ({ page }) => {
+  const errors: string[] = [];
+  browserErrors.set(page, errors);
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("console", message => { if (message.type() === "error" || /hydration/i.test(message.text())) errors.push(message.text()); });
+});
+test.afterEach(async ({ page }) => { expect(browserErrors.get(page)).toEqual([]); });
+
+const pricing = {
+  name: "Pricing", teaching: "The plan name becomes the card; each line lands in its slot.", layout: "row",
+  cards: [
+    { tag: "Plan", icon: "Rocket", texts: [{ element: "Title", style: "title", text: "Starter" }, { element: "Price", style: "metric", text: "$9" }] },
+    { tag: "Plan", texts: [{ element: "Title", style: "title", text: "Team" }, { element: "Caption", style: "label", text: "Per seat, billed monthly" }] },
+  ],
+};
+const configured = (page: Page) => mockGenerate(page, { configured: true, post: { json: { spec: pricing } } });
+// Let the 160 ms entrance finish before interacting, so a click never lands on a moving control.
+const settle = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished)).then(() => undefined));
+const prompt = (page: Page) => page.getByRole("textbox", { name: "Describe a component" });
+
+test("the top bar shows the Code Kinetics logotype link and never the long name", async ({ page }) => {
+  await page.goto("/");
+  const bar = page.locator("header.topbar");
+  const logotype = bar.getByRole("link", { name: "Code Kinetics", exact: true });
+  await expect(logotype).toHaveAttribute("href", "#top");
+  expect(await logotype.locator("svg").evaluate(svg => [svg.getAttribute("width"), svg.getAttribute("height"), svg.getAttribute("aria-hidden"), svg.querySelectorAll("rect").length, svg.querySelectorAll("path").length]))
+    .toEqual(["20", "20", "true", 2, 1]);
+  const name = logotype.locator(".logotype-name");
+  expect(await name.evaluate(element => { const style = getComputedStyle(element); return [style.fontSize, style.letterSpacing]; })).toEqual(["22px", "normal"]);
+  expect(await name.evaluate(element => getComputedStyle(element).fontFamily)).toMatch(/Instrument Serif/);
+  expect(await bar.evaluate(element => { const style = getComputedStyle(element); return [element.getBoundingClientRect().height, style.borderTopWidth, style.borderBottomWidth]; })).toEqual([72, "0px", "0px"]);
+  await expect(bar).not.toContainText("Spatial DOM Transition Lab");
+  expect(await bar.evaluate(element => element.innerHTML.includes("Spatial DOM Transition Lab"))).toBe(false);
+  await expect(bar.getByRole("button", { name: "Sound" })).toBeVisible();
+  // The link returns to the top of the page.
+  await page.evaluate(() => document.getElementById("what-this-is")!.scrollIntoView());
+  await logotype.click();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(5);
+});
+
+test("on a phone the logotype stays on one line", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/");
+  const logotype = page.locator("header.topbar .logotype");
+  expect((await logotype.boundingBox())!.height).toBeLessThanOrEqual(44);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("the document title keeps the long name as its prefix", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle(/^Spatial DOM Transition Lab/);
+});
+
+test("configured: the hero holds the prompt, three suggestions, the privacy line and the quiet link", async ({ page }) => {
+  await configured(page);
+  await page.goto("/");
+  const hero = page.locator("section.opening");
+  await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Code has a shape.");
+  await expect(hero.getByRole("textbox", { name: "Describe a component" })).toBeVisible();
+  expect((await prompt(page).boundingBox())!.height).toBeGreaterThanOrEqual(48);
+  await expect(hero.getByRole("group", { name: "Suggestions" }).getByRole("button")).toHaveCount(3);
+  await expect(hero.locator(".prompt-privacy")).toHaveText("Your description is sent to Google Gemini to create the example. Don’t include personal information.");
+  await expect(hero.getByRole("link", { name: /Or see how it works/ })).toHaveAttribute("href", "#what-this-is");
+  await expect(page.getByRole("link", { name: "See it work" })).toHaveCount(0);
+  // Nothing was generated and nothing plays on load.
+  await expect(page.locator('[data-lab="custom"]')).toHaveCount(0);
+  await prompt(page).fill("a pricing card");
+  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  await expect(lab(page, "custom")).toHaveAttribute("data-view-mode", "code");
+  await expect(lab(page, "custom").locator(".shared-part")).toHaveCount(7);
+  // A suggestion chip generates too.
+  await hero.getByRole("button", { name: "A login form card" }).click();
+  await expect(page.locator('[data-lab="custom"]')).toHaveCount(1);
+  await page.getByRole("link", { name: /Or see how it works/ }).click();
+  await expect(page).toHaveURL(/#what-this-is$/);
+});
+
+test("not configured: the hero falls back to See it work and draws no prompt", async ({ page }) => {
+  await mockGenerate(page, { configured: false });
+  await page.goto("/");
+  const hero = page.locator("section.opening");
+  const action = hero.getByRole("link", { name: "See it work" });
+  await expect(action).toBeVisible();
+  await expect(hero.getByRole("textbox")).toHaveCount(0);
+  await expect(page.locator(".prompt-bar")).toHaveCount(0);
+  await action.click();
+  await expect(page).toHaveURL(/#button$/);
+  await expect.poll(() => page.evaluate(() => Math.round(document.getElementById("button")!.getBoundingClientRect().top))).toBeLessThan(80);
+});
+
+for (const { width, height } of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  for (const mode of ["configured", "not configured"] as const) {
+    test(`${width} × ${height}, ${mode}: the first screen shows only the top bar, the title, one line and the primary action`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      if (mode === "configured") await configured(page); else await mockGenerate(page, { configured: false });
+      await page.goto("/");
+      await expect(mode === "configured" ? prompt(page) : page.getByRole("link", { name: "See it work" })).toBeVisible();
+      // Everything the visitor can see in the first viewport.
+      const visible = await page.evaluate(() => {
+        const inView = (element: Element) => { const box = element.getBoundingClientRect(); return box.width > 0 && box.height > 0 && box.top < innerHeight && box.bottom > 0; };
+        return {
+          contents: [...document.querySelectorAll(".chapter-index, #what-this-is, .intro-text, .intro-title, .chapter, .site-footer, [data-lab]")].filter(inView).map(element => element.className || element.id),
+          words: document.querySelector(".opening-sentence")!.textContent!.trim().split(/\s+/).length,
+          paragraphs: [...document.querySelectorAll("main p")].filter(inView).map(element => element.className),
+          headings: [...document.querySelectorAll("h1, h2, h3")].filter(inView).map(element => element.tagName),
+          pressMorph: /Press\s+Morph/.test(document.body.innerText),
+        };
+      });
+      expect(visible.contents).toEqual([]);
+      expect(visible.headings).toEqual(["H1"]);
+      expect(visible.words).toBeLessThanOrEqual(16);
+      expect(visible.pressMorph).toBe(false);
+      // The one line, plus (when configured) the prompt's own small texts; no other paragraph.
+      expect(visible.paragraphs.filter(name => !/^(opening-sentence|prompt-(count|privacy|status))( |$)/.test(name))).toEqual([]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    });
+  }
+}
+
+test("after generating at 1440 × 900 the generated lab's Morph button is in view without scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await configured(page);
+  await page.goto("/");
+  await expect(prompt(page)).toBeVisible();
+  await settle(page);
+  await prompt(page).fill("a pricing card");
+  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  await expect(lab(page, "custom")).toHaveAttribute("data-view-mode", "code");
+  const morph = lab(page, "custom").getByRole("button", { name: "Morph to component" });
+  await expect(morph).toBeInViewport({ ratio: 1 });
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await morph.click();
+  await expect(lab(page, "custom")).toHaveAttribute("data-view-mode", "rendered");
+  // A second generation replaces the first, back in code mode.
+  await prompt(page).fill("another card");
+  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  await expect(lab(page, "custom")).toHaveAttribute("data-view-mode", "code");
+  await expect(page.locator('[data-lab="custom"]')).toHaveCount(1);
+});
+
+test("the footer is one rule, one row and a single credits line", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const footer = page.locator("footer.site-footer");
+  expect(await footer.evaluate(element => getComputedStyle(element).borderTopWidth)).toBe("1px");
+  await expect(footer.getByText("About this lab")).toHaveCount(0);
+  await expect(footer.locator("h1, h2, h3, .eyebrow")).toHaveCount(0);
+  await expect(footer.locator(".footer-name")).toHaveText("Spatial DOM Transition Lab");
+  await expect(footer.locator(".footer-about")).toContainText("An interactive explainer of shared-element transitions.");
+  const disclaimer = footer.locator(".footer-disclaimer");
+  await expect(disclaimer).toHaveText("A visual demonstration with fixed examples. No code is compiled or run.");
+  await expect(footer.locator(".footer-credits")).toContainText("Google Gemini");
+  await expect(footer.locator(".footer-credits")).toContainText("Instrument Serif, Geist and Geist Mono");
+  await expect(footer.locator(".footer-credits")).toContainText("Lucide");
+  const boxes = await page.evaluate(() => {
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    return { about: box(".footer-about"), disclaimer: box(".footer-disclaimer"), credits: box(".footer-credits"), credit: parseFloat(getComputedStyle(document.querySelector(".footer-credits")!).lineHeight) };
+  });
+  // Desktop: the name on the left and the disclaimer on the right share one row; the credits are one line beneath.
+  expect(boxes.disclaimer.left).toBeGreaterThan(boxes.about.right);
+  expect(Math.abs(boxes.disclaimer.top - boxes.about.top)).toBeLessThan(4);
+  expect(boxes.credits.top).toBeGreaterThanOrEqual(Math.max(boxes.about.bottom, boxes.disclaimer.bottom));
+  expect(boxes.credits.height).toBeLessThanOrEqual(boxes.credit + 1);
+  // Phones: stacked.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const stacked = await page.evaluate(() => ({ about: document.querySelector(".footer-about")!.getBoundingClientRect(), disclaimer: document.querySelector(".footer-disclaimer")!.getBoundingClientRect() }));
+  expect(stacked.disclaimer.top).toBeGreaterThanOrEqual(stacked.about.bottom);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("What this is: at most 60 words, then the contents of five chapters", async ({ page }) => {
+  await page.goto("/");
+  const section = page.locator("section#what-this-is");
+  await expect(section.getByRole("heading", { level: 2, name: "What this is" })).toBeVisible();
+  const words = await section.locator(".intro-text").evaluate(element => element.textContent!.trim().split(/\s+/).length);
+  expect(words).toBeLessThanOrEqual(60);
+  await expect(section.locator(".intro-text")).toContainText("A thumbnail grows into a photo; a card opens into a page.");
+  await expect(section.getByRole("navigation", { name: "Chapters" }).getByRole("link")).toHaveCount(5);
+  await expect(page.locator("section.chapter")).toHaveCount(5);
+  expect(await page.evaluate(() => document.body.innerText)).not.toMatch(/six chapters|Chapter 06|06 — /i);
+});
+
+for (const mode of ["configured", "not configured"] as const) {
+  test(`the ${mode} hero has no axe violations and meets contrast`, async ({ page }, info) => {
+    if (mode === "configured") await configured(page); else await mockGenerate(page, { configured: false });
+    await page.goto("/");
+    await expect(mode === "configured" ? prompt(page) : page.getByRole("link", { name: "See it work" })).toBeVisible();
+    if (mode === "configured") {
+      await prompt(page).fill("a pricing card");
+      await page.getByRole("button", { name: "Generate", exact: true }).click();
+      await expect(lab(page, "custom")).toHaveAttribute("data-view-mode", "code");
+    }
+    await page.waitForTimeout(400);
+    const results = await new AxeBuilder({ page }).analyze();
+    await info.attach("axe.json", { body: JSON.stringify({ violations: results.violations }, null, 1), contentType: "application/json" });
+    expect(results.violations.map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(" ")).join(", ")}`)).toEqual([]);
+    const samples = await measureContrast(page);
+    expect(samples.filter(sample => sample.ratio < sample.required).map(sample => `${sample.ratio}:1 < ${sample.required}:1 ${sample.selector} "${sample.text}"`)).toEqual([]);
+  });
+}

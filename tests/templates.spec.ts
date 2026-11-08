@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { bringIntoView, lab as labOf, labScript, pointLabAt, type LabId } from "./lab";
+import { backToLab, bringIntoView, lab as labOf, labScript, pointLabAt, type LabId } from "./lab";
 
 declare const labRoot: () => HTMLElement;
 declare const labQ: (selector: string) => HTMLElement | null;
@@ -91,6 +91,7 @@ for (const id of ["toast", "bento"] as const) {
     await choose(page, id);
     await expect(lab(page).locator("pre code")).toHaveText(expectedSources[id]);
     await page.screenshot({ path: info.outputPath(`${id}-desktop-code.png`), fullPage: true });
+    await backToLab(page, id); // a full-page screenshot stretches the hero and moves the page
     const read = () => page.evaluate(() => [...labAll(".shared-part")].map(element => {
       const box = element.getBoundingClientRect();
       return { key: element.dataset.part!, x: box.x, y: box.y, width: box.width, height: box.height };
@@ -156,6 +157,7 @@ for (const id of ["toast", "bento"] as const) {
     expect(await page.evaluate(() => [...labAll('.shared-part[data-kind="surface"]')]
       .every(surface => !surface.querySelector('.shared-part[data-kind="text"], .shared-part[data-kind="icon"]')))).toBe(true);
     await page.screenshot({ path: info.outputPath(`${id}-desktop-rendered.png`), fullPage: true });
+    await backToLab(page, id);
     const reverseSampling = sample();
     await lab(page).locator(".morph-button").click();
     const reverse = await reverseSampling;

@@ -66,3 +66,15 @@ test("a template registry invariant failure is contained by the lab error bounda
   expect(corrupted).toBe(1);
   expect(logged.some(entry => entry.includes("Invalid authored mapping for toast"))).toBe(true);
 });
+
+test("a failed availability check (network error, then HTTP 500) leaves See it work and no prompt", async ({ page }) => {
+  await page.route("**/api/generate", route => route.request().method() === "GET" ? route.abort() : route.continue());
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "See it work" })).toBeVisible();
+  await expect(page.locator(".prompt-bar")).toHaveCount(0);
+  await page.unroute("**/api/generate");
+  await page.route("**/api/generate", route => route.request().method() === "GET" ? route.fulfill({ status: 500, body: "nope" }) : route.continue());
+  await page.reload();
+  await expect(page.getByRole("link", { name: "See it work" })).toBeVisible();
+  await expect(page.locator(".prompt-bar")).toHaveCount(0);
+});

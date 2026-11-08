@@ -1,11 +1,10 @@
 import { Lab } from "@/components/lab/Lab";
 import { LabErrorBoundary } from "@/components/lab/LabErrorBoundary";
-import { TryOwn } from "@/components/lab/TryOwn";
 import { CardToPage } from "@/components/site/CardToPage";
 import { Chapter } from "@/components/site/Chapter";
-import { ChapterIndex } from "@/components/site/ChapterIndex";
 import { Diagram } from "@/components/site/Diagram";
 import { Footer } from "@/components/site/Footer";
+import { Intro } from "@/components/site/Intro";
 import { Opening } from "@/components/site/Opening";
 import { SoundProvider } from "@/components/site/Sound";
 import { TopBar } from "@/components/site/TopBar";
@@ -13,12 +12,12 @@ import { TopBar } from "@/components/site/TopBar";
 export default function Home() {
   return <LabErrorBoundary>
     <SoundProvider>
-      <div className="page">
+      <div className="page" id="top">
         <div className="drafting-rules" aria-hidden="true"><i /><i /><i /></div>
         <TopBar />
         <main className="page-main">
           <Opening />
-          <ChapterIndex />
+          <Intro />
           <Chapter id="button" number="01" label="Button"
             title={<>One name, one <em>surface</em></>}
             caption="Watch the three named pieces, the button, its arrow and its label, each leave the code and land in one place.">
@@ -43,11 +42,6 @@ export default function Home() {
             title={<>How it <em>knows</em></>}
             caption="Each piece has the same name in the code and in the component, and the engine moves it along the line between them.">
             <div className="diagram-sheet"><Diagram /></div>
-          </Chapter>
-          <Chapter id="your-turn" number="06" label="Your turn"
-            title={<>Try your <em>own</em></>}
-            caption="Describe a small component and the lab builds a matching example from validated data. No code is compiled or run.">
-            <TryOwn />
           </Chapter>
           <Footer />
         </main>
