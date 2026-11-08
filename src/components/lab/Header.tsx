@@ -1,18 +1,19 @@
 import { ArrowRightLeft, ChevronDown } from "lucide-react";
 import type { TemplateId, ViewMode } from "@/lib/lab/types";
 
-export function TemplateSelector({ ready, templateId, onSelect }: {
-  ready: boolean; templateId: TemplateId; onSelect: (id: TemplateId) => void;
+export function TemplateSelector({ ready, templateId, onSelect, generatedLabel }: {
+  ready: boolean; generatedLabel?: string; templateId: TemplateId; onSelect: (id: TemplateId) => void;
 }) {
   return <label className="template-selector">
     <span>Example</span>
-    <select aria-label="Example" value={templateId} disabled={!ready} onChange={event => {
+    <select aria-label="Example" className="example-select" value={templateId} disabled={!ready} onChange={event => {
       const id = event.currentTarget.value;
-      if (id === "button" || id === "toast" || id === "bento") onSelect(id);
+      if (id === "button" || id === "toast" || id === "bento" || (id === "custom" && generatedLabel)) onSelect(id);
     }}>
       <option value="button">Button</option>
       <option value="toast">Toast</option>
       <option value="bento">Bento</option>
+      {generatedLabel ? <option value="custom">{generatedLabel} (generated)</option> : null}
     </select>
     <ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true" />
   </label>;
@@ -26,7 +27,7 @@ export function MorphButton({ mode, ready, onMorph }: { mode: ViewMode; ready: b
 }
 
 export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => void;
-  templateId: TemplateId; onSelect: (id: TemplateId) => void;
+  templateId: TemplateId; onSelect: (id: TemplateId) => void; generatedLabel?: string;
   soundEnabled: boolean; onToggleSound: () => void;
 }) {
   return <header className="lab-header">
@@ -35,7 +36,7 @@ export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => v
       <p>Code-to-Component Morph Engine</p>
     </div>
     <div className="header-controls">
-      <TemplateSelector ready={props.ready} templateId={props.templateId} onSelect={props.onSelect} />
+      <TemplateSelector ready={props.ready} templateId={props.templateId} onSelect={props.onSelect} generatedLabel={props.generatedLabel} />
       <label className="template-selector">
         <span className="sr-only">Sound</span>
         <select aria-label="Sound" value={props.soundEnabled ? "on" : "off"} disabled={!props.ready}

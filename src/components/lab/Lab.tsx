@@ -2,10 +2,11 @@
 
 import { LayoutGroup, MotionConfig } from "motion/react";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { templates, type PartKey } from "@/lib/lab/templates";
+import { resolveTemplate, type PartKey, type TemplateDefinition } from "@/lib/lab/templates";
 import { initialState, transition, type Command } from "@/lib/lab/types";
 import { Header } from "./Header";
 import { ModeControl } from "./ModeControl";
+import { PromptBar } from "./PromptBar";
 import { CodePane } from "./CodePane";
 import { RenderPane } from "./RenderPane";
 import type { MotionRun } from "./SharedPart";
@@ -37,7 +38,9 @@ export function Lab() {
   const [announcement, setAnnouncement] = useState("");
   const statusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const frames = useRef<number[]>([]);
-  const template = templates[state.activeTemplate];
+  const [generated, setGenerated] = useState<TemplateDefinition | null>(null);
+  const generatedRef = useRef<TemplateDefinition | null>(null);
+  const template = resolveTemplate(state.activeTemplate, generated);
 
   const applyRun = useCallback((next: MotionRun) => {
     currentRun.current = next;
@@ -69,7 +72,7 @@ export function Lab() {
       else sound.dispose();
       return;
     }
-    const templateChanged = next.activeTemplate !== latest.current.activeTemplate;
+    const templateChanged = next.activeTemplate !== latest.current.activeTemplate || input.type === "LOAD_GENERATED";
     latest.current = next;
     if (templateChanged) sound.stop();
     else if (input.type === "MORPH" && next.soundEnabled) sound.playCue();
@@ -78,15 +81,21 @@ export function Lab() {
     if (templateChanged) settle();
     else if (spatial) {
       frames.current.forEach(cancelAnimationFrame);
-      pending.current = new Set(templates[next.activeTemplate].parts.map(part => part.key));
+      pending.current = new Set(resolveTemplate(next.activeTemplate, generatedRef.current).parts.map(part => part.key));
       applyRun({ ...currentRun.current, generation: currentRun.current.generation + 1,
         spatial: true, travelling: true, offscreen: false });
     } else settle(offscreen);
     setState(next);
     clearTimeout(statusTimer.current);
     statusTimer.current = setTimeout(() => {
-      setAnnouncement(`${templates[next.activeTemplate].label}: ${next.viewMode === "code" ? "code" : "component"} view selected.`);
+      setAnnouncement(`${resolveTemplate(next.activeTemplate, generatedRef.current).label}: ${next.viewMode === "code" ? "code" : "component"} view selected.`);
     }, 150);
+  };
+
+  const loadGenerated = (definition: TemplateDefinition) => {
+    generatedRef.current = definition;
+    setGenerated(definition);
+    command({ type: "LOAD_GENERATED" });
   };
 
   const complete = (part: PartKey, generation: number) => {
@@ -118,8 +127,9 @@ export function Lab() {
 
   return <main className="lab-frame" data-view-mode={state.viewMode} data-template={state.activeTemplate}>
     <Header mode={state.viewMode} ready={ready} templateId={state.activeTemplate}
-      soundEnabled={state.soundEnabled} onToggleSound={() => command({ type: "TOGGLE_SOUND" })}
+      generatedLabel={generated?.label} soundEnabled={state.soundEnabled} onToggleSound={() => command({ type: "TOGGLE_SOUND" })}
       onSelect={id => command({ type: "SELECT_TEMPLATE", id })} onMorph={() => command({ type: "MORPH" })} />
+    <PromptBar ready={ready} onGenerated={loadGenerated} />
     <div className="lab-introduction">
       <p>Watch matching pieces move from code to component.</p>
       <ModeControl mode={state.viewMode} ready={ready} onChange={mode => command({ type: "SET_VIEW", mode })} />
@@ -127,8 +137,8 @@ export function Lab() {
     <MotionConfig reducedMotion="user">
       <LayoutGroup id={`spatial-lab-${namespace}`}>
         <div className="lab-stage" data-travelling={run.travelling}>
-          <CodePane mode={state.viewMode} templateId={state.activeTemplate} contentRef={codeContent} run={run} onComplete={complete} />
-          <RenderPane mode={state.viewMode} templateId={state.activeTemplate} contentRef={renderContent} run={run} onComplete={complete} />
+          <CodePane mode={state.viewMode} template={template} contentRef={codeContent} run={run} onComplete={complete} />
+          <RenderPane mode={state.viewMode} template={template} contentRef={renderContent} run={run} onComplete={complete} />
         </div>
       </LayoutGroup>
     </MotionConfig>

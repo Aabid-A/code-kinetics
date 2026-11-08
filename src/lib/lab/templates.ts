@@ -1,10 +1,12 @@
 import { buttonContent, buttonLines, type ButtonPart } from "./button";
+import type { GeneratedSpec } from "./generated";
 import type { TemplateId } from "./types";
 
 export type ToastPart = "surface" | "icon" | "title" | "description";
 export type BentoPart = "feature.surface" | "feature.icon" | "feature.title" | "feature.description"
   | "metric.surface" | "metric.value" | "metric.label" | "status.surface" | "status.title" | "status.description";
-export type PartKey = ButtonPart | ToastPart | BentoPart;
+export type CustomPart = `c${number}.${string}`;
+export type PartKey = ButtonPart | ToastPart | BentoPart | CustomPart;
 export type PartKind = "surface" | "icon" | "text";
 export type CodeToken = { id: string; text: string; syntax: "punctuation" | "tag" | "attribute" | "text"; part?: PartKey };
 export type CodeLine = { id: string; tokens: readonly CodeToken[] };
@@ -12,6 +14,7 @@ export type PartDefinition = { key: PartKey; kind: PartKind; sourceLabel: string
 export type TemplateDefinition = {
   id: TemplateId; label: string; filename: string; lines: readonly CodeLine[];
   parts: readonly PartDefinition[]; description: string; caption: string; teaching: string;
+  generated?: GeneratedSpec;
 };
 
 export const toastContent = {
@@ -53,7 +56,7 @@ const bentoLines = [
   line("bento-close", token("bento-close-tag", "</Bento>", "tag")),
 ] as const;
 
-export const templates: Record<TemplateId, TemplateDefinition> = {
+export const templates: Record<Exclude<TemplateId, "custom">, TemplateDefinition> = {
   button: {
     id: "button", label: "Button", filename: "Button.tsx", lines: buttonLines,
     parts: [
@@ -100,9 +103,15 @@ export function sourceFor(template: TemplateDefinition) {
   return template.lines.map(entry => entry.tokens.map(item => item.text).join("")).join("\n");
 }
 
-export function partFor(templateId: TemplateId, key: PartKey): PartDefinition {
-  const part = templates[templateId].parts.find(entry => entry.key === key);
-  if (!part) throw new Error(`Missing mapped part ${templateId}:${key}`);
+export function resolveTemplate(id: TemplateId, generated: TemplateDefinition | null): TemplateDefinition {
+  if (id !== "custom") return templates[id];
+  if (!generated) throw new Error("No generated template is loaded");
+  return generated;
+}
+
+export function partFor(template: TemplateDefinition, key: PartKey): PartDefinition {
+  const part = template.parts.find(entry => entry.key === key);
+  if (!part) throw new Error(`Missing mapped part ${template.id}:${key}`);
   return part;
 }
 

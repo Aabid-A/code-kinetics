@@ -72,6 +72,7 @@ h1 { margin: 0; font-size: 36px; line-height: 42px; font-weight: 600; letter-spa
   line-height: 22px;
   font-weight: 550;
 }
+.template-selector .example-select { width: 160px; }
 .template-selector option { background: #111116; color: #f5f5f7; }
 .template-selector option:disabled { color: #a3a3b3; }
 .select-chevron { position: absolute; right: 14px; pointer-events: none; color: #b9b5c5; }
@@ -230,6 +231,18 @@ summary::marker { color: #aca3bb; }
 .toast-description, .feature-description, .metric-label, .status-description { font-size: 14px; line-height: 22px; font-weight: 400; }
 .toast-description .shared-part:not([data-travelling]), .feature-description .shared-part:not([data-travelling]), .metric-label .shared-part:not([data-travelling]), .status-description .shared-part:not([data-travelling]) { color: #a3a3b3; }
 .toast-icon .card-icon-art { color: #86efac; background: rgb(34 197 94 / .1); border-radius: 50%; }
+.custom-template { display: grid; gap: 12px; width: 100%; max-width: 460px; }
+.custom-template[data-layout="single"] { max-width: 360px; }
+.custom-template[data-layout="row"] { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.custom-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; min-width: 0; min-height: 112px; padding: 16px; }
+.custom-card .preview-text-slot { width: 100%; }
+.custom-icon { margin-bottom: 6px; }
+.custom-icon .card-icon-art { color: #c4b5fd; }
+.text-title { font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -.02em; }
+.text-body, .text-label { font-size: 14px; line-height: 22px; font-weight: 400; }
+.text-label { font-size: 12px; line-height: 18px; text-transform: none; }
+.text-metric { font-size: 32px; line-height: 38px; font-weight: 650; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.text-body .shared-part:not([data-travelling]), .text-label .shared-part:not([data-travelling]) { color: #a3a3b3; }
 .bento-template { min-height: 260px; }
 .bento-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; padding: 16px; }
 .bento-card .preview-text-slot { width: 100%; }
@@ -256,7 +269,7 @@ summary::marker { color: #aca3bb; }
   .lab-header { flex-wrap: wrap; align-items: flex-start; }
   .identity { flex-basis: 100%; }
   .header-controls { flex-direction: row; width: 100%; justify-content: flex-end; }
-  .template-selector select { width: 102px; }
+  .template-selector select, .template-selector .example-select { width: 102px; }
   .lab-stage { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .code-content { flex: none; min-height: 188px; }
   .lab-introduction { flex-wrap: wrap; }
@@ -303,3 +316,15 @@ summary::marker { color: #aca3bb; }
   .mode-options input { appearance: auto; accent-color: auto; }
   :focus-visible, .template-selector:has(:focus-visible), .mode-options label:has(:focus-visible) { outline-color: Highlight; }
 }
+
+.prompt-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: end; padding-bottom: 16px; }
+.prompt-field { display: grid; gap: 6px; min-width: 0; }
+.prompt-label { color: var(--color-muted); font-size: 12px; line-height: 18px; }
+.prompt-field input { min-height: 44px; padding: 0 16px; border: 1px solid var(--control-edge); border-radius: 8px; background: rgb(255 255 255 / .035); color: var(--color-ink); }
+.prompt-field input::placeholder { color: #7d7a89; }
+.prompt-suggestions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.prompt-suggestions button { min-height: 32px; padding: 0 12px; border: 1px solid var(--material-edge); border-radius: 999px; background: transparent; color: var(--color-muted); font-size: 12px; }
+.prompt-suggestions button:hover:not(:disabled) { color: var(--color-ink); border-color: var(--control-edge); }
+.prompt-status { grid-column: 1 / -1; min-height: 18px; margin: 0; color: var(--color-muted); font-size: 12px; line-height: 18px; }
+.prompt-status[data-failed] { color: #fca5a5; }
+@media (max-width: 640px) { .prompt-bar { grid-template-columns: 1fr; } .prompt-submit { justify-content: center; } }

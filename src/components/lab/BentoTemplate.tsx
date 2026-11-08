@@ -3,7 +3,7 @@ import type { PartMotion } from "./SharedPart";
 import { DestinationPart } from "./TemplatePart";
 
 export function BentoTemplate({ active, ...motion }: PartMotion & { active: boolean }) {
-  const props = { ...motion, active, templateId: "bento" as const };
+  const props = { ...motion, active };
   return <div className="bento-template grid w-full max-w-[460px] grid-cols-1 gap-3 @min-[360px]:grid-cols-[1.2fr_1fr]" aria-hidden="true" data-destination="bento">
     <div className="bento-card feature-card @min-[360px]:col-start-1 @min-[360px]:row-span-2 @min-[360px]:row-start-1" data-card="feature">
       <div className="preview-card-glass" data-active={active} />

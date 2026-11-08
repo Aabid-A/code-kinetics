@@ -11,6 +11,7 @@ An interaction-design and frontend engineering case study in spatial continuity.
 - **Interruptible springs:** reverse a moving morph; the latest requested mode wins.
 - **Independent surfaces and content:** Toast's four parts move together without stretching its text or icon.
 - **Responsive composition:** split panes become a vertical stack on narrow screens; Bento reflows through CSS Grid container queries.
+- **Generate your own:** describe what you want to learn or see in plain language and get a new code-to-component example that morphs like the built-in ones.
 - **Accessible interaction:** native controls, visible focus, readable mapping explanations, and a reduced-motion alternative.
 
 ## How the morphing works
@@ -32,6 +33,16 @@ This is visual correspondence between predefined elements. The app does not comp
 | Bento | 10 parts across Feature, Metric, and Status | An asymmetric grid with a two-row feature card and two smaller cards. Below 360px of preview content width, cards stack in source order. |
 
 The previews are illustrative and noninteractive. Toast does not report an actual save; Bento's “12 Components” is fictional sample content.
+
+## Generating your own example
+
+Type a request such as “a pricing card with a badge” and choose **Generate**. A server route (`/api/generate`) asks Claude for a small declarative spec: one to three cards, each with an optional icon from a fixed list and one to three short text lines. The spec is validated (names sanitized, lengths capped, counts limited) on the server and again in the browser, then turned into code lines and a part mapping. One generic renderer draws the preview and the same shared-identity morph moves the pieces. The model never writes code or markup, and nothing it returns is compiled or executed.
+
+Set `ANTHROPIC_API_KEY` on the server to enable it. Without a key the box explains that generation is unavailable and the three built-in examples keep working. `LAB_MODEL` overrides the default model (`claude-opus-5-5`). Each generation is one API call, so add rate limiting before exposing a public deployment.
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... npm run dev
+```
 
 ## Technical stack
 
@@ -85,4 +96,4 @@ All three visual templates and the controls described above are implemented. The
 
 Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; failures leave the morph working silently. **The expected `public/audio/morph.mp3` asset is not included; audible delivery and the final Foley cue's listening review are incomplete.**
 
-Examples are fixed and authored in advance. There is no code editor, parser, runtime compilation, arbitrary code execution, component generation, persistence, backend, authentication, or analytics. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).
+The three built-in examples are fixed and authored in advance; generated examples are limited to the declarative spec described above. There is no code editor, parser, runtime compilation, arbitrary code execution, persistence, authentication, or analytics. The only backend is the single `/api/generate` route. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).

@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { sourceFor, templates, validateTemplate, type PartKey } from "../src/lib/lab/templates";
 import { transition, type AppState, type TemplateId, type ViewMode } from "../src/lib/lab/types";
 
-const ids: TemplateId[] = ["button", "toast", "bento"];
+type BuiltIn = Exclude<TemplateId, "custom">;
+const ids: BuiltIn[] = ["button", "toast", "bento"];
 const expectedSources = {
   toast: "<Toast>\n  <CircleCheck />\n  <Title>Changes saved</Title>\n  <Description>\n    Your workspace is up to date.\n  </Description>\n</Toast>",
   bento: "<Bento>\n  <Feature icon={<Layers />}>\n    <Title>Build in layers</Title>\n    <Text>Small pieces. One interface.</Text>\n  </Feature>\n  <Metric>\n    <Value>12</Value>\n    <Label>Components</Label>\n  </Metric>\n  <Status>\n    <Title>Ready to ship</Title>\n    <Text>All pieces in place.</Text>\n  </Status>\n</Bento>",
@@ -16,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
 
-async function settled(page: Page, id: TemplateId, mode: ViewMode) {
+async function settled(page: Page, id: BuiltIn, mode: ViewMode) {
   await expect(page.locator("main")).toHaveAttribute("data-template", id);
   await expect(page.locator("main")).toHaveAttribute("data-view-mode", mode);
   await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
@@ -30,7 +31,7 @@ async function settled(page: Page, id: TemplateId, mode: ViewMode) {
   if (id !== "button") await expect(page.locator(".preview-card-glass").first()).toHaveCSS("opacity", mode === "code" ? "0" : "1");
 }
 
-async function choose(page: Page, id: TemplateId) {
+async function choose(page: Page, id: BuiltIn) {
   await page.getByRole("combobox", { name: "Example" }).selectOption(id);
   await settled(page, id, "code");
   await page.evaluate(async () => {

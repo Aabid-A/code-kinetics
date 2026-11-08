@@ -180,9 +180,13 @@ Playback may be rejected by browser policy and must not block interaction. [HTML
 
 The future cue must be authored or appropriately licensed and committed locally with provenance. Do not fetch stock audio at runtime. If no cue is supplied during implementation, sound-on must show the unavailable state; release is not complete until the requested sound behavior can be tested with a real asset.
 
+## Generated examples
+
+`src/lib/lab/generated.ts` defines `GeneratedSpec`, its JSON Schema (`specSchema`), `parseSpec` (validates and sanitizes untrusted input) and `buildTemplate` (spec to `TemplateDefinition`: code lines, tokens and parts with keys `c{card}.surface|icon|t{n}`). The result is the template id `custom`, rendered by `CustomTemplate` and the same `SharedPart` identities as the built-ins; components receive the active `TemplateDefinition` through `PartMotion.template` rather than looking it up globally. `LOAD_GENERATED` always resets to code mode and settles like a template change. `/api/generate` calls Claude with `output_config.format` set to the schema and runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering.
+
 ## Security, privacy, and content handling
 
-All content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
+Generated specs are data only: text goes through React text nodes, icons come from a fixed allowlist, and element names are reduced to PascalCase identifiers. The API key stays on the server. All other content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
 
 ## Performance and delivery
 
