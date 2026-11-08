@@ -93,7 +93,7 @@ Reduced motion commits directly to the requested endpoint without spatial travel
 
 ## Project status and scope
 
-All three visual templates and the controls described above are implemented. The 93-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
+All three visual templates and the controls described above are implemented. The 92-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
 
 Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; if the cue cannot load, is unsupported or `play()` is rejected, the morph keeps working silently, the preference stays on, and "Sound unavailable" is shown and announced once; turning Sound off and on again retries. The cue, `public/audio/morph.mp3`, is synthesised by `scripts/make-morph-cue.sh` with the system ffmpeg (no third-party audio; rerun the script to regenerate identical bytes). **Its listening review on headphones and speakers is not done.**
 
