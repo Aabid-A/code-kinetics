@@ -136,7 +136,7 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   await info.attach("sampled-motion.json", { body: JSON.stringify({ start, target, forward, reverse, beforeReversal, afterReversal, errors }), contentType: "application/json" });
 });
 
-test("rapid latest requests and native radio keyboard control", async ({ page }) => {
+test("rapid latest requests and radiogroup keyboard control", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".morph-button")).toBeEnabled();
   for (const spacing of [100, 30]) {

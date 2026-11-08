@@ -30,8 +30,12 @@ async function settled(page: Page, id: TemplateId, mode: ViewMode) {
   if (id !== "button") await expect(page.locator(".preview-card-glass").first()).toHaveCSS("opacity", mode === "code" ? "0" : "1");
 }
 
+const labels = { button: "Button", toast: "Toast", bento: "Bento" } as const;
+const exampleTrigger = (page: Page) => page.getByRole("button", { name: /^Example:/ });
+
 async function choose(page: Page, id: TemplateId) {
-  await page.getByRole("combobox", { name: "Example" }).selectOption(id);
+  await exampleTrigger(page).click();
+  await page.getByRole("option", { name: labels[id], exact: true }).click();
   await settled(page, id, "code");
   await page.evaluate(async () => {
     await new Promise(requestAnimationFrame);
@@ -193,27 +197,35 @@ for (const id of ["toast", "bento"] as const) {
   });
 }
 
-test("native selection cancels old flights, same selection is a no-op, latest request wins", async ({ page }) => {
+test("listbox selection cancels old flights, same selection is a no-op, latest request wins", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".morph-button")).toBeEnabled();
   await page.locator(".morph-button").click();
   await page.waitForTimeout(100);
-  const selector = page.getByRole("combobox", { name: "Example" });
+  const selector = exampleTrigger(page);
+  const popup = page.getByRole("listbox", { name: "Example" });
   await selector.focus();
-  await selector.selectOption("toast");
+  await page.keyboard.press("Enter");
+  await expect(popup).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
   await settled(page, "toast", "code");
   await expect(selector).toBeFocused();
   expect(await page.locator(".shared-part").evaluateAll(nodes => nodes.every(node => getComputedStyle(node).transform === "none"))).toBe(true);
   await page.locator(".morph-button").click();
   await page.waitForTimeout(100);
+  await selector.click();
+  await expect(popup).toBeFocused();
+  // Selection and Morph in the same tick: the latest request wins.
   await page.evaluate(() => {
-    const select = document.querySelector<HTMLSelectElement>("select")!;
-    select.value = "bento";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
+    document.querySelector<HTMLElement>('[role="option"]:last-child')!.click();
     document.querySelector<HTMLButtonElement>(".morph-button")!.click();
   });
   await settled(page, "bento", "rendered");
-  await selector.selectOption("bento");
+  await selector.focus();
+  await page.keyboard.press("Enter");
+  await expect(popup).toBeFocused();
+  await page.keyboard.press("Enter"); // commits the already-selected option: a no-op
   await settled(page, "bento", "rendered");
   await page.waitForTimeout(2000);
   await settled(page, "bento", "rendered");
