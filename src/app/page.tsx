@@ -13,7 +13,7 @@ import { TopBar } from "@/components/site/TopBar";
 export default function Home() {
   return <LabErrorBoundary>
     <SoundProvider>
-      <div className="page">
+      <div className="page" id="top">
         <div className="drafting-rules" aria-hidden="true"><i /><i /><i /></div>
         <TopBar />
         <main className="page-main">

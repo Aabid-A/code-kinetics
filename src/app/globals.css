@@ -47,8 +47,10 @@ button:disabled { cursor: default; }
 .page { position: relative; isolation: isolate; min-height: 100vh; padding-bottom: 96px; }
 .topbar, .page-main { position: relative; z-index: 1; }
 .topbar, .page-main > * { width: min(1320px, 100% - 2 * var(--gutter)); margin-inline: auto; }
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
-.wordmark { margin: 0; font-size: 15px; line-height: 22px; font-weight: 500; letter-spacing: -.005em; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; border: 0; }
+.logotype { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.logotype svg { flex-shrink: 0; }
+.logotype-name { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 400; letter-spacing: normal; }
 .topbar-sound { display: flex; align-items: center; gap: 12px; }
 .sound-note { color: var(--ink-muted); font-size: 13px; line-height: 18px; white-space: nowrap; }
 
