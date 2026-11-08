@@ -28,13 +28,17 @@ export function Lab() {
   const ready = useSyncExternalStore(subscribeReady, getReady, getServerReady);
   const [state, setState] = useState(initialState);
   const latest = useRef(initialState);
-  const sound = useMorphSound();
+  const [announcement, setAnnouncement] = useState("");
+  const [soundUnavailable, setSoundUnavailable] = useState(false);
+  const sound = useMorphSound(useCallback(() => {
+    setSoundUnavailable(true);
+    setAnnouncement("Sound unavailable.");
+  }, []));
   const [run, setRun] = useState(initialRun);
   const currentRun = useRef(initialRun);
   const pending = useRef(new Set<PartKey>());
   const codeContent = useRef<HTMLDivElement>(null);
   const renderContent = useRef<HTMLDivElement>(null);
-  const [announcement, setAnnouncement] = useState("");
   const statusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const frames = useRef<number[]>([]);
   const template = templates[state.activeTemplate];
@@ -65,6 +69,7 @@ export function Lab() {
     if (input.type === "TOGGLE_SOUND") {
       latest.current = next;
       setState(next);
+      setSoundUnavailable(false);
       if (next.soundEnabled) sound.prepare();
       else sound.dispose();
       return;
@@ -118,7 +123,7 @@ export function Lab() {
 
   return <main className="lab-frame" data-view-mode={state.viewMode} data-template={state.activeTemplate}>
     <Header mode={state.viewMode} ready={ready} templateId={state.activeTemplate}
-      soundEnabled={state.soundEnabled} onToggleSound={() => command({ type: "TOGGLE_SOUND" })}
+      soundEnabled={state.soundEnabled} soundUnavailable={soundUnavailable} onToggleSound={() => command({ type: "TOGGLE_SOUND" })}
       onSelect={id => command({ type: "SELECT_TEMPLATE", id })} onMorph={() => command({ type: "MORPH" })} />
     <div className="lab-introduction">
       <p>Watch matching pieces move from code to component.</p>

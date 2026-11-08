@@ -303,3 +303,8 @@ summary::marker { color: #aca3bb; }
   .mode-options input { appearance: auto; accent-color: auto; }
   :focus-visible, .template-selector:has(:focus-visible), .mode-options label:has(:focus-visible) { outline-color: Highlight; }
 }
+
+.sound-note { color: var(--color-muted); font-size: 12px; line-height: 18px; white-space: nowrap; }
+.lab-error { display: grid; gap: 16px; justify-items: start; max-width: 480px; margin: 20vh auto 0; padding: 0 32px; }
+.lab-error p { margin: 0; font-size: 16px; line-height: 24px; }
+.lab-error button { padding: 0 16px; border: 1px solid var(--control-edge); border-radius: 8px; background: rgb(255 255 255 / .035); color: var(--color-ink); }

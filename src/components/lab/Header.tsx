@@ -27,7 +27,7 @@ export function MorphButton({ mode, ready, onMorph }: { mode: ViewMode; ready: b
 
 export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => void;
   templateId: TemplateId; onSelect: (id: TemplateId) => void;
-  soundEnabled: boolean; onToggleSound: () => void;
+  soundEnabled: boolean; soundUnavailable: boolean; onToggleSound: () => void;
 }) {
   return <header className="lab-header">
     <div className="identity">
@@ -47,6 +47,7 @@ export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => v
         </select>
         <ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true" />
       </label>
+      {props.soundEnabled && props.soundUnavailable ? <span className="sound-note">Sound unavailable</span> : null}
       <MorphButton {...props} />
     </div>
   </header>;
