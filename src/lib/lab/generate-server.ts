@@ -8,7 +8,7 @@ import { limits, parseSpec, type GeneratedSpec } from "./generated";
 export type Generate = (prompt: string, signal: AbortSignal) => Promise<string>;
 
 export const MAX_BODY_BYTES = 2048;
-export const TIMEOUT_MS = 15_000;
+export const TIMEOUT_MS = 30_000;
 
 export type RateLimits = { perMinute: number; perDay: number; dailyCap: number };
 export const defaultRateLimits: RateLimits = { perMinute: 5, perDay: 30, dailyCap: 200 };
@@ -82,8 +82,16 @@ function statusOf(error: unknown): number | undefined {
   return typeof value === "number" ? value : undefined;
 }
 
+// Only the SDK's own request timeout counts as a timeout here; our deadline is detected through the abort signal.
 function timedOut(error: unknown) {
-  return error instanceof Error && /timeout|timed out|abort/i.test(`${error.name} ${error.message}`);
+  return error instanceof Error && /^(RequestTimeoutError|APIConnectionTimeoutError)$/.test(error.name);
+}
+
+// Server log only: the error's class, HTTP status and first line of its message, never the request or the key.
+function logFailure(stage: string, error: unknown) {
+  const name = error instanceof Error ? error.name : typeof error;
+  const message = error instanceof Error ? error.message.split("\n")[0].slice(0, 300) : "";
+  console.error(`[generate] ${stage}: ${name}${statusOf(error) ? ` (HTTP ${statusOf(error)})` : ""}${message ? `: ${message}` : ""}`);
 }
 
 export function createGenerateHandler(options: {
@@ -124,11 +132,12 @@ export function createGenerateHandler(options: {
         options.generate(prompt, abort.signal),
         new Promise<never>((_, reject) => abort.signal.addEventListener("abort", () => reject(new Error("Generation timed out")), { once: true })),
       ]);
-      if (!text) return reply(502, "The model returned no example. Try again.");
+      if (!text) { logFailure("empty output", new Error("no output_text")); return reply(502, "The model returned no example. Try again."); }
       let spec: GeneratedSpec;
-      try { spec = parseSpec(JSON.parse(text)); } catch { return reply(502, "The model returned an unusable example. Try again."); }
+      try { spec = parseSpec(JSON.parse(text)); } catch (error) { logFailure("invalid output", error); return reply(502, "The model returned an unusable example. Try again."); }
       return Response.json({ spec });
     } catch (error) {
+      logFailure(abort.signal.aborted ? `timed out after ${timeoutMs} ms` : "provider error", error);
       if (abort.signal.aborted || timedOut(error)) return reply(504, "Generation took too long. Try again.");
       const status = statusOf(error);
       if (status === 429) return reply(429, "The example service is busy. Try again in a moment.");

@@ -217,7 +217,7 @@ Added 8 November 2026. A learner types a short description (1–200 characters) 
 | Same origin | A request with `Sec-Fetch-Site: cross-site`, or an `Origin` whose host differs from the request host, is refused with 403 before any model call. |
 | Size | Body ≤ 2 KB (413); empty prompt or > 200 characters (400). |
 | Rate limits | Per client address (first `X-Forwarded-For` entry): 5 per minute and 30 per day; global: `GENERATE_DAILY_CAP` per day (default 200). Exceeded limits answer 429 with `Retry-After`. Counts are in memory per server instance; requests refused for configuration, origin, size or prompt do not count. |
-| Timeout | 15 s, after which the provider call is aborted and the route answers 504. |
+| Timeout | 30 s, after which the provider call is aborted and the route answers 504. |
 | Errors | Provider 429 → 429; 401/403 → 503 “credentials were rejected”; 400 → 422; empty, non-JSON or invalid output → 502; anything else → 502. Messages never expose provider details. |
 | Validation | The server runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering. Text renders as React text nodes; icons come from a fixed allowlist. |
 | Privacy | The prompt shows: “Your description is sent to Google Gemini to create the example. Don’t include personal information.”, linked to the input through `aria-describedby`. Nothing is stored by the app. |

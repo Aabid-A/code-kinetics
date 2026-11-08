@@ -114,3 +114,24 @@ test("empty, non-JSON and invalid model output is rejected with 502", async () =
     expect(response.status, output.slice(0, 20)).toBe(502);
   }
 });
+
+test("the prompt's worked example passes validation unchanged and respects the stated limits", async () => {
+  const { EXAMPLE_SPEC, SYSTEM_PROMPT } = await import("../src/lib/lab/generate-prompt");
+  const { parseSpec, buildTemplate } = await import("../src/lib/lab/generated");
+  const { validateTemplate } = await import("../src/lib/lab/templates");
+  expect(parseSpec(JSON.parse(JSON.stringify(EXAMPLE_SPEC)))).toEqual(EXAMPLE_SPEC);
+  expect(() => validateTemplate(buildTemplate(EXAMPLE_SPEC))).not.toThrow();
+  expect(EXAMPLE_SPEC.name.length).toBeLessThanOrEqual(20);
+  expect(EXAMPLE_SPEC.teaching.length).toBeLessThanOrEqual(100);
+  expect(EXAMPLE_SPEC.cards.flatMap(card => card.texts).every(entry => entry.text.length <= 40)).toBe(true);
+  expect(SYSTEM_PROMPT).toContain(JSON.stringify(EXAMPLE_SPEC));
+  expect(SYSTEM_PROMPT).not.toContain("${");
+});
+
+test("only a real timeout is reported as too slow; other failures are not mislabelled", async () => {
+  const fails = (error: Error): Generate => async () => { throw error; };
+  const misleading = Object.assign(new Error("The connection was aborted by the peer"), { name: "ConnectionError" });
+  expect((await createGenerateHandler({ generate: fails(misleading), limiter: roomy() })(post("a card"))).status).toBe(502);
+  const sdkTimeout = Object.assign(new Error("Request timed out"), { name: "APIConnectionTimeoutError" });
+  expect((await createGenerateHandler({ generate: fails(sdkTimeout), limiter: roomy() })(post("a card"))).status).toBe(504);
+});

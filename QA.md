@@ -19,11 +19,11 @@ The command lines below omit that temporary config (`-c <temporary config>`); in
 | `npm run lint` | Pass |
 | `npm run typecheck` | Pass |
 | `npm run build` | Pass; routes `/`, `/_not-found`, `/icon.svg` and the dynamic `/api/generate` (the test fixture route is not built, see Q04) |
-| `npx playwright test --trace off` | 89 of 89 passed (8 November 2026, after the switch to Gemini and the generate hardening; 79 of 79 before it, after the editorial redesign) |
+| `npx playwright test --trace off` | 91 of 91 passed (8 November 2026, after the switch to Gemini, the generate hardening and the prompt rewrite; 79 of 79 before it, after the editorial redesign) |
 | `npx playwright test --trace off --repeat-each=10` | 610 of 610 passed (61 tests × 10, before the cue and `tests/sound.spec.ts` were added) |
 | `npx playwright test --trace off --repeat-each=3 tests/accessibility.spec.ts tests/environment.spec.ts tests/devmode.spec.ts tests/robustness.spec.ts tests/performance.spec.ts` (new tests) | 114 of 114 passed |
 
-Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 6, `accessibility.spec.ts` 15, `environment.spec.ts` 5, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 10, `generate-server.spec.ts` 9, `chapters.spec.ts` 10: 89 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, chapter index, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
+Test files: `button.spec.ts` 7, `controls.spec.ts` 4, `failure.spec.ts` 3, `templates.spec.ts` 6, `accessibility.spec.ts` 15, `environment.spec.ts` 5, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2, `sound.spec.ts` 1, `generate.spec.ts` 10, `generate-server.spec.ts` 11, `chapters.spec.ts` 10: 91 tests. Every spec scopes its queries to one chapter lab through `tests/lab.ts`; `chapters.spec.ts` covers the page structure (five chapters, caption line, hidden labels, sizing, chapter index, drafting rules, entrance and reveal, diagram, chapter 05). The earlier repeat-each results above predate the redesign and were not re-run.
 
 ### Visual evidence (8 November 2026)
 
