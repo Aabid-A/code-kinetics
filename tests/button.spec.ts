@@ -171,6 +171,9 @@ test("390px phone reflow, offscreen fallback, both stable endpoints", async ({ p
   await expect(lab(page).locator(".morph-button")).toBeEnabled();
   await settled(page, "code");
   await page.screenshot({ path: info.outputPath("mobile-code.png"), fullPage: true });
+  // The lab now sits below the hero. Put its toolbar low on the screen, as it was when the lab opened the page, so the
+  // stacked preview is below the fold and the offscreen fallback is what is under test.
+  await page.evaluate(() => window.scrollTo(0, document.querySelector('[data-lab="button"] .lab-toolbar')!.getBoundingClientRect().top + scrollY - 560));
   await lab(page).locator(".morph-button").click();
   await settled(page, "rendered");
   await expect(lab(page).getByText("View changed. Scroll to compare the example.")).toBeVisible();
