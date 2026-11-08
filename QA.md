@@ -4,36 +4,95 @@ Product: **Spatial DOM Transition Lab**. This is the test specification for the 
 
 ## Current results (8 November 2026)
 
-Environment: Linux 6.18.44, Node v22.23.4, Playwright 1.64.1, Chrome for Testing 153.0.8010.12 (headless), viewport 1440 × 900 unless a test sets another. Run from branch `claude/jolly-hopper-ffu1aq`. The installed Playwright browser was missing, so the suite ran with a temporary config outside the repository that set the pre-installed Chrome binary, disabled video and tracing, and otherwise reused `playwright.config.ts` (production server on 127.0.0.1:4173).
+### Test environment
+
+Linux 6.18.44, Node v22.23.4, Playwright 1.64.1, @axe-core/playwright 4.14.0, headless Chromium from the pre-installed build `/opt/pw-browsers/chromium-1243` (Chrome for Testing 153.0.8010.12), viewport 1440 × 900 and device scale 1 unless a test sets another. Branch `claude/jolly-hopper-ffu1aq`; production server on 127.0.0.1:4173 (`npm run start`), except `tests/devmode.spec.ts`, which starts its own `next dev` on 127.0.0.1:4175.
+
+This Playwright expects Chromium build 1248 and ffmpeg build 1013, neither of which is installed here. The suite therefore ran with a temporary config **outside the repository** that imports `playwright.config.ts` unchanged and overrides only two things: `launchOptions.executablePath` (the Chromium 1243 binary) and `video: "off"`, because recording video needs the missing ffmpeg 1013. **`playwright.config.ts` itself is unchanged** (it still sets `video: "on"`). **Video evidence: not run** in this environment. Tracing was off (`--trace off`) for every run.
+
+The command lines below omit that temporary config (`-c <temporary config>`); in an environment with the expected browsers, run them as written.
+
+### Commands
 
 | Command | Result |
 | --- | --- |
 | `npm run lint` | Pass |
 | `npm run typecheck` | Pass |
-| `npm run build` | Pass |
-| `npx playwright test` | 22 of 22 passed (`button.spec.ts` 7, `controls.spec.ts` 6, `failure.spec.ts` 2, `templates.spec.ts` 7) |
+| `npm run build` | Pass; routes `/`, `/_not-found`, `/icon.svg` only (the test fixture route is not built, see Q04) |
+| `npx playwright test --trace off` | 61 of 61 passed |
+| `npx playwright test --trace off --repeat-each=10` | 610 of 610 passed (61 tests × 10) |
+| `npx playwright test --trace off --repeat-each=3 tests/accessibility.spec.ts tests/environment.spec.ts tests/devmode.spec.ts tests/robustness.spec.ts tests/performance.spec.ts` (new tests) | 114 of 114 passed |
 
-Repeat-run note: before the change, the Bento "continuous forward/reverse" test failed in 4 of 11 repeat runs, each time on the assertion that a sampled frame shows the surface straddling the pane divider. The surface does straddle it (the window covers 13–26% of spring progress); a headless browser renders roughly 35–48 frames per second with gaps up to 87 ms, so samples could miss the window. The assertion now also tests the path between consecutive sampled frames, and still requires the straddle. After that change the group (Toast and Bento) was run 75 more times and 3 runs failed: one on a different sampling-dependent assertion (a frame with spring progress between 0.35 and 0.7, "midway" in `templates.spec.ts`), and two whose failing assertion was not captured, so it is unknown whether they involved the divider check. Treat this test as intermittently flaky in a headless container; the cause of the two uncaptured failures is unresolved.
+Test files: `button.spec.ts` 7, `controls.spec.ts` 6, `failure.spec.ts` 3, `templates.spec.ts` 7, `accessibility.spec.ts` 15, `environment.spec.ts` 6, `devmode.spec.ts` 2, `robustness.spec.ts` 13, `performance.spec.ts` 2: 61 tests.
 
-Automated checks cover only what is listed in each row. Everything else in the case is **not run**.
+### Intermittent failures
 
-| Case | Status | Covered by automated tests | Not run |
+Three intermittent failures were reported before this pass. Root causes found by `npx playwright test --trace off --repeat-each=10` (22 tests, 220 runs, 2 failed):
+
+1. `templates.spec.ts` › "bento: continuous forward/reverse…", assertion that some sampled frame has spring progress between 0.35 and 0.7 ("midway"). Cause: sampling, not the app. The spring spends about 59 ms in that band, and headless frames can be up to about 87 ms apart. Fixed by asserting equal progress across parts on **every** frame between 5% and 95% progress (same 0.1 tolerance).
+2. `button.spec.ts` › "desktop forward, reverse…", assertion that a sampled frame shows the surface straddling the pane divider. Same sampling cause. Fixed by testing the path between sampled frames as well (`straddlesDivider`, `tests/motion.ts`), as the template specs already did.
+3. Third failure: **not reproduced in 690 runs on Chromium 1243 headless; original failure unidentified.**
+
+After the fixes, 230 of 230 runs passed, twice.
+
+### Recorded measurements (Q09, Q11)
+
+Contrast, measured by `tests/contrast.ts` against the composited background as rendered: text and icons are recorded, hidden, the page is screenshotted, and each foreground colour is composited over every background pixel under it; the worst pixel is reported. Large text is ≥ 24 px, or ≥ 18.66 px at weight ≥ 700. Indicators are icons, the checked View marker and the focus ring (3:1). A control check, `#777` on `#888`, measures 1.26:1, matching the WCAG formula. Command: `npx playwright test --trace off tests/accessibility.spec.ts --reporter=json` (attachments `contrast.json`, `forced-colors-contrast.json`).
+
+| State | Text (≥ 4.5:1): lowest | Large text (≥ 3:1): lowest | Indicators (≥ 3:1): lowest |
 | --- | --- | --- | --- |
-| Q01 Initial load | Partial | Server-rendered Button source, disabled Morph and the no-JS notice; initial state value; every test fails on console errors or hydration messages | Reload after changing state, blocked storage, development Strict Mode |
-| Q02 State contract | Partial | Initial state; Morph twice restores; same-view no-op; Select template and Toggle sound over all 12 states | Invalid-input diagnostic; stale callback and audio-result assertions |
-| Q03 Controls | Partial | Example listbox ARIA attributes, open/navigate/typeahead/commit/cancel/Tab/outside-click, options not in Tab order; View radiogroup roving tabindex, arrows with wrap, Home/End, Space/Enter, click; Sound pill name, `aria-pressed`, Enter/Space; 44 px targets at 1440 and 390 px; popup inside the viewport; no native select or radio inputs | Full page Tab-order walk with the disclosure, status-text consistency, screen-reader announcements, forced colors |
-| Q04 Content and identity | Partial | 3/4/10 parts; exact sources; one owner per identity in each settled state | Two-instance isolation fixture |
-| Q05 Continuous movement | Partial | Sampled geometry for Button, Toast and Bento: travel, hit-testing, unscaled text and icons, reverse, interruption | Filmstrips and recordings review, 1 px endpoint comparison at all states, contrast over both grounds |
-| Q06 Responsive layout | Partial | 1440, 1024, 390 and 320 px: no horizontal overflow; 390 px offscreen fallback; stacked vertical travel; Bento 360 px threshold | 960/959, 768, 844 × 390, 200%/400% zoom, forced colors |
-| Q07 Rapid input | Partial | Morph × 6 at 100 ms and 30 ms spacing; radiogroup sequence; template selection (keyboard and pointer) cancels flights; selection and Morph in the same tick | The other sequences in the table; the two-second stale-state check |
-| Q08 Environment changes | Partial | Resize, scroll and reduced-motion toggle during flight | Orientation, zoom, tab hiding, unmount and Strict Mode cleanup |
-| Q09 Accessibility | Partial | Reduced motion removes transforms for all templates | Automated accessibility scan, screen readers, contrast measurement, forced colors, keyboard walk-through |
-| Q10 Sound | Partial | Missing asset: one visible and announced "Sound unavailable", preference kept, silent morph, retry only after off then on | Any audible cue (no asset exists), autoplay policy, real mobile browsers, rapid reversal and playback-stop rows, listening review |
-| Q11 Performance | Not run | None | Bundle size, frame timing, interaction latency, CLS, node and listener growth |
-| Q12 Failure and scope | Partial | JavaScript disabled; injected effect exception shows the error fallback and reload button | Audio blocked only, invalid registry, offline, dependency and source review for excluded capabilities |
-| Educational usability | Not run | None | Whole check |
+| Button / code | 5.70:1, `button.morph-button` "Morph to component" (38) | 18.61:1, `h1` | 6.30:1, Morph button icon (9) |
+| Button / rendered | 5.33:1, `button.morph-button` "Morph to code" (38) | 18.61:1, `h1` | 5.67:1, Morph button icon (10) |
+| Toast / code | 5.70:1, `button.morph-button` (42) | 18.61:1, `h1` | 6.30:1, Morph button icon (9) |
+| Toast / rendered | 5.33:1, `button.morph-button` (43) | 18.61:1, `h1` | 5.67:1, Morph button icon (10) |
+| Bento / code | 5.70:1, `button.morph-button` (71) | 18.61:1, `h1` | 6.30:1, Morph button icon (9) |
+| Bento / rendered | 5.33:1, `button.morph-button` (75) | 17.79:1, Bento metric value "12" | 5.67:1, Morph button icon (10) |
+| Forced colors, Toast / code | 8.45:1, `.identity p` (42) | 21:1, `h1` | 8.73:1, checked View marker (9) |
+| Forced colors, Toast / rendered | 8.45:1, `.identity p` (43) | 21:1, `h1` | 8.73:1, checked View marker (10) |
 
-Browser and device coverage: Chromium-family only. Firefox, Safari/WebKit, real iOS and Android devices, VoiceOver and NVDA: **not run**. Audio provenance and listening review: **not run** (no asset).
+Numbers in brackets are how many items of that kind were measured in the state.
+
+No measured ratio is below 4.5:1 for text or 3:1 for large text and indicators. Not measured: hover and pressed states, the open Example listbox, and mid-flight frames.
+
+Bundle and frame timing: **recorded, no budget set.** Command: `npx playwright test --trace off tests/performance.spec.ts --reporter=json` (annotations and attachments `scripts.json`, `frame-timing.json`).
+
+| Measurement | Final run (`--reporter=json`, whole suite) | Earlier sample (`tests/performance.spec.ts` alone) |
+| --- | --- | --- |
+| Initial route JavaScript | 6 scripts, 604.8 KiB raw, 184.0 KiB gzip | Same |
+| Frame intervals over 10 morphs | 318 frames; median 33.3 ms, p95 49.9 ms, max 50.1 ms; 34.3% ≤ 20 ms | 329 frames; median 33.3 ms, p95 33.4 ms, max 50.1 ms; 36.5% ≤ 20 ms |
+| Long tasks during the morphs | 0 | 0 |
+| Click to first visible change | median 116.1 ms, max 132.8 ms | median 66.2 ms, max 132.7 ms |
+
+The headless browser renders at about 30 frames per second here, so the frame and latency numbers describe this container, not the product.
+
+These are headless software-rendered numbers on a shared container, not the reference laptop or phone that Q11 requires. Initial JavaScript gzip is computed with Node zlib's default level over the script responses of the first load.
+
+### Case status
+
+"Pass" means the automated checks in "Covered" passed with the evidence command. Everything in the "Not run" column is not run. No case is complete until its "Not run" column is empty.
+
+| Case | Automated status | Covered | Evidence command | Not run |
+| --- | --- | --- | --- | --- |
+| Q01 Initial load | Pass | Server-rendered source, disabled controls and no-JS notice; default state; no console errors or hydration messages in any test; blocked storage (every storage API throws): loads, works, and reload returns the exact default state; development Strict Mode | `npx playwright test --trace off tests/button.spec.ts tests/robustness.spec.ts tests/devmode.spec.ts` | Real browsers other than Chromium |
+| Q02 State contract | Pass | Initial state; Morph twice restores; same-view no-op; Select template and Toggle sound over all 12 states | `npx playwright test --trace off tests/button.spec.ts tests/templates.spec.ts` | Invalid-input diagnostic; stale callback and audio-result assertions in unit form |
+| Q03 Controls | Pass | Listbox, radiogroup and Sound pill keyboard and pointer contracts; 44 px targets; no native select or radio; Tab order (Example, Sound, Morph, checked View radio, disclosure) identical at 960 and 959 px; selector, radio, Morph label, endpoint and status message agree after every Q07 sequence; forced-colors checked marker and focus outline | `npx playwright test --trace off tests/controls.spec.ts tests/environment.spec.ts tests/robustness.spec.ts tests/accessibility.spec.ts` | Screen-reader announcements; manual keyboard walk-through |
+| Q04 Content and identity | Pass | 3/4/10 parts, exact sources, one owner per identity; registry invariant failure is contained; two lab instances on one page: morphing or changing one never moves or changes the other (fixture `src/app/fixtures/two-labs/page.fixture.tsx`, routed only in the dev-mode test server) | `npx playwright test --trace off tests/templates.spec.ts tests/failure.spec.ts tests/devmode.spec.ts` | None |
+| Q05 Continuous movement | Pass | Sampled geometry for all templates: travel, hit-testing, unscaled text and icons, reverse, interruption | `npx playwright test --trace off tests/button.spec.ts tests/templates.spec.ts` | Filmstrips and video review (video off, see environment); contrast during transit over both grounds |
+| Q06 Responsive layout | Pass | 1440, 1024, 960 (split), 959 (stacked), 768 × 1024, 390, 320 and 844 × 390: no horizontal overflow, one layout tree, source before preview; 768 × 1024 travels for Button and Toast and shows the compare notice for Bento (its preview does not fit); 844 × 390 shows the compare notice for all three, with no automatic scroll; 200% zoom (1440 × 900 at 200%, emulated as a 720 × 450 CSS viewport at device scale 2): no overflow, no truncated control, all controls reachable; Bento 360 px threshold | `npx playwright test --trace off tests/environment.spec.ts tests/templates.spec.ts tests/button.spec.ts` | 400% zoom; real browser zoom and text-only enlargement; forced colors at small widths |
+| Q07 Rapid input | Pass | Every sequence in the Q07 table at 100 ms and 30 ms spacing with real browser events: final state after settling and again after 2 s; one owner per identity; live region ends on the latest view, at most one message per input | `npx playwright test --trace off tests/robustness.spec.ts tests/button.spec.ts tests/templates.spec.ts` | Late sounds (no audio asset) |
+| Q08 Environment changes | Pass | During a flight: resize, scroll and reduced-motion change; orientation change (CDP screen orientation, portrait to landscape); tab hiding, **simulated** (headless Chromium never reports a hidden tab, so `visibilityState` is overridden and a real `visibilitychange` event dispatched). All settle at the new geometry, keep the latest state and focus, and do not resume old motion. Strict Mode: one live observer and listener set per lab after the extra mount | `npx playwright test --trace off tests/environment.spec.ts tests/button.spec.ts tests/devmode.spec.ts` | Zoom during flight; a real hidden tab; audio stopping on hide (no asset); unmount during motion or a pending play promise |
+| Q09 Accessibility | Pass | axe (@axe-core/playwright 4.14.0, default rules) in all six settled states: 0 violations. axe "needs review" items: `aria-valid-attr-value` on the Example trigger (axe cannot confirm an `aria-controls` target behind `aria-haspopup`; the target exists, checked in `controls.spec.ts`) and `color-contrast` over gradients (measured separately, all pass). Contrast as recorded above; forced colors (emulated `forced-colors: active`): system colours, checked marker, borders, piece outlines, focus outline, contrast; reduced motion removes transforms | `npx playwright test --trace off tests/accessibility.spec.ts tests/templates.spec.ts` | VoiceOver, NVDA; manual semantic review; axe with the listbox open; real Windows High Contrast; reduced transparency |
+| Q10 Sound | Pass | Missing asset: one visible and announced "Sound unavailable", preference kept, silent morph, retry only after off then on | `npx playwright test --trace off tests/failure.spec.ts` | Any audible cue and every row needing one (no asset exists); autoplay policy; real mobile browsers; listening review |
+| Q11 Performance | Recorded, no budget set | Initial JavaScript size and a 10-morph frame-timing sample, as recorded above | `npx playwright test --trace off tests/performance.spec.ts --reporter=json` | Budget evaluation on the reference laptop and phone; CLS; interaction latency on reference hardware; node and listener growth over 100 morphs; throttled CPU; morph network requests |
+| Q12 Failure and scope | Pass | JavaScript disabled; asset 404 (audio blocked) keeps everything else working; injected effect exception and an invalid registry both show the contained error message and reload button | `npx playwright test --trace off tests/failure.spec.ts tests/button.spec.ts` | Offline after load; reload returning default after the error fallback; dependency and source review for excluded capabilities |
+| Educational usability | Not run | None | None | Whole check |
+
+Browser and device coverage: Chromium only. Firefox, Safari/WebKit, real iOS and Android devices, VoiceOver and NVDA: **not run**. Audio provenance and listening review: **not run** (no asset).
+
+### Defects fixed in this pass
+
+- Sound pill (`label-content-name-mismatch`, serious, all six states): the accessible name "Sound" came from `aria-label` and did not include the visible "Sound off/on", breaking voice control (WCAG 2.5.3). The name is now the visible word "Sound"; the state word is hidden from assistive technology, and `aria-pressed` carries the state. SPEC R03's stable name "Sound" is kept.
+- Forced colors: mapped pieces were sized to their text, so their 1 px forced-colors border overlapped the last glyph. They now use a 1 px outline with a 1 px offset, which takes no layout space.
 
 ## Release standard
 
