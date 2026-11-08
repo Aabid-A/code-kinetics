@@ -1,8 +1,7 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { morphSpring } from "@/lib/lab/button";
-import { partFor, type PartKey } from "@/lib/lab/templates";
-import type { TemplateId } from "@/lib/lab/types";
+import { partFor, type PartKey, type TemplateDefinition } from "@/lib/lab/templates";
 
 export type MotionRun = {
   generation: number;
@@ -11,12 +10,13 @@ export type MotionRun = {
   travelling: boolean;
   offscreen: boolean;
 };
-export type PartMotion = { templateId?: TemplateId; run: MotionRun; onComplete: (part: PartKey, generation: number) => void };
+export type PartMotion = { template: TemplateDefinition; run: MotionRun; onComplete: (part: PartKey, generation: number) => void };
 
-export function SharedPart({ part, endpoint, children, run, onComplete, templateId = "button" }: PartMotion & {
+export function SharedPart({ part, endpoint, children, run, onComplete, template }: PartMotion & {
   part: PartKey; endpoint: "code" | "rendered"; children?: ReactNode;
 }) {
-  const { kind } = partFor(templateId, part);
+  const templateId = template.id;
+  const { kind } = partFor(template, part);
   const surface = kind === "surface";
   const identity = `${templateId}:${part}`;
   return <motion.span

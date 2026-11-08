@@ -240,6 +240,18 @@ summary::marker { color: #aca3bb; }
 .toast-description, .feature-description, .metric-label, .status-description { font-size: 14px; line-height: 22px; font-weight: 400; }
 .toast-description .shared-part:not([data-travelling]), .feature-description .shared-part:not([data-travelling]), .metric-label .shared-part:not([data-travelling]), .status-description .shared-part:not([data-travelling]) { color: #a3a3b3; }
 .toast-icon .card-icon-art { color: #86efac; background: rgb(34 197 94 / .1); border-radius: 50%; }
+.custom-template { display: grid; gap: 12px; width: 100%; max-width: 460px; }
+.custom-template[data-layout="single"] { max-width: 360px; }
+.custom-template[data-layout="row"] { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.custom-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; min-width: 0; min-height: 112px; padding: 16px; }
+.custom-card .preview-text-slot { width: 100%; }
+.custom-icon { margin-bottom: 6px; }
+.custom-icon .card-icon-art { color: #c4b5fd; }
+.text-title { font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -.02em; }
+.text-body, .text-label { font-size: 14px; line-height: 22px; font-weight: 400; }
+.text-label { font-size: 12px; line-height: 18px; text-transform: none; }
+.text-metric { font-size: 32px; line-height: 38px; font-weight: 650; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.text-body .shared-part:not([data-travelling]), .text-label .shared-part:not([data-travelling]) { color: #a3a3b3; }
 .bento-template { min-height: 260px; }
 .bento-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; padding: 16px; }
 .bento-card .preview-text-slot { width: 100%; }
@@ -319,3 +331,27 @@ summary::marker { color: #aca3bb; }
 .lab-error { display: grid; gap: 16px; justify-items: start; max-width: 480px; margin: 20vh auto 0; padding: 0 32px; }
 .lab-error p { margin: 0; font-size: 16px; line-height: 24px; }
 .lab-error button { padding: 0 16px; border: 1px solid var(--control-edge); border-radius: 8px; background: rgb(255 255 255 / .035); color: var(--color-ink); }
+
+/* "Try your own": optional generation add-on below the lab (custom controls; glass pill input). */
+.try-own { display: grid; gap: 8px; margin-top: 24px; padding: 20px 24px; border: 1px solid var(--material-edge); border-radius: 24px; background: rgb(255 255 255 / .03); box-shadow: inset 0 1px 0 rgb(255 255 255 / .06); }
+.try-own h2 { margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -.02em; }
+.try-own-intro { margin: 0; color: var(--color-muted); font-size: 14px; line-height: 22px; }
+.prompt-bar { display: grid; gap: 8px; margin-top: 8px; }
+.prompt-label { color: var(--color-muted); font-size: 12px; line-height: 18px; }
+.prompt-row { display: flex; gap: 12px; align-items: center; }
+.prompt-input { flex: 1; min-width: 0; min-height: 44px; padding: 0 20px; border: 1px solid var(--control-edge); border-radius: 9999px; background: rgb(255 255 255 / .04); color: var(--color-ink); font: inherit; box-shadow: 0 0 16px rgb(124 58 237 / .10); transition: background-color 100ms, border-color 100ms; }
+.prompt-input:enabled:hover { background: rgb(255 255 255 / .07); border-color: #888291; }
+.prompt-input::placeholder { color: #9a96a6; }
+.prompt-input:disabled { border-color: #494650; color: #a3a3b3; box-shadow: none; }
+.prompt-input[aria-invalid="true"] { border-color: #fca5a5; }
+.prompt-count { margin: 0; color: var(--color-muted); font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums; }
+.prompt-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+.prompt-suggestion { font-size: 13px; }
+.prompt-status { min-height: 22px; margin: 0; color: var(--color-muted); font-size: 14px; line-height: 22px; }
+.prompt-status[data-failed] { color: #fca5a5; }
+@media (max-width: 639px) { .try-own { padding: 16px; border-radius: 20px; } .prompt-row { flex-direction: column; align-items: stretch; } }
+@media (forced-colors: active) {
+  .try-own { border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .prompt-input { border-color: ButtonText; background: Field; color: FieldText; box-shadow: none; }
+  .prompt-status[data-failed] { color: CanvasText; }
+}

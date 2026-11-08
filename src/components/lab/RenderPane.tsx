@@ -1,15 +1,16 @@
 import type { RefObject } from "react";
-import { templates } from "@/lib/lab/templates";
 import type { ViewMode } from "@/lib/lab/types";
 import { ButtonTemplate } from "./ButtonTemplate";
 import { ToastTemplate } from "./ToastTemplate";
 import { BentoTemplate } from "./BentoTemplate";
+import { CustomTemplate } from "./CustomTemplate";
 import type { PartMotion } from "./SharedPart";
 
-export function RenderPane({ mode, contentRef, templateId = "button", ...motion }: PartMotion & {
+export function RenderPane({ mode, contentRef, ...motion }: PartMotion & {
   mode: ViewMode; contentRef: RefObject<HTMLDivElement | null>;
 }) {
-  const template = templates[templateId];
+  const { template } = motion;
+  const templateId = template.id;
   return <section className="render-pane pane" aria-labelledby="preview-heading" data-view-mode={mode}>
     <div className="pane-ground render-ground" aria-hidden="true" />
     <h2 id="preview-heading" className="preview-heading">Component preview</h2>
@@ -20,7 +21,8 @@ export function RenderPane({ mode, contentRef, templateId = "button", ...motion 
           aria-label={mode === "rendered" ? template.description : undefined}>
           {templateId === "button" ? <ButtonTemplate active={mode === "rendered"} {...motion} />
             : templateId === "toast" ? <ToastTemplate active={mode === "rendered"} {...motion} />
-              : <BentoTemplate active={mode === "rendered"} {...motion} />}
+              : templateId === "bento" ? <BentoTemplate active={mode === "rendered"} {...motion} />
+                : <CustomTemplate active={mode === "rendered"} {...motion} />}
         </div>
         <p className="preview-instruction" data-visible={mode === "code"} aria-hidden={mode !== "code"}>
           Choose Morph to see these pieces become a component.

@@ -118,16 +118,18 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
 
   await page.getByRole("button", { name: "Morph to component" }).click();
   await page.waitForTimeout(100);
-  const beforeReversal = await box(page, '[data-part="surface"]');
-  expect(beforeReversal.x).toBeGreaterThan(start.x + 5);
-  expect(beforeReversal.x).toBeLessThan(target.x - 5);
-  // Read the first projected frame after retargeting in the same browser task.
-  const afterReversal = await page.evaluate(async () => {
+  // Read the box just before retargeting and the first projected frame after it in the same browser task. A
+  // separate Playwright call for "before" leaves a round-trip gap in which the surface keeps moving at peak speed.
+  const { beforeReversal, afterReversal } = await page.evaluate(async () => {
+    const surface = () => document.querySelector('[data-part="surface"]')!.getBoundingClientRect();
+    const before = surface();
     document.querySelector<HTMLButtonElement>(".morph-button")!.click();
     await new Promise(requestAnimationFrame);
-    const b = document.querySelector('[data-part="surface"]')!.getBoundingClientRect();
-    return { x: b.x, width: b.width };
+    const after = surface();
+    return { beforeReversal: { x: before.x, width: before.width }, afterReversal: { x: after.x, width: after.width } };
   });
+  expect(beforeReversal.x).toBeGreaterThan(start.x + 5);
+  expect(beforeReversal.x).toBeLessThan(target.x - 5);
   expect(Math.abs(afterReversal.x - beforeReversal.x)).toBeLessThan(100);
   expect(afterReversal.x).toBeGreaterThan(start.x + 5);
   await settled(page, "code");

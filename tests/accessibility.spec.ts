@@ -1,7 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { templates } from "../src/lib/lab/templates";
-import type { TemplateId, ViewMode } from "../src/lib/lab/types";
+import type { TemplateId as AnyTemplateId, ViewMode } from "../src/lib/lab/types";
+
+type TemplateId = Exclude<AnyTemplateId, "custom">; // the fixed examples
 import { measureContrast, type ContrastSample } from "./contrast";
 
 const browserErrors = new WeakMap<Page, string[]>();

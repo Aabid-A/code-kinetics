@@ -3,7 +3,7 @@ import type { PartMotion } from "./SharedPart";
 import { DestinationPart } from "./TemplatePart";
 
 export function ToastTemplate({ active, ...motion }: PartMotion & { active: boolean }) {
-  const props = { ...motion, active, templateId: "toast" as const };
+  const props = { ...motion, active };
   return <div className="toast-template" aria-hidden="true" data-destination="toast">
     <div className="preview-card-glass" data-active={active} />
     <span className="destination-surface" data-destination-slot="surface"><DestinationPart part="surface" {...props} /></span>

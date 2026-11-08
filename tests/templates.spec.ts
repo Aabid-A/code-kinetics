@@ -3,7 +3,8 @@ import { sourceFor, templates, validateTemplate, type PartKey } from "../src/lib
 import { transition, type AppState, type TemplateId, type ViewMode } from "../src/lib/lab/types";
 import { straddlesDivider, type Box } from "./motion";
 
-const ids: TemplateId[] = ["button", "toast", "bento"];
+type BuiltIn = Exclude<TemplateId, "custom">;
+const ids: BuiltIn[] = ["button", "toast", "bento"];
 const expectedSources = {
   toast: "<Toast>\n  <CircleCheck />\n  <Title>Changes saved</Title>\n  <Description>\n    Your workspace is up to date.\n  </Description>\n</Toast>",
   bento: "<Bento>\n  <Feature icon={<Layers />}>\n    <Title>Build in layers</Title>\n    <Text>Small pieces. One interface.</Text>\n  </Feature>\n  <Metric>\n    <Value>12</Value>\n    <Label>Components</Label>\n  </Metric>\n  <Status>\n    <Title>Ready to ship</Title>\n    <Text>All pieces in place.</Text>\n  </Status>\n</Bento>",
@@ -17,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
 
-async function settled(page: Page, id: TemplateId, mode: ViewMode) {
+async function settled(page: Page, id: BuiltIn, mode: ViewMode) {
   await expect(page.locator("main")).toHaveAttribute("data-template", id);
   await expect(page.locator("main")).toHaveAttribute("data-view-mode", mode);
   await expect(page.locator(".lab-stage")).toHaveAttribute("data-travelling", "false");
@@ -34,7 +35,7 @@ async function settled(page: Page, id: TemplateId, mode: ViewMode) {
 const labels = { button: "Button", toast: "Toast", bento: "Bento" } as const;
 const exampleTrigger = (page: Page) => page.getByRole("button", { name: /^Example:/ });
 
-async function choose(page: Page, id: TemplateId) {
+async function choose(page: Page, id: BuiltIn) {
   await exampleTrigger(page).click();
   await page.getByRole("option", { name: labels[id], exact: true }).click();
   await settled(page, id, "code");

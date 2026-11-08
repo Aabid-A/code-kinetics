@@ -194,9 +194,13 @@ Playback may be rejected by browser policy and must not block interaction. [HTML
 
 Provenance of `public/audio/morph.mp3`: Synthesised by scripts/make-morph-cue.sh; no third-party audio; owned by the project. The script uses only the system ffmpeg (a band-passed noise burst with a fixed seed, plus a soft downward sine blip; 2 ms attack, exponential decay, 15 ms fade-out) and is deterministic: rerunning it writes identical bytes. Measured values are in [QA.md](QA.md) Q10. Do not fetch stock audio at runtime. A listening review is still required before release ([RELEASE.md](RELEASE.md) A1).
 
+## Generated examples
+
+`src/lib/lab/generated.ts` defines `GeneratedSpec`, its JSON Schema (`specSchema`), `parseSpec` (validates and sanitizes untrusted input) and `buildTemplate` (spec to `TemplateDefinition`: code lines, tokens and parts with keys `c{card}.surface|icon|t{n}`). The result is the template id `custom`, rendered by `CustomTemplate` and the same `SharedPart` identities as the built-ins; components receive the active `TemplateDefinition` through `PartMotion.template` rather than looking it up globally. `LOAD_GENERATED` always resets to code mode and settles like a template change. `/api/generate` calls Claude with `output_config.format` set to the schema and runs `parseSpec` before responding; the client runs `parseSpec`, `buildTemplate` and `validateTemplate` again before rendering.
+
 ## Security, privacy, and content handling
 
-All content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
+Generated specs are data only: text goes through React text nodes, icons come from a fixed allowlist, and element names are reduced to PascalCase identifiers. The API key stays on the server. All other content is local, typed, fixed, and rendered through React text nodes. No `dangerouslySetInnerHTML`, `eval`, `new Function`, JSX evaluation, user-provided imports, or runtime code compilation. No user content, accounts, cookies, localStorage, telemetry, or permissions are needed. A normal hosting security baseline applies; do not introduce a sandbox service for code that is never executed.
 
 ## Performance and delivery
 

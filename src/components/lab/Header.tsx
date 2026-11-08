@@ -2,16 +2,18 @@ import { ArrowRightLeft, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import type { TemplateId, ViewMode } from "@/lib/lab/types";
 
-const examples = [
+const fixedExamples: readonly { id: TemplateId; label: string }[] = [
   { id: "button", label: "Button" }, { id: "toast", label: "Toast" }, { id: "bento", label: "Bento" },
-] as const satisfies readonly { id: TemplateId; label: string }[];
+];
 
 // Custom single-select listbox. The popup is a focusable listbox that uses aria-activedescendant; options
 // have no Tab stops. Open/active state is local UI state and never part of AppState. Navigating does not
-// commit; only Enter, Space or a pointer click on an option dispatches the selection.
-export function TemplateSelector({ ready, templateId, onSelect }: {
-  ready: boolean; templateId: TemplateId; onSelect: (id: TemplateId) => void;
+// commit; only Enter, Space or a pointer click on an option dispatches the selection. After a successful
+// generation, the generated example is one more option in the same list, with the same contract.
+export function TemplateSelector({ ready, templateId, onSelect, generatedLabel }: {
+  ready: boolean; templateId: TemplateId; onSelect: (id: TemplateId) => void; generatedLabel?: string;
 }) {
+  const examples = generatedLabel ? [...fixedExamples, { id: "custom" as const, label: `${generatedLabel} (generated)` }] : fixedExamples;
   const base = useId();
   const listId = `${base}-list`;
   const optionId = (index: number) => `${base}-option-${index}`;
@@ -92,7 +94,7 @@ export function MorphButton({ mode, ready, onMorph }: { mode: ViewMode; ready: b
 }
 
 export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => void;
-  templateId: TemplateId; onSelect: (id: TemplateId) => void;
+  templateId: TemplateId; onSelect: (id: TemplateId) => void; generatedLabel?: string;
   soundEnabled: boolean; soundUnavailable: boolean; onToggleSound: () => void;
 }) {
   return <header className="lab-header">
@@ -101,7 +103,7 @@ export function Header(props: { mode: ViewMode; ready: boolean; onMorph: () => v
       <p>Code-to-Component Morph Engine</p>
     </div>
     <div className="header-controls">
-      <TemplateSelector ready={props.ready} templateId={props.templateId} onSelect={props.onSelect} />
+      <TemplateSelector ready={props.ready} templateId={props.templateId} onSelect={props.onSelect} generatedLabel={props.generatedLabel} />
       <SoundButton enabled={props.soundEnabled} ready={props.ready} onToggle={props.onToggleSound} />
       {props.soundEnabled && props.soundUnavailable ? <span className="sound-note">Sound unavailable</span> : null}
       <MorphButton {...props} />
