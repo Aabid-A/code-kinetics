@@ -25,7 +25,7 @@ This is visual correspondence between predefined elements. The app does not comp
 
 ## The page
 
-One page, one idea per section: an opening statement, then chapters 01–05, then a quiet footer. Chapters 01–03 each hold their own lab, locked to one template; 04 explains the matching-names idea with one diagram; 05 hosts the optional generate feature, whose lab appears after a successful generation. A contents line under the opening links the five chapters, and the footer explains the project in two sentences. The visual system (paper, ink, one teal accent, Instrument Serif for titles) is in [DESIGN.md](DESIGN.md).
+One page, one idea per section: an opening statement, then chapters 01–06, then a quiet footer. Chapters 01–03 each hold their own lab, locked to one template; 04 shows the same technique in a familiar interface, a card that opens into a page; 05 explains the matching-names idea with one diagram; 06 hosts the optional generate feature, whose lab appears after a successful generation. A contents line under the opening links the six chapters, and the footer explains the project in two sentences. The visual system (paper, ink, one teal accent, Instrument Serif for titles) is in [DESIGN.md](DESIGN.md).
 
 ## Template examples
 
@@ -57,7 +57,7 @@ npm run serve
 
 Then open http://localhost:3000. For development with live reload, use `npm run dev` instead.
 
-Open the URL that either command prints (Next.js uses port 3000 unless it is taken). The page is a short narrative with five chapters (Button, Toast, Bento, How it knows, Try your own). In any chapter, activate **Morph to component**; activate **Morph to code** to reverse it. Sound is one preference in the top bar.
+Open the URL that either command prints (Next.js uses port 3000 unless it is taken). The page is a short narrative with six chapters (Button, Toast, Bento, Card to page, How it knows, Try your own). In any chapter, activate **Morph to component**; activate **Morph to code** to reverse it. Sound is one preference in the top bar.
 
 The optional "Try your own" chapter needs a Google Gemini API key. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY` there (never in code or commits; `.env.local` is git-ignored). In production, set it in the host's environment settings instead. Without a key, that chapter says generation is not configured and everything else works. It uses `gemini-3.5-flash-lite` by default for speed; if generation is slow or fails, run `node scripts/gemini-check.mjs` to time the network and the model with your key.
 
@@ -93,8 +93,8 @@ Reduced motion commits directly to the requested endpoint without spatial travel
 
 ## Project status and scope
 
-All three visual templates and the controls described above are implemented. The 92-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
+All three visual templates and the controls described above are implemented. The 98-test Playwright suite passed on 8 November 2026 in Chrome for Testing `153.0.8010.12` (headless, Linux); see [QA.md](QA.md) for the commands, the per-file counts and what is not verified.
 
 Native audio lifecycle and Sound on / Sound off controls are implemented. Audio defaults off, loads on enablement, and plays only on a mode-changing Morph activation when ready. Mute, template changes, page hiding, and unmounting stop playback; if the cue cannot load, is unsupported or `play()` is rejected, the morph keeps working silently, the preference stays on, and "Sound unavailable" is shown and announced once; turning Sound off and on again retries. The cue, `public/audio/morph.mp3`, is synthesised by `scripts/make-morph-cue.sh` with the system ffmpeg (no third-party audio; rerun the script to regenerate identical bytes). **Its listening review on headphones and speakers is not done.**
 
-The three chapter examples are fixed and authored in advance. The optional chapter 05 asks Google Gemini for a small declarative spec, validated on the server and in the browser and drawn by the same renderer; it never produces or runs code, and it is rate-limited and off without a key (SPEC R13). There is no code editor, parser, runtime compilation, arbitrary code execution, persistence, authentication, or analytics, and `/api/generate` is the only server route. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).
+The three chapter examples are fixed and authored in advance. The optional chapter 06 asks Google Gemini for a small declarative spec, validated on the server and in the browser and drawn by the same renderer; it never produces or runs code, and it is rate-limited and off without a key (SPEC R13). There is no code editor, parser, runtime compilation, arbitrary code execution, persistence, authentication, or analytics, and `/api/generate` is the only server route. Product contracts and the broader acceptance matrix are recorded in [PRODUCT.md](PRODUCT.md), [SPEC.md](SPEC.md), [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [QA.md](QA.md).

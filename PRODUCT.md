@@ -67,7 +67,7 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 
 ### Version 1
 
-- One route with five chapters; one lab per fixed template (Button, Toast, Bento), two modes each, plus an optional generate chapter.
+- One route with six chapters; one lab per fixed template (Button, Toast, Bento), two modes each; a card-to-page chapter showing the technique in a familiar interface; a diagram; and an optional generate chapter.
 - A top bar with the wordmark and one page-level sound toggle; a direction-aware Morph action in each lab.
 - A Code / Component mode control synchronized with the Morph action.
 - Persistent code and render panes, responsive stacking on narrow screens.
@@ -79,7 +79,7 @@ No sign-in, onboarding modal, auto-play, or audio is required. Both panes remain
 
 ### Excluded
 
-Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation beyond the optional chapter 05 generator, custom template files, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs other than the single `/api/generate` route, payments, collaboration, WebGL, and a generalized morph SDK.
+Code editing, arbitrary pasted source, parsing JSX, compilation, `eval`, dynamic module execution, AI generation beyond the optional chapter 06 generator, custom template files, file imports, draggable panes, pan/zoom, motion timeline editing, playback speed controls, recording/export, accounts, persistence, analytics services, remote data, backend APIs other than the single `/api/generate` route, payments, collaboration, WebGL, and a generalized morph SDK.
 
 Do not add these as inactive controls. A native explanatory disclosure is sufficient; this is not a full documentation portal.
 

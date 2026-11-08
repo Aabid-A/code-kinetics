@@ -32,7 +32,7 @@ Exact versions are pinned in `package.json` and `package-lock.json`, and listed 
 ```text
 src/app/
   layout.tsx                  # Metadata, language, Geist fonts (geist package), Instrument Serif (next/font/google), global CSS
-  page.tsx                    # LabErrorBoundary > SoundProvider > top bar, opening, chapter index, chapters 01–05, footer
+  page.tsx                    # LabErrorBoundary > SoundProvider > top bar, opening, contents line, chapters 01–06, footer
   globals.css                 # Tailwind import, tokens, layout and component rules
   fixtures/two-labs/          # Test-only route (LAB_FIXTURES=1): two lab instances on one page
 src/components/site/
@@ -42,13 +42,14 @@ src/components/site/
   Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
   ChapterIndex.tsx            # Contents: five labelled anchor links in the page flow under the opening
   Reveal.tsx                  # One-time reveal for text below the first screen
-  Diagram.tsx                 # Chapter 04: two inline SVG drawings and the text equivalent
+  CardToPage.tsx              # Chapter 04: three project cards that open into a page through shared identities
+  Diagram.tsx                 # Chapter 05: two inline SVG drawings and the text equivalent
   Footer.tsx                  # About this lab, disclaimer, generation note and credits
   icon.svg                    # App icon (App Router convention)
 src/components/lab/
   Lab.tsx                     # One lab instance locked to a template (prop): state, commands, motion runs,
                               #   View control and Morph, status announcements, caption line and disclosure
-  TryOwn.tsx                  # Chapter 05: prompt plus the generated lab (a fresh Lab per generation)
+  TryOwn.tsx                  # Chapter 06: prompt plus the generated lab (a fresh Lab per generation)
   PromptBar.tsx               # The generate form (unchanged behaviour)
   CustomTemplate.tsx          # Destination for generated examples
   LabErrorBoundary.tsx        # Contains render/effect exceptions; reload fallback (R11)
