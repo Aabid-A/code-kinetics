@@ -44,3 +44,23 @@ test("an exception in the lab shows the contained error message and a reload but
   expect(logged.some(entry => entry.includes("injected failure"))).toBe(true);
   await Promise.all([page.waitForEvent("load"), reload.click()]);
 });
+
+test("a template registry invariant failure is contained by the lab error boundary", async ({ page }) => {
+  const logged: string[] = [];
+  page.on("console", message => { if (message.type() === "error") logged.push(message.text()); });
+  // Ship a corrupted registry: give one Toast token a duplicate id, so validateTemplate throws when the module loads.
+  let corrupted = 0;
+  await page.route(/\/_next\/static\/chunks\/.*\.js$/, async route => {
+    const response = await route.fetch();
+    const body = await response.text();
+    if (!body.includes('"toast-icon-end"')) return route.fulfill({ response, body });
+    corrupted++;
+    await route.fulfill({ response, body: body.replace('"toast-icon-end"', '"toast-icon-open"') });
+  });
+  await page.goto("/");
+  await expect(page.locator("main.lab-error")).toContainText("This example could not be displayed. Reload the lab.");
+  await expect(page.getByRole("button", { name: "Reload the lab" })).toBeVisible();
+  await expect(page.locator(".morph-button")).toHaveCount(0);
+  expect(corrupted).toBe(1);
+  expect(logged.some(entry => entry.includes("Invalid authored mapping for toast"))).toBe(true);
+});

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { sourceFor, templates, validateTemplate, type PartKey } from "../src/lib/lab/templates";
 import { transition, type AppState, type TemplateId, type ViewMode } from "../src/lib/lab/types";
+import { straddlesDivider, type Box } from "./motion";
 
 const ids: TemplateId[] = ["button", "toast", "bento"];
 const expectedSources = {
@@ -70,31 +71,6 @@ test("selection resets only a different template and preserves same-template mod
     expect(transition(transition(state, { type: "MORPH" }), { type: "MORPH" })).toEqual(state);
   }
 });
-
-type Box = { x: number; y: number; width: number; height: number };
-
-// A surface straddles the divider while its left edge is left of it and its right edge is right of it.
-// Layout projection moves both edges linearly with one progress value, so the path between two sampled
-// frames is a straight line in (left, right) space. Testing that line, as well as the frames themselves,
-// keeps the assertion strict (the surface must really straddle) without depending on a sample landing in
-// a window that can last under one frame on a slow machine.
-function straddlesDivider(frames: Box[], divider: number) {
-  const inside = (left: number, right: number) => left < divider && right > divider;
-  return frames.some((frame, index) => {
-    if (inside(frame.x, frame.x + frame.width)) return true;
-    const previous = frames[index - 1];
-    if (!previous) return false;
-    const [x0, r0, x1, r1] = [previous.x, previous.x + previous.width, frame.x, frame.x + frame.width];
-    let low = 0, high = 1;
-    for (const [start, end, wantBelow] of [[x0, x1, true], [r0, r1, false]] as const) {
-      const delta = end - start;
-      if (delta === 0) { if ((start < divider) !== wantBelow) return false; continue; }
-      const at = (divider - start) / delta; // progress where this edge meets the divider
-      if ((delta > 0) === wantBelow) high = Math.min(high, at); else low = Math.max(low, at);
-    }
-    return low < high;
-  });
-}
 type PartFrame = Box & { key: PartKey; hit: boolean; glyphWidth: number; glyphHeight: number; svgWidth?: number; svgHeight?: number };
 
 for (const id of ["toast", "bento"] as const) {
@@ -155,21 +131,16 @@ for (const id of ["toast", "bento"] as const) {
       expect(Math.abs(slot!.y - target.y)).toBeLessThan(1);
     }
     // Equal spring progress preserves the authored hierarchy without nesting
-    // text or icons under a scale-projecting surface.
-    const midway = forward.find(frame => {
-      const first = frame.parts[0];
-      const a = origins.find(entry => entry.key === first.key)!;
-      const b = destinations.find(entry => entry.key === first.key)!;
-      const progress = (first.x - a.x) / (b.x - a.x);
-      return progress > .35 && progress < .7;
-    })!;
-    expect(midway).toBeTruthy();
-    const progress = midway.parts.map(part => {
+    // text or icons under a scale-projecting surface. Check every in-flight frame: the spring spends only
+    // ~59 ms between 35% and 70% progress, less than one headless frame gap, so one mid-band sample can be missed.
+    const progressOf = (frame: (typeof forward)[number]) => frame.parts.map(part => {
       const a = origins.find(entry => entry.key === part.key)!;
       const b = destinations.find(entry => entry.key === part.key)!;
       return (part.x - a.x) / (b.x - a.x);
     });
-    expect(Math.max(...progress) - Math.min(...progress)).toBeLessThan(.1);
+    const inFlight = forward.map(progressOf).filter(progress => progress[0] > .05 && progress[0] < .95);
+    expect(inFlight.length).toBeGreaterThan(0);
+    for (const progress of inFlight) expect(Math.max(...progress) - Math.min(...progress)).toBeLessThan(.1);
     expect(await page.evaluate(() => [...document.querySelectorAll('.shared-part[data-kind="surface"]')]
       .every(surface => !surface.querySelector('.shared-part[data-kind="text"], .shared-part[data-kind="icon"]')))).toBe(true);
     await page.screenshot({ path: info.outputPath(`${id}-desktop-rendered.png`), fullPage: true });

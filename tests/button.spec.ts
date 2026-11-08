@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { buttonLines, buttonParts, buttonSource, morphSpring, sharedId } from "../src/lib/lab/button";
 import { initialState, transition } from "../src/lib/lab/types";
+import { straddlesDivider } from "./motion";
 
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -89,9 +90,10 @@ test("desktop forward, reverse, in-flight reversal, stable geometry and focus", 
   await expect(page.getByRole("button", { name: "Morph to code" })).toBeFocused();
   const forward = await forwardSampling;
   expect(forward.some(frame => frame.x > start.x + 5 && frame.x < target.x - 5)).toBe(true);
-  const crossing = forward.filter(frame => frame.x < divider && frame.x + frame.width > divider);
-  expect(crossing.length).toBeGreaterThan(0);
-  expect(crossing.every(frame => frame.hit)).toBe(true);
+  // The surface must straddle the divider. Test the path between sampled frames as well as the frames,
+  // because the straddle window can be shorter than one headless frame (see straddlesDivider).
+  expect(straddlesDivider(forward, divider)).toBe(true);
+  expect(forward.filter(frame => frame.x < divider && frame.x + frame.width > divider).every(frame => frame.hit)).toBe(true);
   expect(forward.every(frame => frame.labelHit && frame.iconHit)).toBe(true);
   await settled(page, "rendered");
   const final = await box(page, '[data-part="surface"]');
