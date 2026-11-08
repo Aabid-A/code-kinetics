@@ -20,3 +20,13 @@ export const labScript = () => {
   w.labAll = selector => [...w.labRoot().querySelectorAll(selector)];
 };
 export const pointLabAt = (page: Page, id: LabId) => page.evaluate(value => { (window as unknown as { labCurrent: string }).labCurrent = value; }, id);
+
+// The hero asks GET /api/generate whether generation is configured, then POSTs prompts to the same URL. Mock both:
+// `configured` answers the GET; `post` answers each POST (default: the real route, which is unconfigured in tests).
+export async function mockGenerate(page: Page, options: { configured: boolean; post?: { status?: number; json: unknown } }) {
+  await page.route("**/api/generate", route => {
+    if (route.request().method() === "GET") return route.fulfill({ json: { configured: options.configured } });
+    if (options.post) return route.fulfill({ status: options.post.status ?? 200, json: options.post.json });
+    return route.continue();
+  });
+}

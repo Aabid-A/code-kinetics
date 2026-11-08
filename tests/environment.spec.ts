@@ -106,9 +106,10 @@ test("960 px is split and 959 px is stacked, with one layout tree, the same focu
       expect(await onDestination(page, id)).toBe(true);
     }
   }
-  // Page order: the page-level Sound control, the chapter index, then each chapter's View group, Morph action and disclosure.
-  expect(orders[0]).toEqual(["button:Sound off", "a:01 — Button", "a:02 — Toast", "a:03 — Bento", "a:04 — Card to page", "a:05 — How it knows",
-    "a:06 — Your turn", "radio:Code", "button:Morph to component", "summary:How the pieces match", "radio:Code", "button:Morph to component"]);
+  // Page order: the logotype, the page-level Sound control, the hero's action (See it work, because the test server
+  // has no key), the chapter index, then the first chapter's View group, Morph action and disclosure, and the next View group.
+  expect(orders[0]).toEqual(["a:Code Kinetics", "button:Sound off", "a:See it work", "a:01 — Button", "a:02 — Toast", "a:03 — Bento", "a:04 — Card to page",
+    "a:05 — How it knows", "radio:Code", "button:Morph to component", "summary:How the pieces match", "radio:Code"]);
   expect(orders[1]).toEqual(orders[0]);
 });
 
