@@ -82,7 +82,8 @@ button:disabled { cursor: default; }
   margin: 0; font-family: var(--font-display); font-weight: 400; letter-spacing: -.015em;
   line-height: 1.04; padding-bottom: .06em; text-wrap: balance;
 }
-.opening-title { font-size: 52px; }
+/* Scales with the width below 640 px so the title is one line in the fallback face too (it is about 26% wider than Instrument Serif); a wrap there would move everything below when the font arrives. */
+.opening-title { font-size: min(52px, 12.5vw); }
 .opening-title .stop { color: var(--accent); }
 .opening-sentence { margin: var(--s5) 0 0; color: var(--ink); font-size: 19px; line-height: 32px; text-wrap: pretty; }
 /* The action area reserves the tallest the prompt gets at each width (measured at 320, 390, 640, 768, 1024, 1280 px;
@@ -138,6 +139,8 @@ button:disabled { cursor: default; }
   .chapter[data-layout="side"] .chapter-body { grid-column: 5 / -1; grid-row: 1; }
   /* Chapter 03 flips: the sheet on the left, wide enough for Bento's two-column composition, the text on the right. */
   .chapter[data-layout="side-right"] .chapter-text { grid-column: 10 / -1; grid-row: 1; }
+  /* The flipped text column is three grid columns wide; a smaller title keeps "A whole layout" on one line instead of leaving one word alone. */
+  .chapter[data-layout="side-right"] .chapter-title { font-size: 52px; }
   .chapter[data-layout="side-right"] .chapter-body { grid-column: 1 / 10; grid-row: 1; }
 }
 .chapter-text[data-reveal] { transition: opacity 400ms ease-out, transform 400ms ease-out; }
