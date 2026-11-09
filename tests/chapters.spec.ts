@@ -116,10 +116,12 @@ test("below 1024 px the index is a plain inline list and the drafting rules are 
 
 test("opening entrance runs once under normal motion and not at all under reduced motion", async ({ page }) => {
   await page.goto("/");
-  const names = await page.evaluate(() => [".opening-title", ".opening-sentence", ".hero-action"].map(selector => getComputedStyle(document.querySelector(selector)!).animationName));
-  expect(names).toEqual(["enter", "enter", "enter"]);
+  // The hero's action fades in (opacity only) once the availability check has put its content on the page.
+  await expect(page.locator(".hero-fade")).toHaveCount(1);
+  const names = await page.evaluate(() => [".opening-title", ".opening-sentence", ".hero-fade"].map(selector => getComputedStyle(document.querySelector(selector)!).animationName));
+  expect(names).toEqual(["enter", "enter", "fade"]);
   // Total entrance is at most 400 ms (last delay + duration), and no lab piece animates on load.
-  const total = await page.evaluate(() => Math.max(...[".opening-title", ".opening-sentence", ".hero-action"].map(selector => {
+  const total = await page.evaluate(() => Math.max(...[".opening-title", ".opening-sentence", ".hero-fade"].map(selector => {
     const style = getComputedStyle(document.querySelector(selector)!);
     return parseFloat(style.animationDelay) * 1000 + parseFloat(style.animationDuration) * 1000;
   })));
@@ -127,7 +129,8 @@ test("opening entrance runs once under normal motion and not at all under reduce
   expect(await page.evaluate(() => document.querySelector(".lab")!.getAnimations({ subtree: true }).filter(animation => animation instanceof CSSAnimation).length)).toBe(0);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
-  const reduced = await page.evaluate(() => [".opening-title", ".opening-sentence", ".hero-action", ".chapter-text"].map(selector => getComputedStyle(document.querySelector(selector)!).animationName));
+  await expect(page.locator(".hero-fade")).toHaveCount(1);
+  const reduced = await page.evaluate(() => [".opening-title", ".opening-sentence", ".hero-fade", ".chapter-text"].map(selector => getComputedStyle(document.querySelector(selector)!).animationName));
   expect(reduced).toEqual(["none", "none", "none", "none"]);
   // Reveals are off too: every chapter's text is fully visible without scrolling to it.
   expect(await page.locator('[data-reveal="pending"]').count()).toBe(0);
