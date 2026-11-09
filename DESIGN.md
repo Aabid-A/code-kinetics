@@ -25,6 +25,8 @@ One idea per section, top to bottom. Plain, short, specific, warm. Every string 
 | 5 | How it knows | 05 — How it knows | How it *knows* | A labelled diagram (below), then: “Each piece has the same name on both sides: where it is written in the code, and where it appears in the component. The engine draws a line between the two and moves along it. In the implementation, that name is called `layoutId`.” |
 | 6 | Footer | none | none | One rule, then one row (stacked on phones): on the left the name “Spatial DOM Transition Lab” and “An interactive explainer of shared-element transitions.”; on the right the disclaimer “A visual demonstration with fixed examples. No code is compiled or run.” Beneath, one small muted line: the Gemini note, the type credits (Instrument Serif, Geist, Geist Mono) and Lucide. No heading. |
 
+Spacing and grid: page-level spacing uses one scale, 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 / 128 px (`--s1` … `--s10`); chapters are 128 px apart (96 on phones). The hero and “What this is” are 12-column grids like the chapters: the hero line spans 8 columns and the prompt 7 (760 px at the 1320 px maximum) from 1024 px; “What this is” text spans 7; the footer's name and disclaimer take 6 columns each. Headings use `text-wrap: balance` and paragraphs `text-wrap: pretty`, and a heading is sized so that it never leaves one word alone (the flipped Bento title is 52 px).
+
 Top bar: the logotype at the left and one Sound control at the right (“Sound off” / “Sound on”). Nothing else; 72 px tall, no border. The logotype is one link to the top of the page: a 20 px inline SVG (two 6.5 px rounded squares, ink strokes 1.5 px, joined by one curved line; the second square filled with the accent) and “Code Kinetics” in Instrument Serif, 22 px, ink, normal tracking, on one line at every width. The long name “Spatial DOM Transition Lab” is never in the top bar.
 
 Each lab keeps its own explanation line (“N mapped pieces · teaching sentence”) and the native “How the pieces match” disclosure, below its sheet. Avoid “compile”, “execute”, “transpile” and “generated component” for the fixed examples. Banned words: unlock, supercharge, seamless, career-ready, and any marketing claim.
@@ -91,7 +93,7 @@ Illustrations only; none is interactive. Content, mappings and copy are unchange
 
 ## Opening entrance and chapter reveal
 
-On first load only: the headline, then the one line (80 ms later), then the hero action (the prompt or “See it work”), each fading in with at most 10 px of upward travel, 160 ms each, 320 ms in total. Chapters further down reveal their text once as they enter the viewport (opacity and at most 12 px). None of this runs under reduced motion, and **no lab piece ever animates on load** (SPEC R01). The lab itself is never inside a revealed or transformed ancestor.
+On first load only: the headline, then the one line (80 ms later), then the hero action (the prompt or “See it work”, an opacity-only fade of 160 ms once the check has answered), each fading in with at most 10 px of upward travel, 160 ms each, 320 ms in total. Chapters further down reveal their text once as they enter the viewport (opacity and at most 12 px). None of this runs under reduced motion, and **no lab piece ever animates on load** (SPEC R01). The lab itself is never inside a revealed or transformed ancestor.
 
 ## Shared-layout visual construction
 

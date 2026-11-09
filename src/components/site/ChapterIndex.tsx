@@ -1,3 +1,5 @@
+import { SoftAnchor } from "./SoftAnchor";
+
 export const chapters = [
   { id: "button", number: "01", label: "Button" },
   { id: "toast", number: "02", label: "Toast" },
@@ -12,11 +14,11 @@ export function ChapterIndex() {
   return <nav className="chapter-index" aria-label="Chapters">
     <ol>
       {chapters.map(chapter => <li key={chapter.id}>
-        <a href={`#${chapter.id}`}>
+        <SoftAnchor href={`#${chapter.id}`}>
           <span className="chapter-index-number">{chapter.number}</span>
           <span className="sr-only"> — </span>
           <span className="chapter-index-label">{chapter.label}</span>
-        </a>
+        </SoftAnchor>
       </li>)}
     </ol>
   </nav>;
