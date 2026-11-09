@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { lab, mockGenerate } from "./lab";
+import { bringIntoView, lab, mockGenerate } from "./lab";
 import { measureContrast } from "./contrast";
 
 // The first screen, the top bar, the hero prompt and the footer (SPEC R01, R13; DESIGN "Narrative and copy").
@@ -206,3 +206,156 @@ for (const mode of ["configured", "not configured"] as const) {
     expect(samples.filter(sample => sample.ratio < sample.required).map(sample => `${sample.ratio}:1 < ${sample.required}:1 ${sample.selector} "${sample.text}"`)).toEqual([]);
   });
 }
+
+// ---- Stability: nothing moves unless the visitor caused it (SPEC R01) ----
+
+const heroBoxes = (page: Page) => page.evaluate(() => Object.fromEntries([".opening-title", ".opening-sentence", ".hero-action", ".opening"].map(selector => {
+  const box = document.querySelector(selector)!.getBoundingClientRect();
+  return [selector, [Math.round(box.x), Math.round(box.top + scrollY), Math.round(box.width), Math.round(box.height)]];
+})));
+
+for (const width of [320, 390, 640, 768, 1024, 1280, 1440]) {
+  test(`${width} px: the hero is the same height with the prompt, with See it work and while it checks`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    // Hold the availability answer so the "checking" state can be measured too.
+    let release: () => void = () => {};
+    const held = new Promise<void>(resolve => { release = resolve; });
+    await page.route("**/api/generate", async route => {
+      if (route.request().method() !== "GET") return route.continue();
+      await held;
+      return route.fulfill({ json: { configured: width % 2 === 0 } });
+    });
+    await page.goto("/");
+    await expect(page.locator(".hero-action")).toHaveAttribute("data-availability", "checking");
+    await settle(page); // the title and line's own 160 ms entrance (a transform) must be over before boxes are compared
+    const checking = await heroBoxes(page);
+    release();
+    await expect(page.locator(".hero-fade")).toHaveCount(1);
+    await settle(page);
+    const resolved = await heroBoxes(page);
+    expect(resolved).toEqual(checking); // nothing moved or resized when the check resolved
+    // And the other answer gives the same boxes, so the prompt always fits what is reserved.
+    await page.unroute("**/api/generate");
+    await mockGenerate(page, { configured: width % 2 !== 0 });
+    await page.reload();
+    await expect(page.locator(".hero-fade")).toHaveCount(1);
+    await settle(page);
+    expect(await heroBoxes(page)).toEqual(checking);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
+
+test("generating moves nothing in the hero, and Generate keeps its size while busy", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  let release: () => void = () => {};
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/generate", async route => {
+    if (route.request().method() === "GET") return route.fulfill({ json: { configured: true } });
+    await held;
+    return route.fulfill({ json: { spec: pricing } });
+  });
+  await page.goto("/");
+  await expect(prompt(page)).toBeVisible();
+  await settle(page);
+  const parts = () => page.evaluate(() => [".prompt-label", ".prompt-input", ".prompt-submit", ".prompt-status", ".prompt-suggestions", ".prompt-count", ".prompt-privacy", ".hero-secondary", ".opening-title"].map(selector => {
+    const box = document.querySelector(selector)!.getBoundingClientRect();
+    return [selector, Math.round(box.x), Math.round(box.top + scrollY), Math.round(box.width), Math.round(box.height)];
+  }));
+  await prompt(page).fill("a pricing card");
+  const idle = await parts();
+  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Generating…" })).toBeDisabled();
+  expect(await parts()).toEqual(idle); // busy: same positions and sizes
+  release();
+  await expect(lab(page, "custom")).toHaveAttribute("data-view-mode", "code");
+  expect(await parts()).toEqual(idle); // done: the status text changed, nothing else did
+});
+
+test("Generate shows its busy state within 100 ms of activation", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.route("**/api/generate", async route => {
+    if (route.request().method() === "GET") return route.fulfill({ json: { configured: true } });
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return route.fulfill({ json: { spec: pricing } });
+  });
+  await page.goto("/");
+  await expect(prompt(page)).toBeVisible();
+  await settle(page);
+  await prompt(page).fill("a pricing card");
+  const delay = page.evaluate(() => new Promise<number>(resolve => {
+    let started = 0;
+    document.addEventListener("click", () => { started = performance.now(); }, { capture: true, once: true });
+    const button = document.querySelector(".prompt-submit")!;
+    new MutationObserver(() => { if (button.textContent?.includes("Generating")) { resolve(performance.now() - started); } }).observe(button, { childList: true, subtree: true, characterData: true });
+  }));
+  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  expect(await delay).toBeLessThan(100);
+  await expect(page.locator("form.prompt-bar")).toHaveAttribute("aria-busy", "true");
+});
+
+test("Morph starts moving on the next frame", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(lab(page).locator(".morph-button")).toBeEnabled();
+  await bringIntoView(page);
+  const started = page.evaluate(() => new Promise<{ travelling: string | null; ms: number }>(resolve => {
+    const stage = document.querySelector('[data-lab="button"] .lab-stage')!;
+    let t0 = 0;
+    document.addEventListener("click", () => { t0 = performance.now(); }, { capture: true, once: true });
+    new MutationObserver(() => { if (stage.getAttribute("data-travelling") === "true") resolve({ travelling: "true", ms: performance.now() - t0 }); }).observe(stage, { attributes: true });
+    setTimeout(() => resolve({ travelling: stage.getAttribute("data-travelling"), ms: 999 }), 1000);
+  }));
+  await lab(page).getByRole("button", { name: "Morph to component" }).click();
+  const result = await started;
+  expect(result.travelling).toBe("true");
+  expect(result.ms).toBeLessThan(100);
+});
+
+test("See it work and the in-page links start scrolling at once (instantly under reduced motion)", async ({ page }) => {
+  await mockGenerate(page, { configured: false });
+  await page.goto("/");
+  const action = page.getByRole("link", { name: "See it work" });
+  await expect(action).toBeVisible();
+  const first = page.evaluate(() => new Promise<number>(resolve => {
+    const t0 = performance.now();
+    const check = () => { if (scrollY > 0) resolve(performance.now() - t0); else requestAnimationFrame(check); };
+    document.addEventListener("click", () => requestAnimationFrame(check), { capture: true, once: true });
+    setTimeout(() => resolve(999), 1000);
+  }));
+  await action.click();
+  expect(await first).toBeLessThan(100);
+  await expect(page).toHaveURL(/#button$/);
+  await expect.poll(() => page.evaluate(() => Math.round(document.getElementById("button")!.getBoundingClientRect().top)), { timeout: 4000 }).toBeLessThan(80);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("link", { name: "See it work" }).click();
+  // Reduced motion: the jump is complete by the next frame.
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  expect(await page.evaluate(() => Math.round(document.getElementById("button")!.getBoundingClientRect().top))).toBeLessThan(80);
+});
+
+test("no heading ends on a single orphaned word, at phone, tablet and desktop widths", async ({ page }) => {
+  await mockGenerate(page, { configured: true });
+  for (const width of [390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await expect(page.locator(".hero-fade")).toHaveCount(1);
+    const orphans = await page.evaluate(() => [...document.querySelectorAll("main h1, main h2")].flatMap(heading => {
+      const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+      const words: { text: string; top: number }[] = [];
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        for (const match of node.textContent!.matchAll(/\S+/g)) {
+          const range = document.createRange();
+          range.setStart(node, match.index!); range.setEnd(node, match.index! + match[0].length);
+          const rect = range.getClientRects()[0];
+          if (rect) words.push({ text: match[0], top: Math.round(rect.top) });
+        }
+      }
+      const tops = [...new Set(words.map(word => word.top))];
+      const lastLine = words.filter(word => word.top >= tops.at(-1)! - 2);
+      return tops.length > 1 && lastLine.length < 2 ? [`${heading.textContent}`] : [];
+    }));
+    expect(orphans, `${width}px`).toEqual([]);
+  }
+});
