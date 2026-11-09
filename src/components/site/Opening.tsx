@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { Lab } from "@/components/lab/Lab";
 import { PromptBar } from "@/components/lab/PromptBar";
+import { SoftAnchor } from "./SoftAnchor";
 import type { TemplateDefinition } from "@/lib/lab/templates";
 
 // The first screen: the title, one line, and the visitor's own idea as the primary action. Nothing plays and
@@ -32,12 +33,12 @@ export function Opening() {
     <section className="opening" aria-labelledby="opening-title" data-compact={generated ? "" : undefined}>
       <h1 id="opening-title" className="opening-title enter enter-1">Code has a shape<span className="stop">.</span></h1>
       <p className="opening-sentence enter enter-2">Describe a component. Watch its code become the thing itself.</p>
-      <div className="hero-action enter enter-3" data-availability={availability}>
-        {availability === "ready" ? <>
+      <div className="hero-action" data-availability={availability}>
+        {availability === "ready" ? <div className="hero-fade">
           <PromptBar ready={ready} onGenerated={definition => setGenerated(previous => ({ definition, count: (previous?.count ?? 0) + 1 }))} />
-          <a className="hero-secondary" href="#what-this-is">Or see how it works <span aria-hidden="true">↓</span></a>
-        </> : null}
-        {availability === "unavailable" ? <a className="hero-primary" href="#button">See it work</a> : null}
+          <SoftAnchor className="hero-secondary" href="#what-this-is">Or see how it works <span aria-hidden="true">↓</span></SoftAnchor>
+        </div> : null}
+        {availability === "unavailable" ? <div className="hero-fade"><SoftAnchor className="hero-primary" href="#button">See it work</SoftAnchor></div> : null}
         <noscript><a className="hero-primary" href="#button">See it work</a></noscript>
       </div>
     </section>

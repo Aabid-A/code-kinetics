@@ -61,13 +61,13 @@ export function PromptBar({ ready, onGenerated }: { ready: boolean; onGenerated:
           <Sparkles size={18} strokeWidth={1.75} aria-hidden="true" />{busy ? "Generating…" : "Generate"}
         </button>
       </div>
+      <p className="prompt-status" id={`${base}-status`} aria-live="polite" aria-atomic="true" data-failed={failed || undefined}>{message}</p>
       <div className="prompt-suggestions" role="group" aria-label="Suggestions">
         {suggestions.map(text => <button key={text} type="button" className="pill prompt-suggestion" disabled={!ready || busy}
           onClick={() => { setPrompt(text); void generate(text); }}>{text}</button>)}
       </div>
       <p className="prompt-count" id={`${base}-count`}>{prompt.length} / {limits.prompt} characters</p>
       <p className="prompt-privacy" id={`${base}-privacy`}>Your description is sent to Google Gemini to create the example. Don&rsquo;t include personal information.</p>
-      <p className="prompt-status" id={`${base}-status`} aria-live="polite" aria-atomic="true" data-failed={failed || undefined}>{message}</p>
     </form>
   </div>;
 }

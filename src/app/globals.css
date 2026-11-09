@@ -20,6 +20,8 @@
   --code-muted: #A8A396;
   --code-tag: #F0B48F;
   --code-attr: #D9C27F;
+  /* One spacing scale (px): 4 8 12 16 24 32 48 64 96 128. Page rhythm uses these; component internals may use 2/6/10. */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px; --s9: 96px; --s10: 128px;
   --gutter: 32px;
   --measure: 68ch;
   --sheet-shadow: 0 24px 60px -30px rgb(27 26 23 / 0.12);
@@ -68,20 +70,28 @@ button:disabled { cursor: default; }
 }
 
 /* Opening ----------------------------------------------------------------- */
-/* The hero owns the first screen, so the progressive layer starts below the fold. Once a generated lab sits under
-   it, the hero stops holding the full height and the lab follows directly. */
-.opening { min-height: calc(100vh - 72px); min-height: calc(100svh - 72px); padding-top: clamp(24px, 7vh, 80px); padding-bottom: 48px; }
+/* The hero owns the first screen on the page's 12-column grid, so the progressive layer starts below the fold. Its
+   height is the same whether the prompt or "See it work" is shown (and while the check runs), and content is top
+   aligned, so nothing moves when the check resolves. Once a generated lab sits under it, the hero stops holding the
+   full height and the lab follows directly. */
+.opening, .intro { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--s5); align-content: start; }
+.opening > *, .intro > * { grid-column: 1 / -1; min-width: 0; }
+.opening { min-height: calc(100vh - 72px); min-height: calc(100svh - 72px); padding-top: var(--s6); padding-bottom: var(--s7); }
 .opening[data-compact] { min-height: 0; padding-bottom: 0; }
-.opening-title, .chapter-title {
+.opening-title, .chapter-title, .intro-title {
   margin: 0; font-family: var(--font-display); font-weight: 400; letter-spacing: -.015em;
   line-height: 1.04; padding-bottom: .06em; text-wrap: balance;
 }
 .opening-title { font-size: 52px; }
 .opening-title .stop { color: var(--accent); }
-.opening-sentence { max-width: 36em; margin: 20px 0 0; color: var(--ink); font-size: 21px; line-height: 32px; }
-.hero-action { display: grid; justify-items: start; gap: 20px; min-height: 56px; margin-top: 40px; }
+.opening-sentence { margin: var(--s5) 0 0; color: var(--ink); font-size: 19px; line-height: 32px; text-wrap: pretty; }
+/* The action area reserves the tallest the prompt gets at each width (measured at 320, 390, 640, 768, 1024, 1280 px;
+   tests/hero.spec.ts keeps these honest), so the hero is the same height with the prompt, with "See it work" and
+   while the availability check runs: nothing moves when it resolves. */
+.hero-action { display: grid; align-content: start; justify-items: start; gap: var(--s5); margin-top: var(--s6); min-height: 540px; }
+.hero-fade { display: grid; justify-items: start; gap: var(--s5); width: 100%; }
 .hero-primary {
-  display: inline-flex; justify-content: center; align-items: center; min-height: 56px; padding: 0 28px;
+  display: inline-flex; justify-content: center; align-items: center; min-height: 56px; padding: 0 var(--s6);
   border: 1px solid var(--accent); border-radius: 10px; background: var(--accent); color: #fff;
   font-size: 17px; line-height: 24px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: filter 100ms;
 }
@@ -89,32 +99,41 @@ button:disabled { cursor: default; }
 .hero-primary:active { filter: brightness(.8); }
 .hero-secondary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); font-size: 15px; font-weight: 500; text-decoration: underline; text-decoration-color: var(--ink-muted); text-underline-offset: 4px; }
 .hero-secondary:hover { text-decoration-color: var(--ink); }
-.hero-result { margin-top: 56px; }
-.intro { margin-top: 48px; }
-.intro-title { margin: 0; font-family: var(--font-display); font-size: 44px; font-weight: 400; letter-spacing: -.015em; line-height: 48px; }
-.intro-text { max-width: 36em; margin: 20px 0 0; color: var(--ink); font-size: 19px; line-height: 30px; }
+.hero-result { margin-top: var(--s8); }
+.intro { margin-top: var(--s7); }
+.intro-title { font-size: 44px; }
+.intro-text { margin: var(--s5) 0 0; color: var(--ink); font-size: 19px; line-height: 30px; text-wrap: pretty; }
 
 @media (prefers-reduced-motion: no-preference) {
   .enter { animation: enter 160ms ease-out both; }
   .enter-2 { animation-delay: 80ms; }
   .enter-3 { animation-delay: 160ms; }
+  .hero-fade { animation: fade 160ms ease-out both; }
 }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* Chapters ---------------------------------------------------------------- */
-.chapter { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; margin-top: 136px; }
-.intro + .chapter { margin-top: 112px; }
+.chapter { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: var(--s6); margin-top: var(--s10); }
+.intro + .chapter { margin-top: var(--s9); }
 .chapter-text, .chapter-body { grid-column: 1 / -1; min-width: 0; }
 .chapter-text { max-width: var(--measure); }
 .eyebrow { margin: 0; color: var(--ink-muted); font: 500 12px/18px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .eyebrow-number { color: var(--accent); }
 .chapter-title { margin-top: 12px; font-size: 44px; }
 .chapter-title em { font-style: italic; }
-.chapter-caption { margin: 20px 0 0; color: var(--ink-muted); }
+.chapter-caption { margin: var(--s5) 0 0; color: var(--ink-muted); text-wrap: pretty; }
 
-@media (min-width: 640px) { .opening-title { font-size: 72px; } .chapter-title { font-size: 56px; } }
-@media (min-width: 1024px) { .opening-title { font-size: 104px; } .chapter-title { font-size: 72px; } }
+@media (min-width: 640px) { .opening-title { font-size: 72px; } .chapter-title { font-size: 56px; } .intro-title { font-size: 56px; } .opening { padding-top: var(--s7); } .opening-sentence { font-size: 21px; } .hero-action { margin-top: var(--s7); min-height: 380px; } }
+@media (min-width: 1024px) {
+  .opening-title { font-size: 104px; } .chapter-title { font-size: 72px; } .intro-title { font-size: 72px; }
+  .opening { padding-top: var(--s8); }
+  .opening-sentence { grid-column: 1 / span 8; }
+  .hero-action { grid-column: 1 / span 7; }
+  .intro-title, .intro-text { grid-column: 1 / span 7; }
+}
 @media (min-width: 1280px) {
+  .hero-action { min-height: 328px; }
   .chapter[data-layout="side"] .chapter-text { grid-column: 1 / 5; grid-row: 1; }
   .chapter[data-layout="side"] .chapter-body { grid-column: 5 / -1; grid-row: 1; }
   /* Chapter 03 flips: the sheet on the left, wide enough for Bento's two-column composition, the text on the right. */
@@ -277,25 +296,25 @@ summary::marker { color: var(--ink-muted); }
 .lab-error button { padding: 0 16px; border: 1px solid var(--ink-muted); border-radius: 10px; background: var(--paper-raised); color: var(--ink); }
 
 /* "Try your own": the generate feature (custom controls; flat input). */
-.hero-prompt { width: min(760px, 100%); }
-.prompt-bar { display: grid; gap: 10px; }
+.hero-prompt { width: 100%; }
+.prompt-bar { display: grid; gap: var(--s3); }
 .prompt-label { color: var(--ink); font-size: 15px; line-height: 22px; font-weight: 500; }
 .prompt-row { display: flex; gap: 12px; align-items: center; }
-.prompt-submit { min-height: 56px; padding-inline: 22px; }
+.prompt-submit { justify-content: center; min-width: 176px; min-height: 56px; padding-inline: 22px; } /* wide enough for “Generating…”, so the input beside it never resizes */
 .prompt-input { flex: 1; min-width: 0; min-height: 56px; padding: 0 18px; font-size: 17px; border: 1px solid var(--ink-muted); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; }
 .prompt-input::placeholder { color: var(--ink-muted); }
 .prompt-input:disabled { border-color: var(--rule); }
 .prompt-input[aria-invalid="true"] { border-color: #9B1C1C; }
 .prompt-count { margin: 0; color: var(--ink-muted); font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
 .prompt-privacy { margin: 0; color: var(--ink-muted); font-size: 13px; line-height: 18px; max-width: 68ch; }
-.prompt-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.prompt-suggestions { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .prompt-suggestion { font-size: 14px; }
-.prompt-status { min-height: 22px; margin: 0; color: var(--ink-muted); font-size: 15px; line-height: 22px; }
+.prompt-status { min-height: 22px; text-wrap: pretty; margin: 0; color: var(--ink-muted); font-size: 15px; line-height: 22px; }
 .prompt-status[data-failed] { color: #9B1C1C; }
 
 /* Contents: the five chapters as one quiet line under the opening; it stays in the page flow. */
-.chapter-index { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--rule); }
-.chapter-index ol { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 0; padding: 0; list-style: none; }
+.chapter-index { margin-top: var(--s6); padding-top: var(--s4); border-top: 1px solid var(--rule); }
+.chapter-index ol { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s5); margin: 0; padding: 0; list-style: none; }
 .chapter-index a {
   display: inline-flex; align-items: baseline; gap: 10px; min-height: 44px; padding: 10px 0;
   color: var(--ink); font-size: 15px; line-height: 24px; font-weight: 500; text-decoration: none;
@@ -368,13 +387,16 @@ summary::marker { color: var(--ink-muted); }
 .diagram code { color: var(--ink); font: 500 .92em var(--font-mono); }
 
 /* Footer */
-.site-footer { display: grid; gap: 16px; margin-top: 136px; padding-top: 28px; border-top: 1px solid var(--rule); color: var(--ink-muted); font-size: 14px; line-height: 22px; }
-.site-footer p { margin: 0; }
-.footer-row { display: grid; gap: 16px 48px; }
+.site-footer { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--s5); row-gap: var(--s4); margin-top: var(--s10); padding-top: var(--s6); border-top: 1px solid var(--rule); color: var(--ink-muted); font-size: 14px; line-height: 22px; }
+.site-footer p { margin: 0; text-wrap: pretty; }
+.footer-row { display: contents; }
+.footer-about, .footer-disclaimer, .footer-credits { grid-column: 1 / -1; min-width: 0; }
 .footer-name { color: var(--ink); font-weight: 500; }
-.footer-disclaimer { max-width: 40ch; }
 .footer-credits { font-size: 13px; line-height: 20px; }
-@media (min-width: 768px) { .footer-row { grid-template-columns: 1fr auto; align-items: start; } .footer-disclaimer { text-align: right; } }
+@media (min-width: 768px) {
+  .footer-about { grid-column: 1 / span 6; }
+  .footer-disclaimer { grid-column: 7 / -1; text-align: right; }
+}
 
 /* Responsive */
 @media (max-width: 1279px) {
@@ -387,14 +409,14 @@ summary::marker { color: var(--ink-muted); }
 }
 @media (max-width: 639px) {
   :root { --gutter: 16px; }
-  .chapter { margin-top: 112px; row-gap: 24px; }
+  .chapter { margin-top: var(--s9); row-gap: var(--s5); }
   .lab-sheet { padding: 12px; }
   .lab-toolbar { padding: 4px 4px 12px; }
   .morph-button, .hero-primary { width: 100%; }
   .mode-control { width: 100%; justify-content: space-between; }
   .code-chrome, .preview-heading { padding-inline: 16px; }
   .code-chrome::before { inset-inline: 16px; }
-  .site-footer { margin-top: 112px; }
+  .site-footer { margin-top: var(--s9); }
   .code-content { min-height: 164px; padding: 20px 16px; }
   .code-line { gap: 12px; }
   .preview-content { padding: 16px; }
@@ -402,8 +424,7 @@ summary::marker { color: var(--ink-muted); }
   .mapping-explanation strong { display: block; margin-bottom: 4px; }
   .prompt-row { flex-direction: column; align-items: stretch; }
   .logotype-name { font-size: 20px; }
-  .opening-sentence { font-size: 19px; }
-  .hero-action { margin-top: 32px; }
+  .prompt-status { min-height: 44px; } /* two lines: the longest message wraps at phone width, and nothing below may move */
 }
 
 @media (prefers-reduced-motion: reduce) { .preview-instruction, .preview-card-glass { transition: none; } }
