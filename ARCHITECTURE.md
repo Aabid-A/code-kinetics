@@ -40,6 +40,7 @@ src/components/site/
   TopBar.tsx                  # Logotype link and the one Sound control
   Logotype.tsx                # 20 px inline SVG mark and “Code Kinetics”, one link to #top
   Opening.tsx                 # Hero (client): h1, one line, availability check, PromptBar or “See it work”, and the generated lab under it
+  SoftAnchor.tsx              # In-page link: smooth scroll (instant under reduced motion), updates the address
   Intro.tsx                   # “What this is”: the why-it-matters paragraph and the contents
   Chapter.tsx                 # Eyebrow, serif title, caption, body; layout variants
   ChapterIndex.tsx            # Contents: five labelled anchor links in the page flow inside “What this is”
